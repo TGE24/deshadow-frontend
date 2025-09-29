@@ -191,7 +191,7 @@ const Layout = ({ children }: Props) => {
 
 			{/* Main content area */}
 			<div className="flex-1 flex flex-col bg-[#FBFBFF] overflow-hidden">
-				<nav className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0">
+				<nav className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0 sticky top-0">
 					<div className="flex items-center justify-between lg:max-w-[70dvw]">
 						<div className="hidden lg:block">
 							<h1 className="text-[20px] font-bold">Good Morning, Samuel 👋🏽</h1>
@@ -216,7 +216,7 @@ const Layout = ({ children }: Props) => {
 					</div>
 				</nav>
 				<div className="flex-1 overflow-y-auto lg:p-[20px] xl:p-[34px_38px_38px_38px]">
-					<main className="bg-white p-[20px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">
+					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">
 						{children}
 					</main>
 				</div>
