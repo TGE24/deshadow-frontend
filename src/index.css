@@ -66,3 +66,21 @@ body {
 		background-color: #f9f9f9;
 	}
 } */
+
+.react-datepicker-wrapper {
+	width: 218px !important;
+	border: 1px solid #e4e4e4 !important;
+	border-radius: 10px !important;
+	height: 48px !important;
+}
+
+.react-datepicker__input-container {
+	display: flex !important;
+	align-items: center !important;
+	padding-inline: 8px !important;
+	height: 100% !important;
+}
+
+.react-responsive-modal-modal {
+	margin: 0 !important;
+}

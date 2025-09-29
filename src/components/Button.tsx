@@ -3,11 +3,12 @@ import { cn } from "../utils/cn";
 import { Link, To } from "react-router-dom";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	variant?: "primary" | "secondary" | "transparent" | "outline";
+	variant?: "primary" | "secondary" | "transparent" | "outline" | "tetriary";
 	as?: "button" | "link" | "download";
 	to?: To;
 	icon?: ReactNode;
 	children?: ReactNode;
+	size?: "small" | "large";
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -17,6 +18,7 @@ const Button: React.FC<ButtonProps> = ({
 	to,
 	children,
 	icon,
+	size,
 	...rest
 }) => {
 	switch (as) {
@@ -25,7 +27,7 @@ const Button: React.FC<ButtonProps> = ({
 				<button
 					className={cn(
 						{
-							"bg-[#278783] text-[#FFEBD0]": variant === "primary",
+							"bg-[#278783] text-white": variant === "primary",
 						},
 						{
 							"bg-[#ffffff] text-[#1A1A1A] border-[#ffffff]":
@@ -35,7 +37,15 @@ const Button: React.FC<ButtonProps> = ({
 							"bg-transparent text-white hover:bg-white hover:text-[#a9a8a8] border-[#ffffff]":
 								variant === "transparent",
 						},
-						"text-[16px] transition-all duration-200 ease-in-out cursor-pointer border-[1px] rounded-[10px] h-[48px] flex items-center justify-center gap-[8px] font-normal",
+						{
+							"bg-[#EBEBEB] text-[#282828] border-[#B9B9B9]":
+								variant === "tetriary",
+						},
+						{
+							"text-[14px] px-[13px] h-[42px]": size === "small",
+							"text-[16px] h-[48px]": size === "large",
+						},
+						"transition-all duration-200 ease-in-out cursor-pointer border-[1px] rounded-[10px] flex items-center justify-center gap-[8px] font-normal font-sfpro",
 						className
 					)}
 					{...rest}
@@ -50,8 +60,7 @@ const Button: React.FC<ButtonProps> = ({
 					to={to ?? ""}
 					className={cn(
 						{
-							"bg-[#1A1A1A] text-white hover:bg-white hover:text-[#1A1A1A] border-[#1A1A1A]":
-								variant === "primary",
+							"bg-[#278783] text-white": variant === "primary",
 						},
 						{
 							"bg-[#ffffff] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#ffffff] border-[#ffffff]":

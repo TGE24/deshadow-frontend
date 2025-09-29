@@ -44,7 +44,7 @@ const Login = () => {
 						type="password"
 					/>
 				</div>
-				<Button variant="primary" className="w-full mt-[48px]">
+				<Button variant="primary" size="large" className="w-full mt-[48px]">
 					SIGN IN
 				</Button>
 				<Button as="link" variant="outline" className="w-full mt-[16px]">
