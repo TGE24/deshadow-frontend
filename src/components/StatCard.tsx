@@ -27,10 +27,8 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
 	return (
 		<div
-			className={cn(
-				`bg-[${bgColor}] rounded-[15px] py-[22px] px-[16px]`,
-				className
-			)}
+			className={cn("rounded-[15px] py-[22px] px-[16px]", className)}
+			style={{ backgroundColor: bgColor }}
 			{...rest}
 		>
 			<h3 className="text-[#278783] font-bold text-[14px] mb-[21px]">

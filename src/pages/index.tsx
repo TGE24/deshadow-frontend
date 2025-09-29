@@ -14,10 +14,10 @@ const Login = () => {
 					Please enter your details to sign in your account
 				</p>
 				<div className="mt-[24px] flex flex-col gap-[16px]">
-					<Button variant="secondary" icon={<Goolgle />}>
+					<Button size="large" variant="secondary" icon={<Goolgle />}>
 						Continue with Google
 					</Button>
-					<Button variant="secondary" icon={<Apple />}>
+					<Button size="large" variant="secondary" icon={<Apple />}>
 						Continue with Apple
 					</Button>
 				</div>
