@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import StatCard from "../components/StatCard";
@@ -152,15 +152,15 @@ const columns = [
 
 const Dashboard = () => {
 	const [open, setOpen] = useState(false);
-	const [startDate, setStartDate] = useState(new Date());
-	const [endDate, setEndDate] = useState(addDays(new Date(), 3));
+	const [startDate] = useState(new Date());
+	const [endDate] = useState(addDays(new Date(), 3));
 
-	const onChange = (dates) => {
-		const [start, end] = dates;
-		setStartDate(start);
-		setEndDate(end);
-	};
-	const [data, _setData] = useState(() => [...defaultData]);
+	// const onChange = (dates) => {
+	// 	const [start, end] = dates;
+	// 	setStartDate(start);
+	// 	setEndDate(end);
+	// };
+	const [data] = useState(() => [...defaultData]);
 
 	const table = useReactTable({
 		data,
@@ -217,7 +217,7 @@ const Dashboard = () => {
 					<div className="flex items-center gap-[16px]">
 						<DatePicker
 							selected={startDate}
-							onChange={onChange}
+							// onChange={onChange}
 							startDate={startDate}
 							endDate={endDate}
 							selectsRange
