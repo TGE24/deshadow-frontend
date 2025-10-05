@@ -8,7 +8,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { Link } from "react-router-dom";
 
-const AvatarDropdown: React.FC<User> = ({ firstName, lastName, email }) => {
+const AvatarDropdown: React.FC<Partial<User>> = ({
+	firstName,
+	lastName,
+	email,
+}) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { logout } = useAuth();
 
@@ -24,8 +28,8 @@ const AvatarDropdown: React.FC<User> = ({ firstName, lastName, email }) => {
 				className="bg-[#278783] text-white size-[48px] rounded-full flex items-center justify-center cursor-pointer font-medium text-[20px]"
 				onClick={() => setIsOpen(!isOpen)}
 			>
-				{firstName.charAt(0).toUpperCase()}
-				{lastName.charAt(0).toUpperCase()}
+				{firstName?.charAt(0).toUpperCase()}
+				{lastName?.charAt(0).toUpperCase()}
 			</div>
 			{isOpen && (
 				<div
@@ -34,8 +38,8 @@ const AvatarDropdown: React.FC<User> = ({ firstName, lastName, email }) => {
 				>
 					<div className="flex gap-[12px]">
 						<div className="bg-[#278783] text-white size-[39px] rounded-full flex items-center justify-center cursor-pointer font-medium text-[16px]">
-							{firstName.charAt(0).toUpperCase()}
-							{lastName.charAt(0).toUpperCase()}
+							{firstName?.charAt(0).toUpperCase()}
+							{lastName?.charAt(0).toUpperCase()}
 						</div>
 						<div>
 							<p className="text-[16px] font-semibold">

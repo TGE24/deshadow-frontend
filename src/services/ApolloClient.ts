@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, from } from "@apollo/client";
 import { RetryLink } from "@apollo/client/link/retry";
 import { setContext } from "@apollo/client/link/context";
-import UploadHttpLink from "apollo-upload-client/UploadHttpLink.mjs";
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 
 const retryLink = new RetryLink({
 	delay: {
@@ -27,7 +27,7 @@ const authLink = setContext((_, { headers }) => {
 	};
 });
 
-const uploadLink = new UploadHttpLink({
+const uploadLink = createUploadLink({
 	uri: import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL,
 	credentials: "include",
 });

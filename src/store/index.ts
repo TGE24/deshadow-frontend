@@ -3,8 +3,8 @@ import { User } from "../generated/graphql";
 import { persist } from "zustand/middleware";
 
 export type UserStore = {
-	user: User | null;
-	setUser: (user: User | null) => void;
+	user: Partial<User> | null;
+	setUser: (user: Partial<User> | null) => void;
 };
 
 export const useUserStore = create<UserStore>()(

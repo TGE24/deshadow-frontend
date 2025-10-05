@@ -215,7 +215,7 @@ const Layout = ({ children }: Props) => {
 							<div className="border-[1px] border-[#F2F2FE] border-solid size-[48px] rounded-full cursor-pointer flex items-center justify-center">
 								<Notifications />
 							</div>
-							<AvatarDropdown {...user!} />
+							<AvatarDropdown {...user} />
 						</div>
 					</div>
 				</nav>

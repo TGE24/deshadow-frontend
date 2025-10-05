@@ -4,7 +4,7 @@ import "./index.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "react-responsive-modal/styles.css";
 import App from "./App.tsx";
-import { ApolloProvider } from "@apollo/client/react";
+import { ApolloProvider } from "@apollo/client";
 import client from "./services/ApolloClient.ts";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 
