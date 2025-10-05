@@ -11,6 +11,9 @@ import Brands from "../../components/Icons/Brands";
 import Category from "../../components/Icons/Category";
 import Attribute from "../../components/Icons/Attribute";
 import Menu from "../../components/Icons/Menu";
+import { useUserStore } from "../../store";
+import AvatarDropdown from "../../components/AvatarDropdown";
+import Notifications from "../../components/Icons/Notifications";
 
 type Props = {
 	children?: ReactNode;
@@ -18,6 +21,7 @@ type Props = {
 };
 
 const Layout = ({ children }: Props) => {
+	const { user } = useUserStore();
 	const location = useLocation();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -194,7 +198,9 @@ const Layout = ({ children }: Props) => {
 				<nav className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0 sticky top-0">
 					<div className="flex items-center justify-between lg:max-w-[70dvw]">
 						<div className="hidden lg:block">
-							<h1 className="text-[20px] font-bold">Good Morning, Samuel 👋🏽</h1>
+							<h1 className="text-[20px] font-bold">
+								Good Morning, {user?.firstName} 👋🏽
+							</h1>
 							<p className="text-[#6A6A6A] text-[14px]">
 								Real time insight on your store performance
 							</p>
@@ -207,11 +213,9 @@ const Layout = ({ children }: Props) => {
 						</button>
 						<div className="flex items-center gap-[8px]">
 							<div className="border-[1px] border-[#F2F2FE] border-solid size-[48px] rounded-full cursor-pointer flex items-center justify-center">
-								<Settings />
+								<Notifications />
 							</div>
-							<div className="bg-[#278783] text-white size-[48px] rounded-full flex items-center justify-center cursor-pointer font-medium text-[20px]">
-								SJ
-							</div>
+							<AvatarDropdown {...user!} />
 						</div>
 					</div>
 				</nav>

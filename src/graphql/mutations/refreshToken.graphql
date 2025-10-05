@@ -1,0 +1,22 @@
+mutation RefreshToken($refreshToken: String!) {
+	refreshToken(refreshToken: $refreshToken) {
+		accessToken
+		refreshToken
+		user {
+			uuid
+			role
+			email
+			phone
+			lastName
+			isActive
+			firstName
+			ownedStores {
+				name
+			}
+			engineerProfile {
+				uuid
+				rating
+			}
+		}
+	}
+}

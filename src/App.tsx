@@ -5,6 +5,7 @@ import Dashboard from "./pages/dashboard";
 import Invoice from "./pages/invoice";
 import Receipt from "./pages/receipt";
 import Credit from "./pages/credit";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
 	return (
@@ -14,14 +15,16 @@ function App() {
 				<Route
 					path="/*"
 					element={
-						<Layout>
-							<Routes>
-								<Route path="/dashboard" element={<Dashboard />} />
-								<Route path="/invoice" element={<Invoice />} />
-								<Route path="/invoice/:id" element={<Receipt />} />
-								<Route path="/credit" element={<Credit />} />
-							</Routes>
-						</Layout>
+						<ProtectedRoute>
+							<Layout>
+								<Routes>
+									<Route path="/dashboard" element={<Dashboard />} />
+									<Route path="/invoice" element={<Invoice />} />
+									<Route path="/invoice/:id" element={<Receipt />} />
+									<Route path="/credit" element={<Credit />} />
+								</Routes>
+							</Layout>
+						</ProtectedRoute>
 					}
 				/>
 			</Routes>

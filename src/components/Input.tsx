@@ -2,14 +2,26 @@ import React, { useState } from "react";
 import { cn } from "../utils/cn";
 import Search from "./Icons/Search";
 
-const Input: React.FC<{
+type InputType = React.InputHTMLAttributes<HTMLInputElement> & {
+	register?: any;
+	errors?: any;
+	optional?: boolean;
 	label?: string;
 	placeholder: string;
-	name: string;
-	id: string;
 	type?: string;
 	variant?: "primary" | "search" | "secondary";
-}> = ({ label, placeholder, name, id, type, variant = "primary" }) => {
+};
+
+const Input: React.FC<InputType> = ({
+	label,
+	placeholder,
+	name,
+	id,
+	type,
+	variant = "primary",
+	register,
+	errors,
+}) => {
 	const [isFocused, setIsFocused] = useState(false);
 
 	return (
@@ -45,8 +57,12 @@ const Input: React.FC<{
 					type={type}
 					onFocus={() => setIsFocused(true)}
 					onBlur={() => setIsFocused(false)}
+					{...register}
 				/>
 			</div>
+			{errors && (
+				<p className="text-coral-punch text-[12px] mt-1">{errors.message}</p>
+			)}
 		</div>
 	);
 };

@@ -1,0 +1,24 @@
+mutation Login($input: LoginInput!) {
+	login(input: $input) {
+		accessToken
+		refreshToken
+		user {
+			uuid
+			role
+			email
+			phone
+			lastName
+			isActive
+			firstName
+			createdAt
+			updatedAt
+			ownedStores {
+				name
+			}
+			engineerProfile {
+				uuid
+				rating
+			}
+		}
+	}
+}
