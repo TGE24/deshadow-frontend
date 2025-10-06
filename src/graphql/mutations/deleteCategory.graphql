@@ -1,0 +1,3 @@
+mutation DeleteCategory($uuid: UUID!) {
+	deleteCategory(uuid: $uuid)
+}

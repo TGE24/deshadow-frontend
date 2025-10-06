@@ -1,0 +1,26 @@
+query Categories($pagination: PaginationInput) {
+	categories(pagination: $pagination) {
+		edges {
+			node {
+				__typename
+				... on Category {
+					uuid
+					name
+					description
+					createdAt
+					status
+					parent {
+						name
+					}
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

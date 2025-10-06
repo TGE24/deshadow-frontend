@@ -45,7 +45,7 @@ const Button: React.FC<ButtonProps> = ({
 							"text-[14px] px-[13px] h-[42px]": size === "small",
 							"text-[16px] h-[48px]": size === "large",
 						},
-						"transition-all duration-200 ease-in-out cursor-pointer border-[1px] rounded-[10px] flex items-center justify-center gap-[8px] font-normal font-sfpro",
+						"transition-all duration-200 ease-in-out cursor-pointer border-[1px] rounded-[10px] flex items-center justify-center gap-[8px] font-normal font-sfpro disabled:opacity-50 disabled:cursor-not-allowed",
 						className
 					)}
 					{...rest}

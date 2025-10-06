@@ -10,15 +10,15 @@ const Search = () => {
 			<path
 				d="M12.75 12.75L15.75 15.75"
 				stroke="#949494"
-				stroke-width="1.125"
-				stroke-linecap="round"
+				strokeWidth="1.125"
+				strokeLinecap="round"
 				stroke-linejoin="round"
 			/>
 			<path
 				d="M14.25 8.25C14.25 4.93629 11.5637 2.25 8.25 2.25C4.93629 2.25 2.25 4.93629 2.25 8.25C2.25 11.5637 4.93629 14.25 8.25 14.25C11.5637 14.25 14.25 11.5637 14.25 8.25Z"
 				stroke="#949494"
-				stroke-width="1.125"
-				stroke-linecap="round"
+				strokeWidth="1.125"
+				strokeLinecap="round"
 				stroke-linejoin="round"
 			/>
 		</svg>

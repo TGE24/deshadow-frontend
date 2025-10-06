@@ -1,0 +1,12 @@
+mutation CreateCategory($input: CategoryInput!) {
+	createCategory(input: $input) {
+		uuid
+		name
+		parent {
+			name
+		}
+		products {
+			name
+		}
+	}
+}

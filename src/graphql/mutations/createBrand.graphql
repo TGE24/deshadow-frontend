@@ -1,0 +1,11 @@
+mutation CreateBrand($input: BrandInput!) {
+	createBrand(input: $input) {
+		uuid
+		name
+		logoUrl
+		isActive
+		updatedAt
+		createdAt
+		description
+	}
+}

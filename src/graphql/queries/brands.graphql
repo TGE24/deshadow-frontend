@@ -1,0 +1,29 @@
+query Brands($pagination: PaginationInput) {
+	brands(pagination: $pagination) {
+		edges {
+			node {
+				__typename
+				... on Brand {
+					uuid
+					name
+					logoUrl
+					isActive
+					products {
+						uuid
+						name
+					}
+					updatedAt
+					createdAt
+					description
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

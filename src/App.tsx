@@ -6,6 +6,8 @@ import Invoice from "./pages/invoice";
 import Receipt from "./pages/receipt";
 import Credit from "./pages/credit";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Category from "./pages/category";
+import Brand from "./pages/brand";
 
 function App() {
 	return (
@@ -22,6 +24,8 @@ function App() {
 									<Route path="/invoice" element={<Invoice />} />
 									<Route path="/invoice/:id" element={<Receipt />} />
 									<Route path="/credit" element={<Credit />} />
+									<Route path="/category" element={<Category />} />
+									<Route path="/brands" element={<Brand />} />
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

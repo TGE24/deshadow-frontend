@@ -28,7 +28,7 @@ const Input: React.FC<InputType> = ({
 		<div>
 			{label && (
 				<label
-					className="text-[14px] text-black font-normal mb-[6px] block font-sfpro"
+					className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
 					htmlFor={id}
 				>
 					{label}
@@ -48,7 +48,7 @@ const Input: React.FC<InputType> = ({
 				{variant === "search" && !isFocused && <Search />}
 				<input
 					className={cn(
-						"h-full rounded-[10px] w-full bg-white pl-[16px] placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none",
+						"h-full rounded-[10px] w-full bg-white placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none",
 						{ "pl-[8px]": variant === "search" }
 					)}
 					placeholder={placeholder}
