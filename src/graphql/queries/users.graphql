@@ -1,0 +1,24 @@
+query Users($pagination: PaginationInput, $role: UserRole) {
+	users(pagination: $pagination, role: $role) {
+		edges {
+			node {
+				... on User {
+					uuid
+					role
+					email
+					phone
+					lastName
+					isActive
+					firstName
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

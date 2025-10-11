@@ -48,7 +48,7 @@ const Input: React.FC<InputType> = ({
 				{variant === "search" && !isFocused && <Search />}
 				<input
 					className={cn(
-						"h-full rounded-[10px] w-full bg-white placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none",
+						"h-full rounded-[10px] w-full bg-white placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none pl-[12px]",
 						{ "pl-[8px]": variant === "search" }
 					)}
 					placeholder={placeholder}

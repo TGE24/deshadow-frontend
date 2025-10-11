@@ -147,8 +147,8 @@ const Brand = () => {
 					Add Brand
 				</Button>
 			</div>
-			<div className="w-full mt-[48px]">
-				<table className="w-full">
+			<div className="w-full mt-[48px] overflow-x-auto">
+				<table className="w-full min-w-[800px]">
 					<thead className="bg-[#D4E7E6] h-[41px]">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id} className="text-[14px] font-semibold">

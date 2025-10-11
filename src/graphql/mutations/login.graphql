@@ -2,6 +2,11 @@ mutation Login($input: LoginInput!) {
 	login(input: $input) {
 		accessToken
 		refreshToken
+		requires2FA
+		challengeToken
+		requires2FASetup
+		twoFactorSecret
+		twoFactorQRCodeURL
 		user {
 			uuid
 			role
@@ -12,6 +17,11 @@ mutation Login($input: LoginInput!) {
 			firstName
 			createdAt
 			updatedAt
+			role
+			ownedStores {
+				uuid
+				name
+			}
 		}
 	}
 }

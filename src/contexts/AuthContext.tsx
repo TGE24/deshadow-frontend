@@ -61,7 +61,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			onCompleted: (data) => {
 				const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
 					data.refreshToken;
-				localStorage.setItem("accessToken", newAccessToken);
+				if (typeof newAccessToken === "string") {
+					localStorage.setItem("accessToken", newAccessToken);
+				}
 				if (newRefreshToken) {
 					localStorage.setItem("refreshToken", newRefreshToken);
 					setRefreshToken(newRefreshToken);
@@ -72,7 +74,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 				logout();
 			},
 		});
-		return data && data.refreshToken ? data.refreshToken.accessToken : null;
+		return data &&
+			data.refreshToken &&
+			typeof data.refreshToken.refreshToken === "string"
+			? data.refreshToken.refreshToken
+			: null;
 	};
 
 	// Public refresh function
@@ -105,20 +111,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const logout = useCallback(() => {
 		clearTokens();
-		// Optionally call logout endpoint to invalidate refresh token on server
-		if (refreshToken) {
-			fetch(`${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}/logout`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					refreshToken,
-				}),
-			}).catch(console.error);
-		}
 		window.location.href = "/login";
-	}, [refreshToken]);
+	}, []);
 
 	// Auto-refresh token before it expires
 	useEffect(() => {

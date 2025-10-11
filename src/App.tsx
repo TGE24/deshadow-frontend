@@ -8,12 +8,19 @@ import Credit from "./pages/credit";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Category from "./pages/category";
 import Brand from "./pages/brand";
+import Store from "./pages/store";
+import Users from "./pages/users";
+import Products from "./pages/products";
+import TwoFactorAuthentication from "./pages/TwoFactorAuthSetup";
+import OTP from "./pages/otp";
 
 function App() {
 	return (
 		<Router>
 			<Routes>
 				<Route path="/" element={<Login />} />
+				<Route path="/setup-2fa" element={<TwoFactorAuthentication />} />
+				<Route path="/otp" element={<OTP />} />
 				<Route
 					path="/*"
 					element={
@@ -26,6 +33,9 @@ function App() {
 									<Route path="/credit" element={<Credit />} />
 									<Route path="/category" element={<Category />} />
 									<Route path="/brands" element={<Brand />} />
+									<Route path="/stores" element={<Store />} />
+									<Route path="/users" element={<Users />} />
+									<Route path="/products" element={<Products />} />
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

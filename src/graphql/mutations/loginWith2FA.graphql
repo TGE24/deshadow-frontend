@@ -1,0 +1,27 @@
+mutation LoginWith2FA($challengeToken: String!, $code: String!) {
+	loginWith2FA(challengeToken: $challengeToken, code: $code) {
+		accessToken
+		refreshToken
+		requires2FA
+		challengeToken
+		requires2FASetup
+		twoFactorSecret
+		twoFactorQRCodeURL
+		user {
+			uuid
+			role
+			email
+			phone
+			lastName
+			isActive
+			firstName
+			createdAt
+			updatedAt
+			role
+			ownedStores {
+				uuid
+				name
+			}
+		}
+	}
+}

@@ -1,6 +1,5 @@
 import { ReactNode, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import Settings from "../../components/Icons/Settings";
 import Home from "../../components/Icons/Home";
 import Invoice from "../../components/Icons/Invoice";
 import Sale from "../../components/Icons/Sale";
@@ -11,9 +10,10 @@ import Brands from "../../components/Icons/Brands";
 import Category from "../../components/Icons/Category";
 import Attribute from "../../components/Icons/Attribute";
 import Menu from "../../components/Icons/Menu";
-import { useUserStore } from "../../store";
+import { useUserStore } from "../../store/userStore";
 import AvatarDropdown from "../../components/AvatarDropdown";
 import Notifications from "../../components/Icons/Notifications";
+import { UserRole } from "../../generated/graphql";
 
 type Props = {
 	children?: ReactNode;
@@ -127,70 +127,84 @@ const Layout = ({ children }: Props) => {
 				<div className="h-[87px] border-[#FFEBD099] border-b-[3px] flex items-center">
 					<h1 className="text-[50px] text-[#FFEBD0]">LOGO</h1>
 				</div>
-				<p className="mt-[70px] mb-[11px] text-[#FFEBD0B2] text-[14px] font-medium">
-					MAIN MENU
-				</p>
-				<ul className="flex flex-col gap-[10px]">
-					{menu.map((item, index) => {
-						const isActive = location.pathname === item.link;
-						return (
-							<NavLink to={item.link} key={index}>
-								<li
-									className={cn(
-										{ "bg-[#FFEBD04D]": isActive },
-										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
-									)}
-								>
-									<div
-										className={cn(
-											{ "text-[#FFEBD0]": isActive },
-											"size-[18px] text-[#FFEBD099]"
-										)}
-									>
-										{item.icon}
-									</div>
-									<p
-										className={cn({ "font-bold": isActive }, "text-[#FFEBD0]")}
-									>
-										{item.name}
-									</p>
-								</li>
-							</NavLink>
-						);
-					})}
-				</ul>
-				<p className="mt-[24px] mb-[11px] text-[#FFEBD0B2] text-[14px] font-medium">
-					ADMIN
-				</p>
-				<ul className="flex flex-col gap-[10px] pb-[20px]">
-					{adminMenu.map((item, index) => {
-						const isActive = location.pathname === item.link;
-						return (
-							<NavLink to={item.link} key={index}>
-								<li
-									className={cn(
-										{ "bg-[#FFEBD04D]": isActive },
-										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
-									)}
-								>
-									<div
-										className={cn(
-											{ "text-[#FFEBD0]": isActive },
-											"size-[18px] text-[#FFEBD099]"
-										)}
-									>
-										{item.icon}
-									</div>
-									<p
-										className={cn({ "font-bold": isActive }, "text-[#FFEBD0]")}
-									>
-										{item.name}
-									</p>
-								</li>
-							</NavLink>
-						);
-					})}
-				</ul>
+				{user?.role === ("store_owner" as UserRole) && (
+					<>
+						<p className="mt-[70px] mb-[11px] text-[#FFEBD0B2] text-[14px] font-medium">
+							MAIN MENU
+						</p>
+						<ul className="flex flex-col gap-[10px]">
+							{menu.map((item, index) => {
+								const isActive = location.pathname === item.link;
+								return (
+									<NavLink to={item.link} key={index}>
+										<li
+											className={cn(
+												{ "bg-[#FFEBD04D]": isActive },
+												"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+											)}
+										>
+											<div
+												className={cn(
+													{ "text-[#FFEBD0]": isActive },
+													"size-[18px] text-[#FFEBD099]"
+												)}
+											>
+												{item.icon}
+											</div>
+											<p
+												className={cn(
+													{ "font-bold": isActive },
+													"text-[#FFEBD0]"
+												)}
+											>
+												{item.name}
+											</p>
+										</li>
+									</NavLink>
+								);
+							})}
+						</ul>
+					</>
+				)}
+				{user?.role === ("admin" as UserRole) && (
+					<>
+						{/* <p className="mt-[70px] mb-[11px] text-[#FFEBD0B2] text-[14px] font-medium">
+							ADMIN
+						</p> */}
+						<ul className="mt-[70px] flex flex-col gap-[10px] pb-[20px]">
+							{adminMenu.map((item, index) => {
+								const isActive = location.pathname === item.link;
+								return (
+									<NavLink to={item.link} key={index}>
+										<li
+											className={cn(
+												{ "bg-[#FFEBD04D]": isActive },
+												"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+											)}
+										>
+											<div
+												className={cn(
+													{ "text-[#FFEBD0]": isActive },
+													"size-[18px] text-[#FFEBD099]"
+												)}
+											>
+												{item.icon}
+											</div>
+											<p
+												className={cn(
+													{ "font-bold": isActive },
+													"text-[#FFEBD0]"
+												)}
+											>
+												{item.name}
+											</p>
+										</li>
+									</NavLink>
+								);
+							})}
+						</ul>
+					</>
+				)}
 			</section>
 
 			{/* Main content area */}
@@ -240,8 +254,9 @@ const menu = [
 ];
 
 const adminMenu = [
+	{ name: "Users", link: "/users", icon: <Attribute /> },
 	{ name: "Brands", link: "/brands", icon: <Brands /> },
 	{ name: "Category", link: "/category", icon: <Category /> },
-	{ name: "Attribute", link: "/attribute", icon: <Attribute /> },
-	{ name: "Settings", link: "/settings", icon: <Settings color="#FFEBD0" /> },
+	{ name: "Products", link: "/products", icon: <Products /> },
+	// { name: "Settings", link: "/settings", icon: <Settings color="#FFEBD0" /> },
 ];

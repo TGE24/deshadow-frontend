@@ -1,0 +1,33 @@
+query Products($pagination: PaginationInput, $filter: ProductFilter) {
+	products(pagination: $pagination, filter: $filter) {
+		edges {
+			node {
+				... on Product {
+					uuid
+					name
+					brand {
+						name
+					}
+					model
+					images {
+						imageUrl
+					}
+					category {
+						name
+					}
+					condition
+					costPrice
+					sellingPrice
+					serialNumber
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

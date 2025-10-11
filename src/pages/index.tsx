@@ -1,17 +1,13 @@
 import Button from "../components/Button";
-import Goolgle from "../components/Icons/Goolgle";
-import Apple from "../components/Icons/Apple";
 import Input from "../components/Input";
 import { useForm } from "react-hook-form";
 import { LoginMutation, useLoginMutation } from "../generated/graphql";
-import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useUserStore } from "../store";
+import { useAuthStore } from "../store/authStore";
 
 const Login = () => {
-	const { setUser } = useUserStore();
+	const { setAuthPayload } = useAuthStore();
 	const navigate = useNavigate();
-	const { login: loginToken } = useAuth();
 	const [login, { loading }] = useLoginMutation();
 	const {
 		register,
@@ -30,9 +26,27 @@ const Login = () => {
 				input: data,
 			},
 			onCompleted(data: LoginMutation) {
-				loginToken(data.login.accessToken, data.login.refreshToken);
-				setUser(data.login.user);
-				navigate("/dashboard");
+				if (data.login.twoFactorSecret !== null) {
+					setAuthPayload({
+						twoFactorSecret: data.login.twoFactorSecret,
+						accessToken: data.login.accessToken ?? "",
+						refreshToken: data.login.refreshToken ?? "",
+						requires2FA: data.login.requires2FA,
+						challengeToken: data.login.challengeToken ?? "",
+						twoFactorQRCodeURL: data.login.twoFactorQRCodeURL ?? "",
+					});
+					navigate("/setup-2fa");
+					return;
+				}
+				if (data.login.twoFactorSecret === null) {
+					setAuthPayload({
+						accessToken: data.login.accessToken ?? "",
+						refreshToken: data.login.refreshToken ?? "",
+						challengeToken: data.login.challengeToken ?? "",
+					});
+					navigate(`/otp`);
+					return;
+				}
 			},
 			onError(error: { message: string }) {
 				console.log(error.message);
@@ -41,30 +55,15 @@ const Login = () => {
 	};
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
-			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[710px]  px-[20px] py-[40px] md:p-[70px] lg:px-[125px] lg:py-[116px]">
+			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[710px]  px-[20px] py-[40px] md:p-[70px] lg:p-[80px]">
 				<h1 className="text-[22px] md:text-[26px] font-bold text-center">
 					Welcome back to De Shadow
 				</h1>
 				<p className="text-center text-[#6A6A6A] text-[16px]  md:tracking-[0.03em]">
 					Please enter your details to sign in your account
 				</p>
-				<div className="mt-[24px] flex flex-col gap-[16px]">
-					<Button size="large" variant="secondary" icon={<Goolgle />}>
-						Continue with Google
-					</Button>
-					<Button size="large" variant="secondary" icon={<Apple />}>
-						Continue with Apple
-					</Button>
-				</div>
-				<div className="flex w-full items-center mt-[32px]">
-					<hr className="border-[#D9D9D9] w-[100%]" />
-					<p className="w-full text-[#696969] text-[14px] text-center">
-						Or sign in with
-					</p>
-					<hr className="border-[#D9D9D9] w-[100%]" />
-				</div>
-				<form onSubmit={handleSubmit(onSubmit)}>
-					<div className="mt-[32px] flex flex-col gap-[24px]">
+				<form onSubmit={handleSubmit(onSubmit)} className="mt-[48px]">
+					<div className="flex flex-col gap-[24px]">
 						<Input
 							label="Email"
 							placeholder="Enter your email"

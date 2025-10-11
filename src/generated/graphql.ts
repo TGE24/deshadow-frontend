@@ -22,9 +22,14 @@ export type Scalars = {
 
 export type AuthPayload = {
   __typename?: 'AuthPayload';
-  accessToken: Scalars['String']['output'];
-  refreshToken: Scalars['String']['output'];
-  user: User;
+  accessToken?: Maybe<Scalars['String']['output']>;
+  challengeToken?: Maybe<Scalars['String']['output']>;
+  refreshToken?: Maybe<Scalars['String']['output']>;
+  requires2FA: Scalars['Boolean']['output'];
+  requires2FASetup?: Maybe<Scalars['Boolean']['output']>;
+  twoFactorQRCodeURL?: Maybe<Scalars['String']['output']>;
+  twoFactorSecret?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
 };
 
 export type Brand = {
@@ -185,6 +190,7 @@ export enum ListingVisibility {
 export type LoginInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+  verificationCode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MarketplaceListing = {
@@ -227,11 +233,11 @@ export type Mutation = {
   generateInvoice: Invoice;
   initializePayment: PaymentTransaction;
   login: AuthPayload;
+  loginWith2FA: AuthPayload;
   markCreditPaid: Credit;
   processRefund: Refund;
   processReturn: Return;
   refreshToken: AuthPayload;
-  register: AuthPayload;
   updateBrand: Brand;
   updateCategory: Category;
   updateInventory: Inventory;
@@ -326,6 +332,12 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationLoginWith2FaArgs = {
+  challengeToken: Scalars['String']['input'];
+  code: Scalars['String']['input'];
+};
+
+
 export type MutationMarkCreditPaidArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -345,11 +357,6 @@ export type MutationProcessReturnArgs = {
 
 export type MutationRefreshTokenArgs = {
   refreshToken: Scalars['String']['input'];
-};
-
-
-export type MutationRegisterArgs = {
-  input: UserInput;
 };
 
 
@@ -958,7 +965,6 @@ export type UserInput = {
   email: Scalars['String']['input'];
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
-  password: Scalars['String']['input'];
   phone?: InputMaybe<Scalars['String']['input']>;
   role: UserRole;
 };
@@ -985,6 +991,13 @@ export type CreateCategoryMutationVariables = Exact<{
 
 export type CreateCategoryMutation = { __typename?: 'Mutation', createCategory: { __typename?: 'Category', uuid: any, name: string, parent?: { __typename?: 'Category', name: string } | null, products: Array<{ __typename?: 'Product', name: string }> } };
 
+export type CreateProductMutationVariables = Exact<{
+  input: ProductInput;
+}>;
+
+
+export type CreateProductMutation = { __typename?: 'Mutation', createProduct: { __typename?: 'Product', uuid: any, name: string } };
+
 export type DeleteBrandMutationVariables = Exact<{
   uuid: Scalars['UUID']['input'];
 }>;
@@ -1004,14 +1017,22 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', accessToken: string, refreshToken: string, user: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any } } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, requires2FA: boolean, challengeToken?: string | null, requires2FASetup?: boolean | null, twoFactorSecret?: string | null, twoFactorQRCodeURL?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string }> } | null } };
+
+export type LoginWith2FaMutationVariables = Exact<{
+  challengeToken: Scalars['String']['input'];
+  code: Scalars['String']['input'];
+}>;
+
+
+export type LoginWith2FaMutation = { __typename?: 'Mutation', loginWith2FA: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, requires2FA: boolean, challengeToken?: string | null, requires2FASetup?: boolean | null, twoFactorSecret?: string | null, twoFactorQRCodeURL?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string }> } | null } };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
 }>;
 
 
-export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken: string, refreshToken: string, user: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }>, engineerProfile?: { __typename?: 'Engineer', uuid: any, rating?: number | null } | null } } };
+export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }>, engineerProfile?: { __typename?: 'Engineer', uuid: any, rating?: number | null } | null } | null } };
 
 export type BrandsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1026,6 +1047,22 @@ export type CategoriesQueryVariables = Exact<{
 
 
 export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'Credit' } | { __typename: 'Engineer' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type ProductsQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+  filter?: InputMaybe<ProductFilter>;
+}>;
+
+
+export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, brand: { __typename?: 'Brand', name: string }, images: Array<{ __typename?: 'ProductImage', imageUrl: string }>, category: { __typename?: 'Category', name: string } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type UsersQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+  role?: InputMaybe<UserRole>;
+}>;
+
+
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 
 export const CreateBrandDocument = gql`
@@ -1107,6 +1144,40 @@ export function useCreateCategoryMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateCategoryMutationHookResult = ReturnType<typeof useCreateCategoryMutation>;
 export type CreateCategoryMutationResult = Apollo.MutationResult<CreateCategoryMutation>;
 export type CreateCategoryMutationOptions = Apollo.BaseMutationOptions<CreateCategoryMutation, CreateCategoryMutationVariables>;
+export const CreateProductDocument = gql`
+    mutation CreateProduct($input: ProductInput!) {
+  createProduct(input: $input) {
+    uuid
+    name
+  }
+}
+    `;
+export type CreateProductMutationFn = Apollo.MutationFunction<CreateProductMutation, CreateProductMutationVariables>;
+
+/**
+ * __useCreateProductMutation__
+ *
+ * To run a mutation, you first call `useCreateProductMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProductMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createProductMutation, { data, loading, error }] = useCreateProductMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateProductMutation(baseOptions?: Apollo.MutationHookOptions<CreateProductMutation, CreateProductMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateProductMutation, CreateProductMutationVariables>(CreateProductDocument, options);
+      }
+export type CreateProductMutationHookResult = ReturnType<typeof useCreateProductMutation>;
+export type CreateProductMutationResult = Apollo.MutationResult<CreateProductMutation>;
+export type CreateProductMutationOptions = Apollo.BaseMutationOptions<CreateProductMutation, CreateProductMutationVariables>;
 export const DeleteBrandDocument = gql`
     mutation DeleteBrand($uuid: UUID!) {
   deleteBrand(uuid: $uuid)
@@ -1174,6 +1245,11 @@ export const LoginDocument = gql`
   login(input: $input) {
     accessToken
     refreshToken
+    requires2FA
+    challengeToken
+    requires2FASetup
+    twoFactorSecret
+    twoFactorQRCodeURL
     user {
       uuid
       role
@@ -1184,6 +1260,11 @@ export const LoginDocument = gql`
       firstName
       createdAt
       updatedAt
+      role
+      ownedStores {
+        uuid
+        name
+      }
     }
   }
 }
@@ -1214,6 +1295,62 @@ export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginM
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export const LoginWith2FaDocument = gql`
+    mutation LoginWith2FA($challengeToken: String!, $code: String!) {
+  loginWith2FA(challengeToken: $challengeToken, code: $code) {
+    accessToken
+    refreshToken
+    requires2FA
+    challengeToken
+    requires2FASetup
+    twoFactorSecret
+    twoFactorQRCodeURL
+    user {
+      uuid
+      role
+      email
+      phone
+      lastName
+      isActive
+      firstName
+      createdAt
+      updatedAt
+      role
+      ownedStores {
+        uuid
+        name
+      }
+    }
+  }
+}
+    `;
+export type LoginWith2FaMutationFn = Apollo.MutationFunction<LoginWith2FaMutation, LoginWith2FaMutationVariables>;
+
+/**
+ * __useLoginWith2FaMutation__
+ *
+ * To run a mutation, you first call `useLoginWith2FaMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoginWith2FaMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loginWith2FaMutation, { data, loading, error }] = useLoginWith2FaMutation({
+ *   variables: {
+ *      challengeToken: // value for 'challengeToken'
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useLoginWith2FaMutation(baseOptions?: Apollo.MutationHookOptions<LoginWith2FaMutation, LoginWith2FaMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginWith2FaMutation, LoginWith2FaMutationVariables>(LoginWith2FaDocument, options);
+      }
+export type LoginWith2FaMutationHookResult = ReturnType<typeof useLoginWith2FaMutation>;
+export type LoginWith2FaMutationResult = Apollo.MutationResult<LoginWith2FaMutation>;
+export type LoginWith2FaMutationOptions = Apollo.BaseMutationOptions<LoginWith2FaMutation, LoginWith2FaMutationVariables>;
 export const RefreshTokenDocument = gql`
     mutation RefreshToken($refreshToken: String!) {
   refreshToken(refreshToken: $refreshToken) {
@@ -1389,3 +1526,132 @@ export type CategoriesQueryHookResult = ReturnType<typeof useCategoriesQuery>;
 export type CategoriesLazyQueryHookResult = ReturnType<typeof useCategoriesLazyQuery>;
 export type CategoriesSuspenseQueryHookResult = ReturnType<typeof useCategoriesSuspenseQuery>;
 export type CategoriesQueryResult = Apollo.QueryResult<CategoriesQuery, CategoriesQueryVariables>;
+export const ProductsDocument = gql`
+    query Products($pagination: PaginationInput, $filter: ProductFilter) {
+  products(pagination: $pagination, filter: $filter) {
+    edges {
+      node {
+        ... on Product {
+          uuid
+          name
+          brand {
+            name
+          }
+          model
+          images {
+            imageUrl
+          }
+          category {
+            name
+          }
+          condition
+          costPrice
+          sellingPrice
+          serialNumber
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useProductsQuery__
+ *
+ * To run a query within a React component, call `useProductsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProductsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProductsQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useProductsQuery(baseOptions?: Apollo.QueryHookOptions<ProductsQuery, ProductsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProductsQuery, ProductsQueryVariables>(ProductsDocument, options);
+      }
+export function useProductsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProductsQuery, ProductsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProductsQuery, ProductsQueryVariables>(ProductsDocument, options);
+        }
+export function useProductsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProductsQuery, ProductsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProductsQuery, ProductsQueryVariables>(ProductsDocument, options);
+        }
+export type ProductsQueryHookResult = ReturnType<typeof useProductsQuery>;
+export type ProductsLazyQueryHookResult = ReturnType<typeof useProductsLazyQuery>;
+export type ProductsSuspenseQueryHookResult = ReturnType<typeof useProductsSuspenseQuery>;
+export type ProductsQueryResult = Apollo.QueryResult<ProductsQuery, ProductsQueryVariables>;
+export const UsersDocument = gql`
+    query Users($pagination: PaginationInput, $role: UserRole) {
+  users(pagination: $pagination, role: $role) {
+    edges {
+      node {
+        ... on User {
+          uuid
+          role
+          email
+          phone
+          lastName
+          isActive
+          firstName
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useUsersQuery__
+ *
+ * To run a query within a React component, call `useUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUsersQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useUsersQuery(baseOptions?: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+      }
+export function useUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+        }
+export function useUsersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+        }
+export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
+export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
+export type UsersSuspenseQueryHookResult = ReturnType<typeof useUsersSuspenseQuery>;
+export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
