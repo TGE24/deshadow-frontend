@@ -52,6 +52,7 @@ body {
 
 @theme {
 	--font-sfpro: "SFPRO", sans-serif;
+	--font-cursive: cursive;
 }
 
 /* @media (prefers-color-scheme: light) {
