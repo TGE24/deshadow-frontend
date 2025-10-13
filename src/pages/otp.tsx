@@ -85,7 +85,10 @@ const OTP = () => {
 	}, [otp, loading, onSubmit]);
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
-			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[710px]  px-[20px] py-[40px] md:p-[70px] lg:p-[70px]">
+			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[550px]  px-[20px] py-[40px] md:p-[70px] lg:p-[70px]">
+				<h1 className="!font-cursive text-[60px] font-bold mb-[16px] text-center leading-[70px]">
+					DeShadow
+				</h1>
 				<h1 className="text-[22px] md:text-[26px] font-bold text-center">
 					Enter Verification Code
 				</h1>

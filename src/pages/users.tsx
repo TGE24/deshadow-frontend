@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import {
-	// useDeleteBrandMutation,
+	useDeleteUserMutation,
 	User,
 	UserRole,
 	useUsersLazyQuery,
@@ -14,20 +14,22 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import CategoryLoading from "../components/CategoryLoading";
-// import DeleteModal from "../modules/Modals/DeleteModal";
-// import AddBrand from "../modules/Modals/AddBrand";
+import AddUser from "../modules/Modals/User/AddUser";
+import { cn } from "../utils/cn";
+import EditUser from "../modules/Modals/User/EditUser";
+import DeleteModal from "../modules/Modals/DeleteModal";
+import { toast } from "react-toastify";
 
 const Users = () => {
-	// const [selectedUser, setSelectedUser] = useState<{
-	// 	id: string;
-	// 	name: string;
-	// } | null>(null);
+	const [selectedUser, setSelectedUser] = useState<User | null>(null);
+	const [openEdit, setOpenEdit] = useState(false);
 	const [page, setPage] = useState(1);
-	// const [open, setOpen] = useState(false);
-	// const [deleteOpen, setDeleteOpen] = useState(false);
-	const [getUsers, { data: users, loading }] = useUsersLazyQuery({
+	const [open, setOpen] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [getUsers, { data: users, loading, refetch }] = useUsersLazyQuery({
 		fetchPolicy: "network-only",
 	});
+	const [deleteUser, { loading: deleteLoading }] = useDeleteUserMutation();
 	const [data, setData] = useState<User[]>([]);
 
 	const columns = useMemo<ColumnDef<User>[]>(
@@ -52,19 +54,39 @@ const Users = () => {
 				header: () => <h4>Email</h4>,
 			},
 			{
+				accessorKey: "isActive",
+				cell: (info) => (
+					<div
+						className={cn(
+							{ "bg-[#ecfdf3] text-[#027a48]": info.getValue() },
+							{ "bg-[#fef3f2] text-[#b42318]": !info.getValue() },
+							"w-[70px] h-[24px] flex items-center justify-center rounded-[10px] text-[12px] font-medium capitalize"
+						)}
+					>
+						{String(info.getValue() ? "active" : "inactive")}
+					</div>
+				),
+				header: () => <h4>Status</h4>,
+			},
+			{
 				header: "Actions",
-				cell: () => (
+				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
-						<button className="font-medium cursor-pointer">Edit</button>
 						<button
 							className="font-medium cursor-pointer"
-							// onClick={() => {
-							// 	setDeleteOpen(true);
-							// 	setSelectedCategory({
-							// 		id: info.row.original.uuid,
-							// 		name: info.row.original.name,
-							// 	});
-							// }}
+							onClick={() => {
+								setSelectedUser(row.original);
+								setOpenEdit(true);
+							}}
+						>
+							Edit
+						</button>
+						<button
+							className="font-medium cursor-pointer"
+							onClick={() => {
+								setSelectedUser(row.original);
+								setDeleteOpen(true);
+							}}
 						>
 							Delete
 						</button>
@@ -105,6 +127,7 @@ const Users = () => {
 						first: 10,
 						after: users?.users?.pageInfo?.endCursor,
 					},
+					role: "store_owner" as UserRole,
 				},
 			});
 			setPage(page + 1);
@@ -119,6 +142,7 @@ const Users = () => {
 						last: 10,
 						before: users?.users?.pageInfo?.startCursor,
 					},
+					role: "store_owner" as UserRole,
 				},
 			});
 			setPage(page - 1);
@@ -134,7 +158,7 @@ const Users = () => {
 				<Button
 					size="small"
 					icon={<Plus color="#060606" />}
-					// onClick={() => setOpen(true)}
+					onClick={() => setOpen(true)}
 					className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
 				>
 					Add User
@@ -210,24 +234,31 @@ const Users = () => {
 					</div>
 				</div>
 			</div>
-			{/* <AddBrand open={open} setOpen={setOpen} refetch={refetch} />
+			<AddUser open={open} setOpen={setOpen} refetch={refetch} />
+			<EditUser
+				open={openEdit}
+				setOpen={setOpenEdit}
+				refetch={refetch}
+				selectedUser={selectedUser}
+			/>
 			<DeleteModal
 				open={deleteOpen}
 				setOpen={setDeleteOpen}
 				refetch={refetch}
-				title="Remove Category"
-				copy={`Are you sure you want to remove ${selectedCategory?.name}?`}
+				title="Delete User"
+				copy={`Are you sure you want to delete ${selectedUser?.firstName} ${selectedUser?.lastName}?`}
 				action={() => {
-					deleteBrand({
-						variables: { uuid: selectedCategory?.id },
+					deleteUser({
+						variables: { userId: selectedUser?.uuid },
 						onCompleted: () => {
 							setDeleteOpen(false);
 							refetch();
+							toast("User deleted successfully", { type: "success" });
 						},
 					});
 				}}
 				loading={deleteLoading}
-			/> */}
+			/>
 		</>
 	);
 };
