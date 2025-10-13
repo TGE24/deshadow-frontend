@@ -38,7 +38,7 @@ const TwoFactorAuthentication = () => {
 	};
 
 	const onSubmit = useCallback(async () => {
-		if (!authPayload?.challengeToken || otp.length !== 6) {
+		if (!authPayload?.challengeToken || otp.length !== 6 || loading) {
 			return;
 		}
 
@@ -78,13 +78,21 @@ const TwoFactorAuthentication = () => {
 		} catch {
 			setErrorMessage("An unexpected error occurred. Please try again.");
 		}
-	}, [authPayload?.challengeToken, otp, login, loginToken, setUser, navigate]);
+	}, [
+		authPayload?.challengeToken,
+		otp,
+		loading,
+		login,
+		loginToken,
+		setUser,
+		navigate,
+	]);
 
 	useEffect(() => {
-		if (otp.length === 6 && !loading) {
+		if (otp.length === 6 && !loading && !errorMessage) {
 			onSubmit();
 		}
-	}, [otp, loading, onSubmit]);
+	}, [otp, loading, onSubmit, errorMessage]);
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
@@ -141,9 +149,13 @@ const TwoFactorAuthentication = () => {
 							/>
 						</div>
 
-						<p className="text-center text-red-600 text-[14px] mt-[20px]">
-							{errorMessage}
-						</p>
+						{errorMessage && (
+							<div className="mt-[24px] p-[16px] bg-red-50 border border-red-200 rounded-[8px]">
+								<p className="text-red-600 text-[14px] text-center">
+									{errorMessage}
+								</p>
+							</div>
+						)}
 						<Button
 							size="large"
 							className="w-full mt-[20px]"
