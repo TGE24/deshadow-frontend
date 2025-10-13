@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OTPInput from "react-otp-input";
 
 import Button from "../components/Button";
@@ -36,7 +36,7 @@ const OTP = () => {
 	};
 
 	const onSubmit = useCallback(async () => {
-		if (!authPayload?.challengeToken || otp.length !== 6) {
+		if (!authPayload?.challengeToken || otp.length !== 6 || loading) {
 			return;
 		}
 
@@ -76,19 +76,29 @@ const OTP = () => {
 		} catch {
 			setErrorMessage("An unexpected error occurred. Please try again.");
 		}
-	}, [authPayload?.challengeToken, otp, login, loginToken, setUser, navigate]);
+	}, [
+		authPayload?.challengeToken,
+		otp,
+		loading,
+		login,
+		loginToken,
+		setUser,
+		navigate,
+	]);
 
 	useEffect(() => {
-		if (otp.length === 6 && !loading) {
+		if (otp.length === 6 && !loading && !errorMessage) {
 			onSubmit();
 		}
-	}, [otp, loading, onSubmit]);
+	}, [otp, loading, errorMessage, onSubmit]);
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
 			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[550px]  px-[20px] py-[40px] md:p-[70px] lg:p-[70px]">
-				<h1 className="!font-cursive text-[60px] font-bold mb-[16px] text-center leading-[70px]">
-					DeShadow
-				</h1>
+				<Link to="/">
+					<h1 className="!font-cursive text-[60px] font-bold mb-[16px] text-center leading-[70px]">
+						DeShadow
+					</h1>
+				</Link>
 				<h1 className="text-[22px] md:text-[26px] font-bold text-center">
 					Enter Verification Code
 				</h1>
@@ -96,32 +106,26 @@ const OTP = () => {
 					Enter the Authentication code from your authenticator app
 				</p>
 
-				<div className="flex flex-col items-center justify-center my-[60px]">
+				<div className="flex flex-col items-center justify-center my-[30px] lg:my-[60px] width-full">
 					<OTPInput
 						numInputs={6}
 						value={otp}
 						onChange={handleChange}
 						shouldAutoFocus
-						renderSeparator={<div className="mx-[10px]">-</div>}
-						inputStyle={{
-							width: "52px",
-							height: "52px",
-							border: "1px solid #E5E9F1",
-							borderRadius: "10px",
-							background: "rgba(243, 244, 246, 0.2)",
-							color: "#1a1a1a",
-							fontWeight: "bold",
-							fontSize: "20px",
-							textAlign: "center",
-						}}
+						renderSeparator={<div className="mx-[6px] md:mx-[10px]">-</div>}
+						inputStyle={
+							"!size-[40px] md:!w-[52px] md:!h-[52px] border !border-[#E5E9F1] !rounded-[10px] !bg-[f3f4f633] !text-[1a1a1a] font-bold text-center text-[16px] md:!text-[20px]"
+						}
 						renderInput={(props, index) => <input {...props} key={index} />}
-						inputType="tel"
+						inputType="number"
 					/>
 
 					{errorMessage && (
-						<p className="text-center text-red-600 text-[14px] mt-[20px] max-w-[400px]">
-							{errorMessage}
-						</p>
+						<div className="mt-[24px] p-[16px] bg-red-50 border border-red-200 rounded-[8px]">
+							<p className="text-red-600 text-[14px] text-center">
+								{errorMessage}
+							</p>
+						</div>
 					)}
 				</div>
 
@@ -135,7 +139,9 @@ const OTP = () => {
 				</Button>
 
 				<p className="text-center text-[#6A6A6A] text-[14px] mt-[16px]">
-					Code will be submitted automatically when complete
+					{errorMessage
+						? "Please correct the error and try again"
+						: "Code will be submitted automatically when complete"}
 				</p>
 			</div>
 		</div>

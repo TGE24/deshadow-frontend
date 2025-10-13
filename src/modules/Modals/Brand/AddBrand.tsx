@@ -1,8 +1,8 @@
 import Modal from "react-responsive-modal";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
 import { useForm } from "react-hook-form";
-import { useCreateBrandMutation } from "../../generated/graphql";
+import Input from "../../../components/Input";
+import Button from "../../../components/Button";
+import { useCreateBrandMutation } from "../../../generated/graphql";
 
 interface ModalProps {
 	open: boolean;

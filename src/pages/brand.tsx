@@ -15,15 +15,14 @@ import {
 import { cn } from "../utils/cn";
 import CategoryLoading from "../components/CategoryLoading";
 import DeleteModal from "../modules/Modals/DeleteModal";
-import AddBrand from "../modules/Modals/AddBrand";
+import AddBrand from "../modules/Modals/Brand/AddBrand";
+import EditBrand from "../modules/Modals/Brand/EditBrand";
 
 const Brand = () => {
-	const [selectedCategory, setSelectedCategory] = useState<{
-		id: string;
-		name: string;
-	} | null>(null);
+	const [selectedBrand, setSelectedBrand] = useState<BrandType | null>(null);
 	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
+	const [editOpen, setEditOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [getBrands, { data: brands, loading, refetch }] = useBrandsLazyQuery({
 		fetchPolicy: "network-only",
@@ -60,17 +59,22 @@ const Brand = () => {
 			},
 			{
 				header: "Actions",
-				cell: (info) => (
+				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
-						<button className="font-medium cursor-pointer">Edit</button>
+						<button
+							className="font-medium cursor-pointer"
+							onClick={() => {
+								setEditOpen(true);
+								setSelectedBrand(row.original);
+							}}
+						>
+							Edit
+						</button>
 						<button
 							className="font-medium cursor-pointer"
 							onClick={() => {
 								setDeleteOpen(true);
-								setSelectedCategory({
-									id: info.row.original.uuid,
-									name: info.row.original.name,
-								});
+								setSelectedBrand(row.original);
 							}}
 						>
 							Delete
@@ -218,15 +222,21 @@ const Brand = () => {
 				</div>
 			</div>
 			<AddBrand open={open} setOpen={setOpen} refetch={refetch} />
+			<EditBrand
+				open={editOpen}
+				setOpen={setEditOpen}
+				refetch={refetch}
+				selectedBrand={selectedBrand}
+			/>
 			<DeleteModal
 				open={deleteOpen}
 				setOpen={setDeleteOpen}
 				refetch={refetch}
-				title="Remove Category"
-				copy={`Are you sure you want to remove ${selectedCategory?.name}?`}
+				title="Remove Brand"
+				copy={`Are you sure you want to remove ${selectedBrand?.name}?`}
 				action={() => {
 					deleteBrand({
-						variables: { uuid: selectedCategory?.id },
+						variables: { uuid: selectedBrand?.uuid },
 						onCompleted: () => {
 							setDeleteOpen(false);
 							refetch();

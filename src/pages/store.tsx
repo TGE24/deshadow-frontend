@@ -15,7 +15,7 @@ import {
 import { cn } from "../utils/cn";
 import CategoryLoading from "../components/CategoryLoading";
 import DeleteModal from "../modules/Modals/DeleteModal";
-import AddBrand from "../modules/Modals/AddBrand";
+import AddBrand from "../modules/Modals/Brand/AddBrand";
 
 const Stores = () => {
 	const [selectedCategory, setSelectedCategory] = useState<{

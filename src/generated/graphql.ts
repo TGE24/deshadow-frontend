@@ -1048,6 +1048,14 @@ export type RefreshTokenMutationVariables = Exact<{
 
 export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }>, engineerProfile?: { __typename?: 'Engineer', uuid: any, rating?: number | null } | null } | null } };
 
+export type UpdateBrandMutationVariables = Exact<{
+  input: BrandInput;
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdateBrandMutation = { __typename?: 'Mutation', updateBrand: { __typename?: 'Brand', uuid: any, name: string, logoUrl?: string | null, description?: string | null } };
+
 export type UpdateUserMutationVariables = Exact<{
   input: UserInput;
   userId: Scalars['UUID']['input'];
@@ -1491,6 +1499,43 @@ export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions
 export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export const UpdateBrandDocument = gql`
+    mutation UpdateBrand($input: BrandInput!, $uuid: UUID!) {
+  updateBrand(input: $input, uuid: $uuid) {
+    uuid
+    name
+    logoUrl
+    description
+  }
+}
+    `;
+export type UpdateBrandMutationFn = Apollo.MutationFunction<UpdateBrandMutation, UpdateBrandMutationVariables>;
+
+/**
+ * __useUpdateBrandMutation__
+ *
+ * To run a mutation, you first call `useUpdateBrandMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateBrandMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateBrandMutation, { data, loading, error }] = useUpdateBrandMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useUpdateBrandMutation(baseOptions?: Apollo.MutationHookOptions<UpdateBrandMutation, UpdateBrandMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateBrandMutation, UpdateBrandMutationVariables>(UpdateBrandDocument, options);
+      }
+export type UpdateBrandMutationHookResult = ReturnType<typeof useUpdateBrandMutation>;
+export type UpdateBrandMutationResult = Apollo.MutationResult<UpdateBrandMutation>;
+export type UpdateBrandMutationOptions = Apollo.BaseMutationOptions<UpdateBrandMutation, UpdateBrandMutationVariables>;
 export const UpdateUserDocument = gql`
     mutation UpdateUser($input: UserInput!, $userId: UUID!) {
   updateUser(input: $input, userId: $userId) {

@@ -1,0 +1,8 @@
+mutation UpdateBrand($input: BrandInput!, $uuid: UUID!) {
+	updateBrand(input: $input, uuid: $uuid) {
+		uuid
+		name
+		logoUrl
+		description
+	}
+}

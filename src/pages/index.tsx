@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import Button from "../components/Button";
@@ -98,9 +98,11 @@ const Login = () => {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
 			<div className="bg-[#F8F8F8] rounded-[20px] w-full max-w-[550px] px-[20px] py-[40px] md:p-[60px] shadow-lg">
-				<h1 className="!font-cursive text-[60px] font-bold mb-[16px] text-center leading-[70px]">
-					DeShadow
-				</h1>
+				<Link to="/">
+					<h1 className="!font-cursive text-[60px] font-bold mb-[16px] text-center leading-[70px]">
+						DeShadow
+					</h1>
+				</Link>
 				<div className="text-center mb-[40px]">
 					<h1 className="text-[24px] md:text-[28px] font-bold text-gray-900 mb-[4px]">
 						Welcome back

@@ -132,18 +132,12 @@ const TwoFactorAuthentication = () => {
 								value={otp}
 								onChange={handleOtpChange}
 								shouldAutoFocus
-								renderSeparator={<div className="mx-[10px]">-</div>}
-								inputStyle={{
-									width: "52px",
-									height: "52px",
-									border: "1px solid #E5E9F1",
-									borderRadius: "10px",
-									background: "rgba(243, 244, 246, 0.2)",
-									color: "#1a1a1a",
-									fontWeight: 600,
-									fontSize: "1rem",
-								}}
+								renderSeparator={<div className="mx-[6px] md:mx-[10px]">-</div>}
+								inputStyle={
+									"!size-[40px] md:!w-[52px] md:!h-[52px] border !border-[#E5E9F1] !rounded-[10px] !bg-[f3f4f633] !text-[1a1a1a] font-bold text-center text-[16px] md:!text-[20px]"
+								}
 								renderInput={(props, index) => <input {...props} key={index} />}
+								inputType="number"
 							/>
 						</div>
 
