@@ -19,89 +19,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
-	// Load tokens from localStorage on app start
-	useEffect(() => {
-		const initializeAuth = async () => {
-			const savedAccessToken = localStorage.getItem("accessToken");
-			const savedRefreshToken = localStorage.getItem("refreshToken");
-
-			if (savedAccessToken && savedRefreshToken) {
-				if (isTokenExpired(savedAccessToken)) {
-					// Access token expired, try to refresh
-					setRefreshToken(savedRefreshToken);
-					const newAccessToken = await refreshAccessTokenInternal(
-						savedRefreshToken
-					);
-					if (newAccessToken) {
-						setAccessToken(newAccessToken);
-					} else {
-						// Refresh failed, clear tokens
-						clearTokens();
-					}
-				} else {
-					// Access token still valid
-					setAccessToken(savedAccessToken);
-					setRefreshToken(savedRefreshToken);
-				}
-			}
-			setIsLoading(false);
-		};
-
-		initializeAuth();
-	}, []);
-
-	// Internal refresh function
-	const refreshAccessTokenInternal = async (
-		currentRefreshToken: string
-	): Promise<string | null> => {
-		const { data } = await refreshTokenMutation({
-			variables: {
-				refreshToken: currentRefreshToken,
-			},
-			onCompleted: (data) => {
-				const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-					data.refreshToken;
-				if (typeof newAccessToken === "string") {
-					localStorage.setItem("accessToken", newAccessToken);
-				}
-				if (newRefreshToken) {
-					localStorage.setItem("refreshToken", newRefreshToken);
-					setRefreshToken(newRefreshToken);
-				}
-			},
-			onError: (error) => {
-				console.error("Token refresh failed:", error);
-				logout();
-			},
-		});
-		return data &&
-			data.refreshToken &&
-			typeof data.refreshToken.refreshToken === "string"
-			? data.refreshToken.refreshToken
-			: null;
-	};
-
-	// Public refresh function
-	const refreshAccessToken = useCallback(async (): Promise<string | null> => {
-		if (!refreshToken) return null;
-
-		const newAccessToken = await refreshAccessTokenInternal(refreshToken);
-		if (newAccessToken) {
-			setAccessToken(newAccessToken);
-			return newAccessToken;
-		} else {
-			logout();
-			return null;
-		}
-	}, [refreshToken]);
-
-	const login = (newAccessToken: string, newRefreshToken: string) => {
-		setAccessToken(newAccessToken);
-		setRefreshToken(newRefreshToken);
-		localStorage.setItem("accessToken", newAccessToken);
-		localStorage.setItem("refreshToken", newRefreshToken);
-	};
-
 	const clearTokens = () => {
 		setAccessToken(null);
 		setRefreshToken(null);
@@ -111,8 +28,89 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const logout = useCallback(() => {
 		clearTokens();
-		window.location.href = "/login";
+		window.location.href = "/";
 	}, []);
+
+	// Internal refresh function
+	const refreshAccessTokenInternal = useCallback(
+		async (currentRefreshToken: string): Promise<string | null> => {
+			try {
+				const { data } = await refreshTokenMutation({
+					variables: {
+						refreshToken: currentRefreshToken,
+					},
+					onError: (error) => {
+						console.error("Token refresh failed:", error);
+						logout();
+					},
+				});
+
+				if (data?.refreshToken) {
+					const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+						data.refreshToken;
+
+					if (newAccessToken) {
+						localStorage.setItem("accessToken", newAccessToken);
+						setAccessToken(newAccessToken);
+					}
+
+					if (newRefreshToken) {
+						localStorage.setItem("refreshToken", newRefreshToken);
+						setRefreshToken(newRefreshToken);
+					}
+
+					return newAccessToken || null;
+				}
+
+				return null;
+			} catch (error) {
+				console.error("Refresh token error:", error);
+				logout();
+				return null;
+			}
+		},
+		[refreshTokenMutation, logout]
+	);
+
+	// Public refresh function
+	const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+		if (!refreshToken) return null;
+
+		return await refreshAccessTokenInternal(refreshToken);
+	}, [refreshToken, refreshAccessTokenInternal]);
+
+	const login = (newAccessToken: string, newRefreshToken: string) => {
+		setAccessToken(newAccessToken);
+		setRefreshToken(newRefreshToken);
+		localStorage.setItem("accessToken", newAccessToken);
+		localStorage.setItem("refreshToken", newRefreshToken);
+	};
+
+	// Load tokens from localStorage on app start
+	useEffect(() => {
+		const initializeAuth = async () => {
+			const savedAccessToken = localStorage.getItem("accessToken");
+			const savedRefreshToken = localStorage.getItem("refreshToken");
+
+			if (savedAccessToken && savedRefreshToken) {
+				if (isTokenExpired(savedAccessToken)) {
+					setRefreshToken(savedRefreshToken);
+					const newAccessToken = await refreshAccessTokenInternal(
+						savedRefreshToken
+					);
+					if (!newAccessToken) {
+						clearTokens();
+					}
+				} else {
+					setAccessToken(savedAccessToken);
+					setRefreshToken(savedRefreshToken);
+				}
+			}
+			setIsLoading(false);
+		};
+
+		initializeAuth();
+	}, [refreshAccessTokenInternal]);
 
 	// Auto-refresh token before it expires
 	useEffect(() => {
@@ -121,12 +119,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		const setupTokenRefresh = () => {
 			try {
 				const payload = JSON.parse(atob(accessToken.split(".")[1]));
-				const expirationTime = payload.exp * 1000; // Convert to milliseconds
+				const expirationTime = payload.exp * 1000; // 6 minutes from now
 				const currentTime = Date.now();
 				const timeUntilExpiry = expirationTime - currentTime;
 
-				// Refresh 5 minutes before expiration
-				const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 60000); // At least 1 minute
+				// Refresh 6 minutes before expiration
+				const refreshTime = Math.max(timeUntilExpiry - 6 * 60 * 1000, 60000); // At least 1 minute
 
 				const timeoutId = setTimeout(() => {
 					refreshAccessToken();
