@@ -1056,6 +1056,14 @@ export type UpdateBrandMutationVariables = Exact<{
 
 export type UpdateBrandMutation = { __typename?: 'Mutation', updateBrand: { __typename?: 'Brand', uuid: any, name: string, logoUrl?: string | null, description?: string | null } };
 
+export type UpdateCategoryMutationVariables = Exact<{
+  input: CategoryInput;
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdateCategoryMutation = { __typename?: 'Mutation', updateCategory: { __typename?: 'Category', uuid: any, status: CategoryStatus } };
+
 export type UpdateUserMutationVariables = Exact<{
   input: UserInput;
   userId: Scalars['UUID']['input'];
@@ -1536,6 +1544,41 @@ export function useUpdateBrandMutation(baseOptions?: Apollo.MutationHookOptions<
 export type UpdateBrandMutationHookResult = ReturnType<typeof useUpdateBrandMutation>;
 export type UpdateBrandMutationResult = Apollo.MutationResult<UpdateBrandMutation>;
 export type UpdateBrandMutationOptions = Apollo.BaseMutationOptions<UpdateBrandMutation, UpdateBrandMutationVariables>;
+export const UpdateCategoryDocument = gql`
+    mutation UpdateCategory($input: CategoryInput!, $uuid: UUID!) {
+  updateCategory(input: $input, uuid: $uuid) {
+    uuid
+    status
+  }
+}
+    `;
+export type UpdateCategoryMutationFn = Apollo.MutationFunction<UpdateCategoryMutation, UpdateCategoryMutationVariables>;
+
+/**
+ * __useUpdateCategoryMutation__
+ *
+ * To run a mutation, you first call `useUpdateCategoryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCategoryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCategoryMutation, { data, loading, error }] = useUpdateCategoryMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useUpdateCategoryMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCategoryMutation, UpdateCategoryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCategoryMutation, UpdateCategoryMutationVariables>(UpdateCategoryDocument, options);
+      }
+export type UpdateCategoryMutationHookResult = ReturnType<typeof useUpdateCategoryMutation>;
+export type UpdateCategoryMutationResult = Apollo.MutationResult<UpdateCategoryMutation>;
+export type UpdateCategoryMutationOptions = Apollo.BaseMutationOptions<UpdateCategoryMutation, UpdateCategoryMutationVariables>;
 export const UpdateUserDocument = gql`
     mutation UpdateUser($input: UserInput!, $userId: UUID!) {
   updateUser(input: $input, userId: $userId) {

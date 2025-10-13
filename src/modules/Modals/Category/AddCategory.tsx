@@ -1,12 +1,12 @@
 import Modal from "react-responsive-modal";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
 import { useForm } from "react-hook-form";
+import Select from "react-select";
 import {
 	CategoryStatus,
 	useCreateCategoryMutation,
-} from "../../generated/graphql";
-import Select from "react-select";
+} from "../../../generated/graphql";
+import Input from "../../../components/Input";
+import Button from "../../../components/Button";
 
 interface ModalProps {
 	open: boolean;

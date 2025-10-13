@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
-import AddCategory from "../modules/Modals/AddCategory";
 import {
 	Category as CategoryType,
 	useCategoriesLazyQuery,
@@ -16,14 +15,16 @@ import {
 import { cn } from "../utils/cn";
 import CategoryLoading from "../components/CategoryLoading";
 import DeleteModal from "../modules/Modals/DeleteModal";
+import AddCategory from "../modules/Modals/Category/AddCategory";
+import EditCategory from "../modules/Modals/Category/EditCategory";
 
 const Category = () => {
-	const [selectedCategory, setSelectedCategory] = useState<{
-		id: string;
-		name: string;
-	} | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(
+		null
+	);
 	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
+	const [editOpen, setEditOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [getcategories, { data: categories, loading, refetch }] =
 		useCategoriesLazyQuery({ fetchPolicy: "network-only" });
@@ -60,17 +61,22 @@ const Category = () => {
 			},
 			{
 				header: "Actions",
-				cell: (info) => (
+				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
-						<button className="font-medium cursor-pointer">Edit</button>
+						<button
+							className="font-medium cursor-pointer"
+							onClick={() => {
+								setEditOpen(true);
+								setSelectedCategory(row.original);
+							}}
+						>
+							Edit
+						</button>
 						<button
 							className="font-medium cursor-pointer"
 							onClick={() => {
 								setDeleteOpen(true);
-								setSelectedCategory({
-									id: info.row.original.uuid,
-									name: info.row.original.name,
-								});
+								setSelectedCategory(row.original);
 							}}
 						>
 							Delete
@@ -223,6 +229,12 @@ const Category = () => {
 				</div>
 			</div>
 			<AddCategory open={open} setOpen={setOpen} refetch={refetch} />
+			<EditCategory
+				open={editOpen}
+				setOpen={setEditOpen}
+				refetch={refetch}
+				selectedCategory={selectedCategory}
+			/>
 			<DeleteModal
 				open={deleteOpen}
 				setOpen={setDeleteOpen}
@@ -231,7 +243,7 @@ const Category = () => {
 				copy={`Are you sure you want to remove ${selectedCategory?.name}?`}
 				action={() => {
 					deleteCategory({
-						variables: { uuid: selectedCategory?.id },
+						variables: { uuid: selectedCategory?.uuid },
 						onCompleted: () => {
 							setDeleteOpen(false);
 							refetch();
