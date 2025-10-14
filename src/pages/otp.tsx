@@ -117,7 +117,7 @@ const OTP = () => {
 							"!size-[40px] md:!w-[52px] md:!h-[52px] border !border-[#E5E9F1] !rounded-[10px] !bg-[f3f4f633] !text-[1a1a1a] font-bold text-center text-[16px] md:!text-[20px]"
 						}
 						renderInput={(props, index) => <input {...props} key={index} />}
-						inputType="number"
+						inputType="text"
 					/>
 
 					{errorMessage && (

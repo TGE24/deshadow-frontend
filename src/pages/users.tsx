@@ -13,7 +13,7 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import CategoryLoading from "../components/CategoryLoading";
+import TableLoader from "../components/TableLoader";
 import AddUser from "../modules/Modals/User/AddUser";
 import { cn } from "../utils/cn";
 import EditUser from "../modules/Modals/User/EditUser";
@@ -186,7 +186,7 @@ const Users = () => {
 						))}
 					</thead>
 					{loading ? (
-						<CategoryLoading />
+						<TableLoader columns={columns.length} />
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (

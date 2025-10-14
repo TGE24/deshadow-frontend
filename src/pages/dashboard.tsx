@@ -11,7 +11,7 @@ import {
 import Input from "../components/Input";
 import DatePicker from "react-datepicker";
 import Calendar from "../components/Icons/Calendar";
-import ProductDetails from "../modules/Modals/ProductDetails";
+import AddProduct from "../modules/Modals/Product/AddProduct";
 
 type Product = {
 	productName: string;
@@ -290,7 +290,7 @@ const Dashboard = () => {
 					</div>
 				</div>
 			</div>
-			<ProductDetails open={open} setOpen={setOpen} />
+			<AddProduct open={open} setOpen={setOpen} refetch={() => {}} />
 		</>
 	);
 };

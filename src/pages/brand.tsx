@@ -13,7 +13,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { cn } from "../utils/cn";
-import CategoryLoading from "../components/CategoryLoading";
+import TableLoader from "../components/TableLoader";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import AddBrand from "../modules/Modals/Brand/AddBrand";
 import EditBrand from "../modules/Modals/Brand/EditBrand";
@@ -173,7 +173,7 @@ const Brand = () => {
 						))}
 					</thead>
 					{loading ? (
-						<CategoryLoading />
+						<TableLoader columns={columns.length} />
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (

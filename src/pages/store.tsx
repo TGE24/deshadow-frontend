@@ -13,7 +13,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { cn } from "../utils/cn";
-import CategoryLoading from "../components/CategoryLoading";
+import CategoryLoading from "../components/TableLoader";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import AddBrand from "../modules/Modals/Brand/AddBrand";
 

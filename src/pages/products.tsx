@@ -1,28 +1,36 @@
 import { useEffect, useState, useMemo } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
-import { Product, useProductsLazyQuery } from "../generated/graphql";
+import {
+	Product,
+	useDeleteProductMutation,
+	useProductsLazyQuery,
+} from "../generated/graphql";
 import {
 	ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import CategoryLoading from "../components/CategoryLoading";
-import ProductDetails from "../modules/Modals/ProductDetails";
+import TableLoader from "../components/TableLoader";
+import AddProduct from "../modules/Modals/Product/AddProduct";
+import EditProduct from "../modules/Modals/Product/EditProduct";
+import DeleteModal from "../modules/Modals/DeleteModal";
+import { toast } from "react-toastify";
 // import DeleteModal from "../modules/Modals/DeleteModal";
 
 const Products = () => {
-	// const [selectedUser, setSelectedUser] = useState<{
-	// 	id: string;
-	// 	name: string;
-	// } | null>(null);
+	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
-	// const [deleteOpen, setDeleteOpen] = useState(false);
-	const [getProducts, { data: products, loading }] = useProductsLazyQuery({
-		fetchPolicy: "network-only",
-	});
+	const [editOpen, setEditOpen] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [getProducts, { data: products, loading, refetch }] =
+		useProductsLazyQuery({
+			fetchPolicy: "network-only",
+		});
+	const [deleteProduct, { loading: deleteLoading }] =
+		useDeleteProductMutation();
 	const [data, setData] = useState<Product[]>([]);
 
 	const columns = useMemo<ColumnDef<Product>[]>(
@@ -39,8 +47,42 @@ const Products = () => {
 			},
 			{
 				accessorKey: "condition",
-				cell: (info) => info.getValue(),
+				cell: (info) => {
+					const condition = info.getValue() as string;
+					const getConditionStyle = (condition: string) => {
+						switch (condition?.toLowerCase()) {
+							case "new":
+								return "bg-green-100 text-green-800 border-green-200";
+							case "used":
+								return "bg-yellow-100 text-yellow-800 border-yellow-200";
+							case "refurbished":
+								return "bg-blue-100 text-blue-800 border-blue-200";
+							case "damaged":
+								return "bg-red-100 text-red-800 border-red-200";
+							default:
+								return "bg-gray-100 text-gray-800 border-gray-200";
+						}
+					};
+
+					return (
+						<span
+							className={`px-3 py-1 rounded-full text-xs font-medium border ${getConditionStyle(
+								condition
+							)}`}
+						>
+							{condition
+								?.replace("_", " ")
+								.toLowerCase()
+								.replace(/\b\w/g, (c) => c.toUpperCase()) || "Unknown"}
+						</span>
+					);
+				},
 				header: () => <h4>Condition</h4>,
+			},
+			{
+				accessorKey: "store.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Store</h4>,
 			},
 			{
 				accessorKey: "costPrice",
@@ -68,18 +110,23 @@ const Products = () => {
 			},
 			{
 				header: "Actions",
-				cell: () => (
+				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
-						<button className="font-medium cursor-pointer">Edit</button>
 						<button
 							className="font-medium cursor-pointer"
-							// onClick={() => {
-							// 	setDeleteOpen(true);
-							// 	setSelectedCategory({
-							// 		id: info.row.original.uuid,
-							// 		name: info.row.original.name,
-							// 	});
-							// }}
+							onClick={() => {
+								setSelectedProduct(row.original);
+								setEditOpen(true);
+							}}
+						>
+							Edit
+						</button>
+						<button
+							className="font-medium cursor-pointer"
+							onClick={() => {
+								setDeleteOpen(true);
+								setSelectedProduct(row.original);
+							}}
 						>
 							Delete
 						</button>
@@ -179,7 +226,7 @@ const Products = () => {
 						))}
 					</thead>
 					{loading ? (
-						<CategoryLoading />
+						<TableLoader columns={columns.length} />
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
@@ -231,26 +278,31 @@ const Products = () => {
 				</div>
 			</div>
 
-			<ProductDetails open={open} setOpen={setOpen} />
-
-			{/* <AddBrand open={open} setOpen={setOpen} refetch={refetch} />
+			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />
+			<EditProduct
+				open={editOpen}
+				setOpen={setEditOpen}
+				refetch={refetch}
+				selectedProduct={selectedProduct}
+			/>
 			<DeleteModal
 				open={deleteOpen}
 				setOpen={setDeleteOpen}
 				refetch={refetch}
-				title="Remove Category"
-				copy={`Are you sure you want to remove ${selectedCategory?.name}?`}
+				title="Delete Product"
+				copy={`Are you sure you want to delete ${selectedProduct?.name}?`}
 				action={() => {
-					deleteBrand({
-						variables: { uuid: selectedCategory?.id },
+					deleteProduct({
+						variables: { uuid: selectedProduct?.uuid },
 						onCompleted: () => {
 							setDeleteOpen(false);
 							refetch();
+							toast("Product deleted successfully", { type: "success" });
 						},
 					});
 				}}
 				loading={deleteLoading}
-			/> */}
+			/>
 		</>
 	);
 };

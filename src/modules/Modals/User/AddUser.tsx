@@ -60,7 +60,7 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 				refetch();
 			},
 			onError(error: { message: string }) {
-				console.log(error.message);
+				toast(error.message, { type: "error" });
 			},
 		});
 	};
