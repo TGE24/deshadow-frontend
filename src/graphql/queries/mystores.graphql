@@ -1,0 +1,25 @@
+query MyStores($pagination: PaginationInput) {
+	myStores(pagination: $pagination) {
+		edges {
+			node {
+				__typename
+				... on Store {
+					uuid
+					name
+					phone
+					address
+					isActive
+					description
+					businessRegistration
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

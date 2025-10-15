@@ -40,6 +40,7 @@ export type Brand = {
   logoUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   products: Array<Product>;
+  store?: Maybe<Store>;
   updatedAt: Scalars['Time']['output'];
   uuid: Scalars['UUID']['output'];
 };
@@ -59,6 +60,7 @@ export type Category = {
   parent?: Maybe<Category>;
   products: Array<Product>;
   status: CategoryStatus;
+  store?: Maybe<Store>;
   updatedAt: Scalars['Time']['output'];
   uuid: Scalars['UUID']['output'];
 };
@@ -74,6 +76,11 @@ export enum CategoryStatus {
   Active = 'active',
   Inactive = 'inactive'
 }
+
+export type ChangePasswordInput = {
+  currentPassword: Scalars['String']['input'];
+  newPassword: Scalars['String']['input'];
+};
 
 export type Credit = {
   __typename?: 'Credit';
@@ -217,6 +224,8 @@ export enum MovementType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  assignResellerToStore: Scalars['Boolean']['output'];
+  changePassword: PasswordResetResponse;
   createBrand: Brand;
   createCategory: Category;
   createCredit: Credit;
@@ -238,6 +247,9 @@ export type Mutation = {
   processRefund: Refund;
   processReturn: Return;
   refreshToken: AuthPayload;
+  requestPasswordReset: PasswordResetResponse;
+  resetPassword: PasswordResetResponse;
+  unassignResellerFromStore: Scalars['Boolean']['output'];
   updateBrand: Brand;
   updateCategory: Category;
   updateInventory: Inventory;
@@ -250,13 +262,26 @@ export type Mutation = {
 };
 
 
+export type MutationAssignResellerToStoreArgs = {
+  resellerUUID: Scalars['UUID']['input'];
+  storeUUID: Scalars['UUID']['input'];
+};
+
+
+export type MutationChangePasswordArgs = {
+  input: ChangePasswordInput;
+};
+
+
 export type MutationCreateBrandArgs = {
   input: BrandInput;
+  storeUUID?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
 export type MutationCreateCategoryArgs = {
   input: CategoryInput;
+  storeUUID?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
@@ -360,6 +385,21 @@ export type MutationRefreshTokenArgs = {
 };
 
 
+export type MutationRequestPasswordResetArgs = {
+  input: RequestPasswordResetInput;
+};
+
+
+export type MutationResetPasswordArgs = {
+  input: ResetPasswordInput;
+};
+
+
+export type MutationUnassignResellerFromStoreArgs = {
+  resellerUUID: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateBrandArgs = {
   input: BrandInput;
   uuid: Scalars['UUID']['input'];
@@ -433,6 +473,12 @@ export type PaginationInput = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PasswordResetResponse = {
+  __typename?: 'PasswordResetResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type PaymentInitializeInput = {
@@ -797,6 +843,16 @@ export type RefundVerifyInput = {
   paystackRefundId: Scalars['String']['input'];
 };
 
+export type RequestPasswordResetInput = {
+  email: Scalars['String']['input'];
+};
+
+export type ResetPasswordInput = {
+  email: Scalars['String']['input'];
+  newPassword: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+};
+
 export type Return = {
   __typename?: 'Return';
   createdAt: Scalars['Time']['output'];
@@ -904,6 +960,7 @@ export type Store = {
   owner: User;
   phone?: Maybe<Scalars['String']['output']>;
   products: Array<Product>;
+  resellers: Array<User>;
   sales: Array<Sale>;
   updatedAt: Scalars['Time']['output'];
   users: Array<StoreUser>;
@@ -948,10 +1005,12 @@ export type SwapTransaction = {
 
 export type User = {
   __typename?: 'User';
+  assignedStore?: Maybe<Store>;
   createdAt: Scalars['Time']['output'];
   email: Scalars['String']['output'];
   engineerProfile?: Maybe<Engineer>;
   firstName: Scalars['String']['output'];
+  hasChangedDefaultPassword: Scalars['Boolean']['output'];
   isActive: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
   ownedStores: Array<Store>;
@@ -998,6 +1057,13 @@ export type CreateProductMutationVariables = Exact<{
 
 export type CreateProductMutation = { __typename?: 'Mutation', createProduct: { __typename?: 'Product', uuid: any, name: string } };
 
+export type CreateStoreMutationVariables = Exact<{
+  input: StoreInput;
+}>;
+
+
+export type CreateStoreMutation = { __typename?: 'Mutation', createStore: { __typename?: 'Store', uuid: any, name: string } };
+
 export type CreateUserMutationVariables = Exact<{
   input: UserInput;
 }>;
@@ -1025,6 +1091,13 @@ export type DeleteProductMutationVariables = Exact<{
 
 
 export type DeleteProductMutation = { __typename?: 'Mutation', deleteProduct: boolean };
+
+export type DeleteStoreMutationVariables = Exact<{
+  storeId: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteStoreMutation = { __typename?: 'Mutation', deleteStore: boolean };
 
 export type DeleteUserMutationVariables = Exact<{
   userId: Scalars['UUID']['input'];
@@ -1079,6 +1152,14 @@ export type UpdateProductMutationVariables = Exact<{
 
 export type UpdateProductMutation = { __typename?: 'Mutation', updateProduct: { __typename?: 'Product', uuid: any, name: string } };
 
+export type UpdateStoreMutationVariables = Exact<{
+  input: StoreInput;
+  storeId: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdateStoreMutation = { __typename?: 'Mutation', updateStore: { __typename?: 'Store', uuid: any, name: string } };
+
 export type UpdateUserMutationVariables = Exact<{
   input: UserInput;
   userId: Scalars['UUID']['input'];
@@ -1100,6 +1181,13 @@ export type CategoriesQueryVariables = Exact<{
 
 
 export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'Credit' } | { __typename: 'Engineer' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type MyStoresQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type MyStoresQuery = { __typename?: 'Query', myStores: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'Credit' } | { __typename: 'Engineer' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store', uuid: any, name: string, phone?: string | null, address?: string | null, isActive: boolean, description?: string | null, businessRegistration?: string | null } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1238,6 +1326,40 @@ export function useCreateProductMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateProductMutationHookResult = ReturnType<typeof useCreateProductMutation>;
 export type CreateProductMutationResult = Apollo.MutationResult<CreateProductMutation>;
 export type CreateProductMutationOptions = Apollo.BaseMutationOptions<CreateProductMutation, CreateProductMutationVariables>;
+export const CreateStoreDocument = gql`
+    mutation CreateStore($input: StoreInput!) {
+  createStore(input: $input) {
+    uuid
+    name
+  }
+}
+    `;
+export type CreateStoreMutationFn = Apollo.MutationFunction<CreateStoreMutation, CreateStoreMutationVariables>;
+
+/**
+ * __useCreateStoreMutation__
+ *
+ * To run a mutation, you first call `useCreateStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createStoreMutation, { data, loading, error }] = useCreateStoreMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateStoreMutation(baseOptions?: Apollo.MutationHookOptions<CreateStoreMutation, CreateStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateStoreMutation, CreateStoreMutationVariables>(CreateStoreDocument, options);
+      }
+export type CreateStoreMutationHookResult = ReturnType<typeof useCreateStoreMutation>;
+export type CreateStoreMutationResult = Apollo.MutationResult<CreateStoreMutation>;
+export type CreateStoreMutationOptions = Apollo.BaseMutationOptions<CreateStoreMutation, CreateStoreMutationVariables>;
 export const CreateUserDocument = gql`
     mutation CreateUser($input: UserInput!) {
   createUser(input: $input) {
@@ -1368,6 +1490,37 @@ export function useDeleteProductMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteProductMutationHookResult = ReturnType<typeof useDeleteProductMutation>;
 export type DeleteProductMutationResult = Apollo.MutationResult<DeleteProductMutation>;
 export type DeleteProductMutationOptions = Apollo.BaseMutationOptions<DeleteProductMutation, DeleteProductMutationVariables>;
+export const DeleteStoreDocument = gql`
+    mutation DeleteStore($storeId: UUID!) {
+  deleteStore(storeId: $storeId)
+}
+    `;
+export type DeleteStoreMutationFn = Apollo.MutationFunction<DeleteStoreMutation, DeleteStoreMutationVariables>;
+
+/**
+ * __useDeleteStoreMutation__
+ *
+ * To run a mutation, you first call `useDeleteStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteStoreMutation, { data, loading, error }] = useDeleteStoreMutation({
+ *   variables: {
+ *      storeId: // value for 'storeId'
+ *   },
+ * });
+ */
+export function useDeleteStoreMutation(baseOptions?: Apollo.MutationHookOptions<DeleteStoreMutation, DeleteStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteStoreMutation, DeleteStoreMutationVariables>(DeleteStoreDocument, options);
+      }
+export type DeleteStoreMutationHookResult = ReturnType<typeof useDeleteStoreMutation>;
+export type DeleteStoreMutationResult = Apollo.MutationResult<DeleteStoreMutation>;
+export type DeleteStoreMutationOptions = Apollo.BaseMutationOptions<DeleteStoreMutation, DeleteStoreMutationVariables>;
 export const DeleteUserDocument = gql`
     mutation DeleteUser($userId: UUID!) {
   deleteUser(userId: $userId)
@@ -1667,6 +1820,41 @@ export function useUpdateProductMutation(baseOptions?: Apollo.MutationHookOption
 export type UpdateProductMutationHookResult = ReturnType<typeof useUpdateProductMutation>;
 export type UpdateProductMutationResult = Apollo.MutationResult<UpdateProductMutation>;
 export type UpdateProductMutationOptions = Apollo.BaseMutationOptions<UpdateProductMutation, UpdateProductMutationVariables>;
+export const UpdateStoreDocument = gql`
+    mutation UpdateStore($input: StoreInput!, $storeId: UUID!) {
+  updateStore(input: $input, storeId: $storeId) {
+    uuid
+    name
+  }
+}
+    `;
+export type UpdateStoreMutationFn = Apollo.MutationFunction<UpdateStoreMutation, UpdateStoreMutationVariables>;
+
+/**
+ * __useUpdateStoreMutation__
+ *
+ * To run a mutation, you first call `useUpdateStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateStoreMutation, { data, loading, error }] = useUpdateStoreMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      storeId: // value for 'storeId'
+ *   },
+ * });
+ */
+export function useUpdateStoreMutation(baseOptions?: Apollo.MutationHookOptions<UpdateStoreMutation, UpdateStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateStoreMutation, UpdateStoreMutationVariables>(UpdateStoreDocument, options);
+      }
+export type UpdateStoreMutationHookResult = ReturnType<typeof useUpdateStoreMutation>;
+export type UpdateStoreMutationResult = Apollo.MutationResult<UpdateStoreMutation>;
+export type UpdateStoreMutationOptions = Apollo.BaseMutationOptions<UpdateStoreMutation, UpdateStoreMutationVariables>;
 export const UpdateUserDocument = gql`
     mutation UpdateUser($input: UserInput!, $userId: UUID!) {
   updateUser(input: $input, userId: $userId) {
@@ -1830,6 +2018,66 @@ export type CategoriesQueryHookResult = ReturnType<typeof useCategoriesQuery>;
 export type CategoriesLazyQueryHookResult = ReturnType<typeof useCategoriesLazyQuery>;
 export type CategoriesSuspenseQueryHookResult = ReturnType<typeof useCategoriesSuspenseQuery>;
 export type CategoriesQueryResult = Apollo.QueryResult<CategoriesQuery, CategoriesQueryVariables>;
+export const MyStoresDocument = gql`
+    query MyStores($pagination: PaginationInput) {
+  myStores(pagination: $pagination) {
+    edges {
+      node {
+        __typename
+        ... on Store {
+          uuid
+          name
+          phone
+          address
+          isActive
+          description
+          businessRegistration
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyStoresQuery__
+ *
+ * To run a query within a React component, call `useMyStoresQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyStoresQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyStoresQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useMyStoresQuery(baseOptions?: Apollo.QueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
+      }
+export function useMyStoresLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
+        }
+export function useMyStoresSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
+        }
+export type MyStoresQueryHookResult = ReturnType<typeof useMyStoresQuery>;
+export type MyStoresLazyQueryHookResult = ReturnType<typeof useMyStoresLazyQuery>;
+export type MyStoresSuspenseQueryHookResult = ReturnType<typeof useMyStoresSuspenseQuery>;
+export type MyStoresQueryResult = Apollo.QueryResult<MyStoresQuery, MyStoresQueryVariables>;
 export const ProductsDocument = gql`
     query Products($pagination: PaginationInput, $filter: ProductFilter) {
   products(pagination: $pagination, filter: $filter) {

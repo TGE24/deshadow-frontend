@@ -1,0 +1,6 @@
+mutation UpdateStore($input: StoreInput!, $storeId: UUID!) {
+	updateStore(input: $input, storeId: $storeId) {
+		uuid
+		name
+	}
+}
