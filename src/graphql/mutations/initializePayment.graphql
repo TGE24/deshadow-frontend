@@ -1,0 +1,11 @@
+mutation InitializePayment($input: PaymentInitializeInput!) {
+	initializePayment(input: $input) {
+		uuid
+		authorizationUrl
+		paystackReference
+		paystackTransactionId
+		paystackAccessCode
+		gatewayResponse
+		gatewayFees
+	}
+}

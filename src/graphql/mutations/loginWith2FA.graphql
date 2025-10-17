@@ -22,6 +22,10 @@ mutation LoginWith2FA($challengeToken: String!, $code: String!) {
 				uuid
 				name
 			}
+			assignedStore {
+				uuid
+				name
+			}
 		}
 	}
 }

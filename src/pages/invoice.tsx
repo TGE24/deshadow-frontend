@@ -50,25 +50,19 @@ const Invoice = () => {
 
 	return (
 		<>
-			<h2 className="text-[16px] md:text-[20px] font-bold mb-[24px]">
-				Invoice
-			</h2>
-
 			{/* Tab Navigation */}
 			<div className="bg-white rounded-[15px] overflow-hidden">
-				<div className="border-b border-[#E3E3E3]">
-					<div className="flex">
+				<div className="border-b border-[#E5E7EB]">
+					<div className="flex gap-4">
 						{tabs.map((tab) => (
 							<button
 								key={tab.id}
 								onClick={() => setActiveTab(tab.id)}
 								className={cn(
-									"flex-1 px-[16px] py-[16px] text-[16px] font-medium transition-all duration-200 border-b-2 hover:bg-[#F8F8F8]",
+									"cursor-pointer px-[46px] py-[10px] text-[16px] font-medium text-[#6D7E95]",
 									{
-										"bg-[#68A59A] text-white border-[#68A59A]":
+										"text-[#000000] border-b-2 border-[#278783]":
 											activeTab === tab.id,
-										"bg-white text-[#6A6A6A] border-transparent hover:text-[#68A59A]":
-											activeTab !== tab.id,
 									}
 								)}
 							>
@@ -79,7 +73,7 @@ const Invoice = () => {
 				</div>
 
 				{/* Tab Content */}
-				<div className="min-h-[400px]">{renderTabContent()}</div>
+				<div className="min-h-[400px] max-w-[1000px]">{renderTabContent()}</div>
 			</div>
 			<ViewProduct open={open} setOpen={setOpen} />
 			<PurchaseOverview open={overviewOpen} setOpen={setOverviewOpen} />

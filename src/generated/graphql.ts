@@ -37,6 +37,7 @@ export type Brand = {
   createdAt: Scalars['Time']['output'];
   description?: Maybe<Scalars['String']['output']>;
   isActive: Scalars['Boolean']['output'];
+  isOwned: Scalars['Boolean']['output'];
   logoUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   products: Array<Product>;
@@ -56,6 +57,7 @@ export type Category = {
   children: Array<Category>;
   createdAt: Scalars['Time']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  isOwned: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   parent?: Maybe<Category>;
   products: Array<Product>;
@@ -239,7 +241,6 @@ export type Mutation = {
   deleteProduct: Scalars['Boolean']['output'];
   deleteStore: Scalars['Boolean']['output'];
   deleteUser: Scalars['Boolean']['output'];
-  generateInvoice: Invoice;
   initializePayment: PaymentTransaction;
   login: AuthPayload;
   loginWith2FA: AuthPayload;
@@ -339,11 +340,6 @@ export type MutationDeleteStoreArgs = {
 
 export type MutationDeleteUserArgs = {
   userId: Scalars['UUID']['input'];
-};
-
-
-export type MutationGenerateInvoiceArgs = {
-  saleUuid: Scalars['UUID']['input'];
 };
 
 
@@ -879,7 +875,9 @@ export enum ReturnStatus {
 export type Sale = {
   __typename?: 'Sale';
   createdAt: Scalars['Time']['output'];
-  customer: User;
+  customerEmail?: Maybe<Scalars['String']['output']>;
+  customerName: Scalars['String']['output'];
+  customerPhone?: Maybe<Scalars['String']['output']>;
   discountAmount: Scalars['Float']['output'];
   invoices: Array<Invoice>;
   items: Array<SaleItem>;
@@ -898,7 +896,6 @@ export type Sale = {
 };
 
 export type SaleFilter = {
-  customerUuid?: InputMaybe<Scalars['UUID']['input']>;
   fromDate?: InputMaybe<Scalars['Time']['input']>;
   paymentStatus?: InputMaybe<PaymentStatus>;
   saleStatus?: InputMaybe<SaleStatus>;
@@ -908,11 +905,12 @@ export type SaleFilter = {
 };
 
 export type SaleInput = {
-  customerUuid: Scalars['UUID']['input'];
+  customerEmail?: InputMaybe<Scalars['String']['input']>;
+  customerName: Scalars['String']['input'];
+  customerPhone: Scalars['String']['input'];
   discountAmount?: InputMaybe<Scalars['Float']['input']>;
   items: Array<SaleItemInput>;
   notes?: InputMaybe<Scalars['String']['input']>;
-  paymentStatus: PaymentStatus;
   saleType: SaleType;
   storeUuid: Scalars['UUID']['input'];
   totalAmount: Scalars['Float']['input'];
@@ -1010,7 +1008,6 @@ export type User = {
   email: Scalars['String']['output'];
   engineerProfile?: Maybe<Engineer>;
   firstName: Scalars['String']['output'];
-  hasChangedDefaultPassword: Scalars['Boolean']['output'];
   isActive: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
   ownedStores: Array<Store>;
@@ -1026,6 +1023,7 @@ export type UserInput = {
   lastName: Scalars['String']['input'];
   phone?: InputMaybe<Scalars['String']['input']>;
   role: UserRole;
+  storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export enum UserRole {
@@ -1035,6 +1033,14 @@ export enum UserRole {
   StoreOwner = 'store_owner',
   SuperAdmin = 'super_admin'
 }
+
+export type AssignResellerToStoreMutationVariables = Exact<{
+  resellerUUID: Scalars['UUID']['input'];
+  storeUUID: Scalars['UUID']['input'];
+}>;
+
+
+export type AssignResellerToStoreMutation = { __typename?: 'Mutation', assignResellerToStore: boolean };
 
 export type CreateBrandMutationVariables = Exact<{
   input: BrandInput;
@@ -1056,6 +1062,13 @@ export type CreateProductMutationVariables = Exact<{
 
 
 export type CreateProductMutation = { __typename?: 'Mutation', createProduct: { __typename?: 'Product', uuid: any, name: string } };
+
+export type CreateSaleMutationVariables = Exact<{
+  input: SaleInput;
+}>;
+
+
+export type CreateSaleMutation = { __typename?: 'Mutation', createSale: { __typename?: 'Sale', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, totalAmount: number, paymentStatus: PaymentStatus, saleDate: any, createdAt: any, updatedAt: any, saleStatus: SaleStatus, paymentTransactions: Array<{ __typename?: 'PaymentTransaction', paystackReference: string, paystackTransactionId?: string | null, paystackAccessCode?: string | null, authorizationUrl?: string | null, amount: number, requestedAmount?: number | null, currency: string, status: PaymentTransactionStatus }> } };
 
 export type CreateStoreMutationVariables = Exact<{
   input: StoreInput;
@@ -1106,6 +1119,13 @@ export type DeleteUserMutationVariables = Exact<{
 
 export type DeleteUserMutation = { __typename?: 'Mutation', deleteUser: boolean };
 
+export type InitializePaymentMutationVariables = Exact<{
+  input: PaymentInitializeInput;
+}>;
+
+
+export type InitializePaymentMutation = { __typename?: 'Mutation', initializePayment: { __typename?: 'PaymentTransaction', uuid: any, authorizationUrl?: string | null, paystackReference: string, paystackTransactionId?: string | null, paystackAccessCode?: string | null, gatewayResponse?: any | null, gatewayFees: number } };
+
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
@@ -1119,7 +1139,7 @@ export type LoginWith2FaMutationVariables = Exact<{
 }>;
 
 
-export type LoginWith2FaMutation = { __typename?: 'Mutation', loginWith2FA: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, requires2FA: boolean, challengeToken?: string | null, requires2FASetup?: boolean | null, twoFactorSecret?: string | null, twoFactorQRCodeURL?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string }> } | null } };
+export type LoginWith2FaMutation = { __typename?: 'Mutation', loginWith2FA: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, requires2FA: boolean, challengeToken?: string | null, requires2FASetup?: boolean | null, twoFactorSecret?: string | null, twoFactorQRCodeURL?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string }>, assignedStore?: { __typename?: 'Store', uuid: any, name: string } | null } | null } };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
@@ -1195,7 +1215,7 @@ export type ProductsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, description?: string | null, specifications?: any | null, brand: { __typename?: 'Brand', name: string, uuid: any }, images: Array<{ __typename?: 'ProductImage', imageUrl: string }>, category: { __typename?: 'Category', name: string, uuid: any }, store: { __typename?: 'Store', name: string, uuid: any } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, description?: string | null, specifications?: any | null, brand: { __typename?: 'Brand', name: string, uuid: any }, images: Array<{ __typename?: 'ProductImage', imageUrl: string }>, category: { __typename?: 'Category', name: string, uuid: any }, store: { __typename?: 'Store', name: string, uuid: any }, inventory?: { __typename?: 'Inventory', quantityAvailable: number, quantityReserved: number, status: InventoryStatus } | null } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1210,9 +1230,41 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, assignedStore?: { __typename?: 'Store', uuid: any, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 
+export const AssignResellerToStoreDocument = gql`
+    mutation AssignResellerToStore($resellerUUID: UUID!, $storeUUID: UUID!) {
+  assignResellerToStore(resellerUUID: $resellerUUID, storeUUID: $storeUUID)
+}
+    `;
+export type AssignResellerToStoreMutationFn = Apollo.MutationFunction<AssignResellerToStoreMutation, AssignResellerToStoreMutationVariables>;
+
+/**
+ * __useAssignResellerToStoreMutation__
+ *
+ * To run a mutation, you first call `useAssignResellerToStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssignResellerToStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assignResellerToStoreMutation, { data, loading, error }] = useAssignResellerToStoreMutation({
+ *   variables: {
+ *      resellerUUID: // value for 'resellerUUID'
+ *      storeUUID: // value for 'storeUUID'
+ *   },
+ * });
+ */
+export function useAssignResellerToStoreMutation(baseOptions?: Apollo.MutationHookOptions<AssignResellerToStoreMutation, AssignResellerToStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssignResellerToStoreMutation, AssignResellerToStoreMutationVariables>(AssignResellerToStoreDocument, options);
+      }
+export type AssignResellerToStoreMutationHookResult = ReturnType<typeof useAssignResellerToStoreMutation>;
+export type AssignResellerToStoreMutationResult = Apollo.MutationResult<AssignResellerToStoreMutation>;
+export type AssignResellerToStoreMutationOptions = Apollo.BaseMutationOptions<AssignResellerToStoreMutation, AssignResellerToStoreMutationVariables>;
 export const CreateBrandDocument = gql`
     mutation CreateBrand($input: BrandInput!) {
   createBrand(input: $input) {
@@ -1326,6 +1378,58 @@ export function useCreateProductMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateProductMutationHookResult = ReturnType<typeof useCreateProductMutation>;
 export type CreateProductMutationResult = Apollo.MutationResult<CreateProductMutation>;
 export type CreateProductMutationOptions = Apollo.BaseMutationOptions<CreateProductMutation, CreateProductMutationVariables>;
+export const CreateSaleDocument = gql`
+    mutation CreateSale($input: SaleInput!) {
+  createSale(input: $input) {
+    uuid
+    customerName
+    customerEmail
+    customerPhone
+    totalAmount
+    paymentTransactions {
+      paystackReference
+      paystackTransactionId
+      paystackAccessCode
+      authorizationUrl
+      amount
+      requestedAmount
+      currency
+      status
+    }
+    paymentStatus
+    saleDate
+    createdAt
+    updatedAt
+    saleStatus
+  }
+}
+    `;
+export type CreateSaleMutationFn = Apollo.MutationFunction<CreateSaleMutation, CreateSaleMutationVariables>;
+
+/**
+ * __useCreateSaleMutation__
+ *
+ * To run a mutation, you first call `useCreateSaleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSaleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSaleMutation, { data, loading, error }] = useCreateSaleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateSaleMutation(baseOptions?: Apollo.MutationHookOptions<CreateSaleMutation, CreateSaleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSaleMutation, CreateSaleMutationVariables>(CreateSaleDocument, options);
+      }
+export type CreateSaleMutationHookResult = ReturnType<typeof useCreateSaleMutation>;
+export type CreateSaleMutationResult = Apollo.MutationResult<CreateSaleMutation>;
+export type CreateSaleMutationOptions = Apollo.BaseMutationOptions<CreateSaleMutation, CreateSaleMutationVariables>;
 export const CreateStoreDocument = gql`
     mutation CreateStore($input: StoreInput!) {
   createStore(input: $input) {
@@ -1552,6 +1656,45 @@ export function useDeleteUserMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteUserMutationHookResult = ReturnType<typeof useDeleteUserMutation>;
 export type DeleteUserMutationResult = Apollo.MutationResult<DeleteUserMutation>;
 export type DeleteUserMutationOptions = Apollo.BaseMutationOptions<DeleteUserMutation, DeleteUserMutationVariables>;
+export const InitializePaymentDocument = gql`
+    mutation InitializePayment($input: PaymentInitializeInput!) {
+  initializePayment(input: $input) {
+    uuid
+    authorizationUrl
+    paystackReference
+    paystackTransactionId
+    paystackAccessCode
+    gatewayResponse
+    gatewayFees
+  }
+}
+    `;
+export type InitializePaymentMutationFn = Apollo.MutationFunction<InitializePaymentMutation, InitializePaymentMutationVariables>;
+
+/**
+ * __useInitializePaymentMutation__
+ *
+ * To run a mutation, you first call `useInitializePaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInitializePaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [initializePaymentMutation, { data, loading, error }] = useInitializePaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useInitializePaymentMutation(baseOptions?: Apollo.MutationHookOptions<InitializePaymentMutation, InitializePaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InitializePaymentMutation, InitializePaymentMutationVariables>(InitializePaymentDocument, options);
+      }
+export type InitializePaymentMutationHookResult = ReturnType<typeof useInitializePaymentMutation>;
+export type InitializePaymentMutationResult = Apollo.MutationResult<InitializePaymentMutation>;
+export type InitializePaymentMutationOptions = Apollo.BaseMutationOptions<InitializePaymentMutation, InitializePaymentMutationVariables>;
 export const LoginDocument = gql`
     mutation Login($input: LoginInput!) {
   login(input: $input) {
@@ -1629,6 +1772,10 @@ export const LoginWith2FaDocument = gql`
       updatedAt
       role
       ownedStores {
+        uuid
+        name
+      }
+      assignedStore {
         uuid
         name
       }
@@ -2108,6 +2255,11 @@ export const ProductsDocument = gql`
           serialNumber
           description
           specifications
+          inventory {
+            quantityAvailable
+            quantityReserved
+            status
+          }
         }
       }
     }
@@ -2223,6 +2375,10 @@ export const UsersDocument = gql`
           lastName
           isActive
           firstName
+          assignedStore {
+            uuid
+            name
+          }
         }
       }
     }

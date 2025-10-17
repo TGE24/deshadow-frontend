@@ -1,0 +1,3 @@
+mutation AssignResellerToStore($resellerUUID: UUID!, $storeUUID: UUID!) {
+	assignResellerToStore(resellerUUID: $resellerUUID, storeUUID: $storeUUID)
+}

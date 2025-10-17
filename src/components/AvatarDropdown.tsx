@@ -33,7 +33,7 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 			</div>
 			{isOpen && (
 				<div
-					className="border-[1px] border-[#FBFBFB] p-[12px] rounded-[12px] absolute right-0 mt-[8px] z-10 bg-white w-[278px]"
+					className="border-[1px] border-[#FBFBFB] p-[12px] rounded-[12px] absolute right-0 mt-[8px] z-[999] bg-white w-[278px]"
 					style={{ boxShadow: "2px 0px 24px 0px #00000029" }}
 				>
 					<div className="flex gap-[12px]">

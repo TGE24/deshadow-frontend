@@ -2,9 +2,18 @@ import Modal from "react-responsive-modal";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
 import { useForm } from "react-hook-form";
-import { useCreateUserMutation, UserRole } from "../../../generated/graphql";
+import {
+	Store,
+	useAssignResellerToStoreMutation,
+	useCreateUserMutation,
+	UserRole,
+	useStoresQuery,
+} from "../../../generated/graphql";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { useUserStore } from "../../../store/userStore";
+import { selectStyles } from "../../../utils/constants";
+import { useState } from "react";
 
 interface ModalProps {
 	open: boolean;
@@ -13,7 +22,13 @@ interface ModalProps {
 }
 
 const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
+	const [storeUuid, setStoreUuid] = useState<string>("");
+	const { user } = useUserStore();
 	const [createUser, { loading }] = useCreateUserMutation();
+	const [assignResellerToStore] = useAssignResellerToStoreMutation();
+	const { data: stores } = useStoresQuery({
+		variables: { pagination: { first: 100 } },
+	});
 	const {
 		register,
 		handleSubmit,
@@ -53,7 +68,15 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 					phone: data.phone,
 				},
 			},
-			onCompleted() {
+			onCompleted(data) {
+				if (user?.role === UserRole.StoreOwner) {
+					assignResellerToStore({
+						variables: {
+							resellerUUID: data.createUser.uuid,
+							storeUUID: storeUuid,
+						},
+					});
+				}
 				setOpen(false);
 				toast("User invitaion sent successfully", { type: "success" });
 				reset();
@@ -88,13 +111,23 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 							Role
 						</label>
 						<Select
-							options={Object.values(UserRole).map((status) => ({
-								value: status,
-								label: status
-									.replace("_", " ")
-									.toLowerCase()
-									.replace(/\b\w/g, (c) => c.toUpperCase()),
-							}))}
+							options={Object.values(UserRole)
+								.filter((role) => {
+									// If current user is store_owner, only show engineer and reseller roles
+									if (user?.role === UserRole.StoreOwner) {
+										return (
+											role === UserRole.Engineer || role === UserRole.Reseller
+										);
+									}
+									return true; // Show all roles for other user types
+								})
+								.map((status) => ({
+									value: status,
+									label: status
+										.replace("_", " ")
+										.toLowerCase()
+										.replace(/\b\w/g, (c) => c.toUpperCase()),
+								}))}
 							placeholder="Select status"
 							classNames={{
 								control: () =>
@@ -158,6 +191,28 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 						errors={errors.phone}
 						id="phone"
 					/>
+					{user?.role === UserRole.StoreOwner && (
+						<div className="w-full">
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="store"
+							>
+								Store
+							</label>
+							<Select
+								options={stores?.stores.edges.map((store) => ({
+									value: (store.node as Store).uuid,
+									label: (store.node as Store).name,
+								}))}
+								placeholder="Select Store"
+								classNames={selectStyles}
+								onChange={(option) => {
+									setStoreUuid(option?.value || "");
+								}}
+								name="storeUuid"
+							/>
+						</div>
+					)}
 				</div>
 				<Button
 					size="large"

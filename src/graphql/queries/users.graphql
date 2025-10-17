@@ -10,6 +10,10 @@ query Users($pagination: PaginationInput, $role: UserRole) {
 					lastName
 					isActive
 					firstName
+					assignedStore {
+						uuid
+						name
+					}
 				}
 			}
 		}

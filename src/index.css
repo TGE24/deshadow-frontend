@@ -55,19 +55,17 @@ body {
 	--font-cursive: cursive;
 }
 
-/* @media (prefers-color-scheme: light) {
-	:root {
-		color: #213547;
-		background-color: #ffffff;
-	}
-	a:hover {
-		color: #747bff;
-	}
-	button {
-		background-color: #f9f9f9;
-	}
-} */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
 
+/* Firefox */
+input[type="number"] {
+	-moz-appearance: textfield;
+}
 .react-datepicker-wrapper {
 	width: 218px !important;
 	border: 1px solid #e4e4e4 !important;

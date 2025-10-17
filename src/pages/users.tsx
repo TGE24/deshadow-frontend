@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import Select from "react-select";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import {
@@ -26,6 +27,7 @@ const Users = () => {
 	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [role, setRole] = useState<UserRole | "all">("all");
 	const [getUsers, { data: users, loading, refetch }] = useUsersLazyQuery({
 		fetchPolicy: "network-only",
 	});
@@ -99,9 +101,12 @@ const Users = () => {
 
 	useEffect(() => {
 		getUsers({
-			variables: { pagination: { first: 10 }, role: "store_owner" as UserRole },
+			variables: {
+				pagination: { first: 10 },
+				...(role !== "all" && { role: role as UserRole }),
+			},
 		});
-	}, [getUsers]);
+	}, [getUsers, role]);
 
 	useEffect(() => {
 		if (users?.users?.edges) {
@@ -127,7 +132,7 @@ const Users = () => {
 						first: 10,
 						after: users?.users?.pageInfo?.endCursor,
 					},
-					role: "store_owner" as UserRole,
+					...(role !== "all" && { role: role as UserRole }),
 				},
 			});
 			setPage(page + 1);
@@ -142,7 +147,7 @@ const Users = () => {
 						last: 10,
 						before: users?.users?.pageInfo?.startCursor,
 					},
-					role: "store_owner" as UserRole,
+					...(role !== "all" && { role: role as UserRole }),
 				},
 			});
 			setPage(page - 1);
@@ -164,7 +169,53 @@ const Users = () => {
 					Add User
 				</Button>
 			</div>
-			<div className="w-full mt-[48px] overflow-x-auto">
+
+			{/* Filter Section */}
+			<div className="mt-[24px]">
+				<div className="flex flex-col sm:flex-row gap-[16px] items-start sm:items-center">
+					<label className="text-[14px] font-medium text-gray-700">
+						Filter by Role:
+					</label>
+					<div className="w-full sm:w-[200px]">
+						<Select
+							value={
+								role === "all"
+									? { value: "all", label: "All Roles" }
+									: {
+											value: role,
+											label: role
+												.replace("_", " ")
+												.toLowerCase()
+												.replace(/\b\w/g, (c) => c.toUpperCase()),
+									  }
+							}
+							onChange={(option) => {
+								setRole((option?.value as UserRole | "all") || "all");
+								setPage(1); // Reset to first page when filter changes
+							}}
+							options={[
+								{ value: "all", label: "All Roles" },
+								...Object.values(UserRole).map((userRole) => ({
+									value: userRole,
+									label: userRole
+										.replace("_", " ")
+										.toLowerCase()
+										.replace(/\b\w/g, (c) => c.toUpperCase()),
+								})),
+							]}
+							classNames={{
+								control: () =>
+									"h-[40px] !rounded-[8px] !border-[#E5E7EB] border-[1px] cursor-pointer outline-none focus:outline-none text-[14px]",
+								container: () => "w-full",
+								indicatorSeparator: () => "hidden",
+							}}
+							placeholder="Select role..."
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div className="w-full mt-[24px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
 					<thead className="bg-[#D4E7E6] h-[41px]">
 						{table.getHeaderGroups().map((headerGroup) => (

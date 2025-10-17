@@ -1,0 +1,24 @@
+mutation CreateSale($input: SaleInput!) {
+	createSale(input: $input) {
+		uuid
+		customerName
+		customerEmail
+		customerPhone
+		totalAmount
+		paymentTransactions {
+			paystackReference
+			paystackTransactionId
+			paystackAccessCode
+			authorizationUrl
+			amount
+			requestedAmount
+			currency
+			status
+		}
+		paymentStatus
+		saleDate
+		createdAt
+		updatedAt
+		saleStatus
+	}
+}

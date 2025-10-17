@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import {
 	Product,
+	UserRole,
 	useDeleteProductMutation,
 	useProductsLazyQuery,
 } from "../generated/graphql";
@@ -17,9 +18,11 @@ import AddProduct from "../modules/Modals/Product/AddProduct";
 import EditProduct from "../modules/Modals/Product/EditProduct";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
-// import DeleteModal from "../modules/Modals/DeleteModal";
+import { formatNaira } from "../utils/formatters";
+import { useUserStore } from "../store/userStore";
 
 const Products = () => {
+	const { user } = useUserStore();
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
@@ -33,8 +36,8 @@ const Products = () => {
 		useDeleteProductMutation();
 	const [data, setData] = useState<Product[]>([]);
 
-	const columns = useMemo<ColumnDef<Product>[]>(
-		() => [
+	const columns = useMemo<ColumnDef<Product>[]>(() => {
+		const baseColumns: ColumnDef<Product>[] = [
 			{
 				accessorKey: "name",
 				cell: (info) => info.getValue(),
@@ -88,11 +91,7 @@ const Products = () => {
 				accessorKey: "costPrice",
 				cell: (info) => {
 					const value = info.getValue() as number;
-					return `₦${
-						value?.toLocaleString("en-NG", {
-							maximumFractionDigits: 0,
-						}) || "0"
-					}`;
+					return formatNaira(value);
 				},
 				header: () => <h4>Cost Price</h4>,
 			},
@@ -100,15 +99,15 @@ const Products = () => {
 				accessorKey: "sellingPrice",
 				cell: (info) => {
 					const value = info.getValue() as number;
-					return `₦${
-						value?.toLocaleString("en-NG", {
-							maximumFractionDigits: 0,
-						}) || "0"
-					}`;
+					return formatNaira(value);
 				},
 				header: () => <h4>Selling Price</h4>,
 			},
-			{
+		];
+
+		// Only add Actions column if user is not a reseller
+		if (user?.role !== UserRole.Reseller) {
+			baseColumns.push({
 				header: "Actions",
 				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
@@ -132,10 +131,11 @@ const Products = () => {
 						</button>
 					</div>
 				),
-			},
-		],
-		[]
-	);
+			});
+		}
+
+		return baseColumns;
+	}, [user?.role]);
 
 	useEffect(() => {
 		getProducts({
@@ -195,14 +195,16 @@ const Products = () => {
 						Manage Products
 					</h2>
 				</div>
-				<Button
-					size="small"
-					icon={<Plus color="#060606" />}
-					onClick={() => setOpen(true)}
-					className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
-				>
-					Add Product
-				</Button>
+				{user?.role !== UserRole.Reseller && (
+					<Button
+						size="small"
+						icon={<Plus color="#060606" />}
+						onClick={() => setOpen(true)}
+						className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+					>
+						Add Product
+					</Button>
+				)}
 			</div>
 			<div className="w-full mt-[48px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">

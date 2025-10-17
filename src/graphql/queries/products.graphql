@@ -27,6 +27,11 @@ query Products($pagination: PaginationInput, $filter: ProductFilter) {
 					serialNumber
 					description
 					specifications
+					inventory {
+						quantityAvailable
+						quantityReserved
+						status
+					}
 				}
 			}
 		}

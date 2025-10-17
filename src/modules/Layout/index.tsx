@@ -30,7 +30,7 @@ interface MenuItem {
 }
 
 // Menu configurations
-const MAIN_MENU: MenuItem[] = [
+const STORE_OWNER_MENU: MenuItem[] = [
 	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
 	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
 	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
@@ -39,8 +39,15 @@ const MAIN_MENU: MenuItem[] = [
 	{ name: "Users", link: "/users", icon: <Attribute /> },
 	{ name: "Brands", link: "/brands", icon: <Brands /> },
 	{ name: "Category", link: "/category", icon: <Category /> },
-	{ name: "Products", link: "/products", icon: <Products /> },
 	{ name: "Stores", link: "/stores", icon: <Products /> },
+];
+
+const RESELLER_MENU: MenuItem[] = [
+	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
+	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
+	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
+	{ name: "Credit", link: "/credit", icon: <Credit /> },
+	{ name: "Products", link: "/products", icon: <Products /> },
 ];
 
 const ADMIN_MENU: MenuItem[] = [
@@ -166,7 +173,16 @@ const Layout = ({ children }: LayoutProps) => {
 					<>
 						<SectionLabel>MAIN MENU</SectionLabel>
 						<MenuList
-							items={MAIN_MENU}
+							items={STORE_OWNER_MENU}
+							onItemClick={() => setIsMobileMenuOpen(false)}
+						/>
+					</>
+				)}
+				{user?.role === UserRole.Reseller && (
+					<>
+						<SectionLabel>MAIN MENU</SectionLabel>
+						<MenuList
+							items={RESELLER_MENU}
 							onItemClick={() => setIsMobileMenuOpen(false)}
 						/>
 					</>
@@ -188,7 +204,16 @@ const Layout = ({ children }: LayoutProps) => {
 				{user?.role === UserRole.StoreOwner && (
 					<>
 						<SectionLabel>MAIN MENU</SectionLabel>
-						<MenuList items={MAIN_MENU} />
+						<MenuList items={STORE_OWNER_MENU} />
+					</>
+				)}
+				{user?.role === UserRole.Reseller && (
+					<>
+						<SectionLabel>MAIN MENU</SectionLabel>
+						<MenuList
+							items={RESELLER_MENU}
+							onItemClick={() => setIsMobileMenuOpen(false)}
+						/>
 					</>
 				)}
 				{user?.role === UserRole.Admin && (
