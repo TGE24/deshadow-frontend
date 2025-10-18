@@ -1,0 +1,39 @@
+query Sales($pagination: PaginationInput, $filter: SaleFilter) {
+	sales(pagination: $pagination, filter: $filter) {
+		edges {
+			node {
+				... on Sale {
+					uuid
+					saleType
+					invoices {
+						filePath
+					}
+					saleDate
+					saleStatus
+					createdAt
+					updatedAt
+					totalAmount
+					paymentStatus
+					customerName
+					customerEmail
+					customerPhone
+					items {
+						uuid
+						quantity
+						unitPrice
+						product {
+							name
+						}
+					}
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

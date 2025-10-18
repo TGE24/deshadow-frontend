@@ -17,6 +17,7 @@ import TableLoader from "../components/TableLoader";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import CreateStore from "../modules/Modals/Store/CreateStore";
 import EditStore from "../modules/Modals/Store/EditStore";
+import TableEmptyState from "../components/TableEmptyState";
 
 const Stores = () => {
 	const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -180,60 +181,13 @@ const Stores = () => {
 					{loading ? (
 						<TableLoader columns={columns.length} />
 					) : data.length === 0 ? (
-						<tbody>
-							<tr>
-								<td colSpan={columns.length} className="py-[60px] text-center">
-									<div className="flex flex-col items-center justify-center border-[1px] border-[#E3E3E3] rounded-[8px] p-[40px]">
-										<div className="w-[100px] h-[100px] bg-[#F8F9FA] rounded-full flex items-center justify-center mb-[16px]">
-											<svg
-												width="48"
-												height="48"
-												viewBox="0 0 24 24"
-												fill="none"
-												className="text-[#6C757D]"
-											>
-												<path
-													d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7Z"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												/>
-												<path
-													d="M8 12H16"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												/>
-												<path
-													d="M8 16H12"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												/>
-											</svg>
-										</div>
-										<h3 className="text-[18px] font-semibold text-[#495057] mb-[8px]">
-											No stores found
-										</h3>
-										<p className="text-[14px] text-[#6C757D] mb-[24px] max-w-[300px]">
-											You haven't added any stores yet. Create your first store
-											to get started.
-										</p>
-										<Button
-											size="small"
-											icon={<Plus color="#060606" />}
-											onClick={() => setOpen(true)}
-											className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
-										>
-											Add Store
-										</Button>
-									</div>
-								</td>
-							</tr>
-						</tbody>
+						<TableEmptyState
+							title="No stores found"
+							description="You haven't added any stores yet. Create your first store to get started."
+							colSpan={columns.length}
+							action={() => setOpen(true)}
+							buttonCopy="Add Store"
+						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (

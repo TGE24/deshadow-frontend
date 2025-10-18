@@ -14,6 +14,7 @@ import TwoFactorAuthentication from "./pages/TwoFactorAuthSetup";
 import OTP from "./pages/otp";
 import Stores from "./pages/stores";
 import Inventory from "./pages/inventory";
+import SalesManagement from "./pages/Sales";
 
 function App() {
 	return (
@@ -38,6 +39,7 @@ function App() {
 									<Route path="/products" element={<Products />} />
 									<Route path="/stores" element={<Stores />} />
 									<Route path="/inventory" element={<Inventory />} />
+									<Route path="/sale" element={<SalesManagement />} />
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

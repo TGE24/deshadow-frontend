@@ -107,11 +107,7 @@ const StoreInventory = () => {
 				},
 				header: () => <h4>Selling Price</h4>,
 			},
-		];
-
-		// Only add Actions column if user is not a reseller
-		if (user?.role !== UserRole.Reseller) {
-			baseColumns.push({
+			{
 				header: "Actions",
 				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
@@ -135,11 +131,11 @@ const StoreInventory = () => {
 						</button>
 					</div>
 				),
-			});
-		}
+			},
+		];
 
 		return baseColumns;
-	}, [user?.role]);
+	}, []);
 
 	useEffect(() => {
 		getInventory({
