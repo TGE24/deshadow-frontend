@@ -1164,6 +1164,14 @@ export type UpdateCategoryMutationVariables = Exact<{
 
 export type UpdateCategoryMutation = { __typename?: 'Mutation', updateCategory: { __typename?: 'Category', uuid: any, status: CategoryStatus } };
 
+export type UpdateInventoryMutationVariables = Exact<{
+  input: InventoryInput;
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdateInventoryMutation = { __typename?: 'Mutation', updateInventory: { __typename?: 'Inventory', uuid: any, status: InventoryStatus } };
+
 export type UpdateProductMutationVariables = Exact<{
   input: ProductUpdateInput;
   uuid: Scalars['UUID']['input'];
@@ -1201,6 +1209,14 @@ export type CategoriesQueryVariables = Exact<{
 
 
 export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'Credit' } | { __typename: 'Engineer' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type InventoryQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+  storeUuid: Scalars['UUID']['input'];
+}>;
+
+
+export type InventoryQuery = { __typename?: 'Query', inventory: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'Engineer' } | { __typename?: 'Inventory', uuid: any, quantityAvailable: number, quantityReserved: number, status: InventoryStatus, lastUpdated: any, createdAt: any, updatedAt: any, product: { __typename?: 'Product', name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, description?: string | null, specifications?: any | null, brand: { __typename?: 'Brand', name: string, uuid: any } } } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type MyStoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1932,6 +1948,41 @@ export function useUpdateCategoryMutation(baseOptions?: Apollo.MutationHookOptio
 export type UpdateCategoryMutationHookResult = ReturnType<typeof useUpdateCategoryMutation>;
 export type UpdateCategoryMutationResult = Apollo.MutationResult<UpdateCategoryMutation>;
 export type UpdateCategoryMutationOptions = Apollo.BaseMutationOptions<UpdateCategoryMutation, UpdateCategoryMutationVariables>;
+export const UpdateInventoryDocument = gql`
+    mutation UpdateInventory($input: InventoryInput!, $uuid: UUID!) {
+  updateInventory(input: $input, uuid: $uuid) {
+    uuid
+    status
+  }
+}
+    `;
+export type UpdateInventoryMutationFn = Apollo.MutationFunction<UpdateInventoryMutation, UpdateInventoryMutationVariables>;
+
+/**
+ * __useUpdateInventoryMutation__
+ *
+ * To run a mutation, you first call `useUpdateInventoryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateInventoryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateInventoryMutation, { data, loading, error }] = useUpdateInventoryMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useUpdateInventoryMutation(baseOptions?: Apollo.MutationHookOptions<UpdateInventoryMutation, UpdateInventoryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateInventoryMutation, UpdateInventoryMutationVariables>(UpdateInventoryDocument, options);
+      }
+export type UpdateInventoryMutationHookResult = ReturnType<typeof useUpdateInventoryMutation>;
+export type UpdateInventoryMutationResult = Apollo.MutationResult<UpdateInventoryMutation>;
+export type UpdateInventoryMutationOptions = Apollo.BaseMutationOptions<UpdateInventoryMutation, UpdateInventoryMutationVariables>;
 export const UpdateProductDocument = gql`
     mutation UpdateProduct($input: ProductUpdateInput!, $uuid: UUID!) {
   updateProduct(input: $input, uuid: $uuid) {
@@ -2165,6 +2216,80 @@ export type CategoriesQueryHookResult = ReturnType<typeof useCategoriesQuery>;
 export type CategoriesLazyQueryHookResult = ReturnType<typeof useCategoriesLazyQuery>;
 export type CategoriesSuspenseQueryHookResult = ReturnType<typeof useCategoriesSuspenseQuery>;
 export type CategoriesQueryResult = Apollo.QueryResult<CategoriesQuery, CategoriesQueryVariables>;
+export const InventoryDocument = gql`
+    query Inventory($pagination: PaginationInput, $storeUuid: UUID!) {
+  inventory(pagination: $pagination, storeUuid: $storeUuid) {
+    edges {
+      node {
+        ... on Inventory {
+          uuid
+          quantityAvailable
+          quantityReserved
+          status
+          lastUpdated
+          createdAt
+          updatedAt
+          product {
+            name
+            brand {
+              name
+              uuid
+            }
+            model
+            condition
+            costPrice
+            sellingPrice
+            serialNumber
+            description
+            specifications
+          }
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useInventoryQuery__
+ *
+ * To run a query within a React component, call `useInventoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInventoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInventoryQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *      storeUuid: // value for 'storeUuid'
+ *   },
+ * });
+ */
+export function useInventoryQuery(baseOptions: Apollo.QueryHookOptions<InventoryQuery, InventoryQueryVariables> & ({ variables: InventoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InventoryQuery, InventoryQueryVariables>(InventoryDocument, options);
+      }
+export function useInventoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InventoryQuery, InventoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InventoryQuery, InventoryQueryVariables>(InventoryDocument, options);
+        }
+export function useInventorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InventoryQuery, InventoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InventoryQuery, InventoryQueryVariables>(InventoryDocument, options);
+        }
+export type InventoryQueryHookResult = ReturnType<typeof useInventoryQuery>;
+export type InventoryLazyQueryHookResult = ReturnType<typeof useInventoryLazyQuery>;
+export type InventorySuspenseQueryHookResult = ReturnType<typeof useInventorySuspenseQuery>;
+export type InventoryQueryResult = Apollo.QueryResult<InventoryQuery, InventoryQueryVariables>;
 export const MyStoresDocument = gql`
     query MyStores($pagination: PaginationInput) {
   myStores(pagination: $pagination) {

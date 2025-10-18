@@ -23,7 +23,11 @@ import PaymentDetails from "./PaymentDetails";
 
 // Import utilities
 import { canProceedToNextStep } from "./validation";
-import { calculateFinalTotal, createNewProductItem } from "../../utils/helpers";
+import {
+	calculateFinalTotal,
+	calculateSubtotal,
+	createNewProductItem,
+} from "../../utils/helpers";
 // import { useUserStore } from "../../store/userStore";
 
 const DirectSale = ({ setOpen }: DirectSaleProps) => {
@@ -112,10 +116,7 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 			variables: {
 				input: {
 					...data,
-					totalAmount: calculateFinalTotal(
-						productItems,
-						formData.discountAmount
-					),
+					totalAmount: calculateSubtotal(productItems),
 					items: productItems.map((item) => ({
 						productUuid: item.product?.uuid || "",
 						quantity: item.quantity,

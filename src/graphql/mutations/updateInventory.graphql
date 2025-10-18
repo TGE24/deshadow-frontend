@@ -1,0 +1,6 @@
+mutation UpdateInventory($input: InventoryInput!, $uuid: UUID!) {
+	updateInventory(input: $input, uuid: $uuid) {
+		uuid
+		status
+	}
+}

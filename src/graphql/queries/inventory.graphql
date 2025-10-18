@@ -1,0 +1,38 @@
+query Inventory($pagination: PaginationInput, $storeUuid: UUID!) {
+	inventory(pagination: $pagination, storeUuid: $storeUuid) {
+		edges {
+			node {
+				... on Inventory {
+					uuid
+					quantityAvailable
+					quantityReserved
+					status
+					lastUpdated
+					createdAt
+					updatedAt
+					product {
+						name
+						brand {
+							name
+							uuid
+						}
+						model
+						condition
+						costPrice
+						sellingPrice
+						serialNumber
+						description
+						specifications
+					}
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
