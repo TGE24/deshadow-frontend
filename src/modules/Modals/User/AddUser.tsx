@@ -115,9 +115,7 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 								.filter((role) => {
 									// If current user is store_owner, only show engineer and reseller roles
 									if (user?.role === UserRole.StoreOwner) {
-										return (
-											role === UserRole.Engineer || role === UserRole.Reseller
-										);
+										return role === UserRole.Reseller;
 									}
 									return true; // Show all roles for other user types
 								})
