@@ -6,7 +6,11 @@ import Button from "../components/Button";
 import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 import { useAuth } from "../hooks/useAuth";
-import { useLoginWith2FaMutation, UserRole } from "../generated/graphql";
+import {
+	useLoginWith2FaMutation,
+	useMeLazyQuery,
+	UserRole,
+} from "../generated/graphql";
 
 const OTP = () => {
 	const navigate = useNavigate();
@@ -17,6 +21,7 @@ const OTP = () => {
 	const { login: loginToken } = useAuth();
 
 	// GraphQL mutation
+	const [getUser] = useMeLazyQuery();
 	const [login, { loading }] = useLoginWith2FaMutation();
 
 	// Local state
@@ -48,14 +53,18 @@ const OTP = () => {
 					challengeToken: authPayload.challengeToken,
 					code: otp,
 				},
-				onCompleted(data) {
-					const { accessToken, refreshToken, user } = data.loginWith2FA;
+				async onCompleted(data) {
+					const { accessToken, refreshToken } = data.loginWith2FA;
 
 					// First, authenticate the user
 					if (accessToken && refreshToken) {
 						loginToken(accessToken, refreshToken);
 					}
 
+					// Get user data and wait for the response
+					const userResponse = await getUser();
+
+					const user = userResponse.data?.me;
 					// Then set user data
 					if (user) {
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,13 +95,9 @@ const OTP = () => {
 		loginToken,
 		setUser,
 		navigate,
+		getUser,
 	]);
 
-	useEffect(() => {
-		if (otp.length === 6 && !loading && !errorMessage) {
-			onSubmit();
-		}
-	}, [otp, loading, errorMessage, onSubmit]);
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
 			<div className="bg-[#F8F8F8] rounded-[20px] w-full md:w-[550px]  px-[20px] py-[40px] md:p-[70px] lg:p-[70px]">
@@ -143,7 +148,7 @@ const OTP = () => {
 				<p className="text-center text-[#6A6A6A] text-[14px] mt-[16px]">
 					{errorMessage
 						? "Please correct the error and try again"
-						: "Code will be submitted automatically when complete"}
+						: "Enter the 6-digit code and click 'Verify Code' to proceed"}
 				</p>
 			</div>
 		</div>

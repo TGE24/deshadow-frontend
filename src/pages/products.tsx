@@ -20,6 +20,8 @@ import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
 import { formatNaira } from "../utils/formatters";
 import { useUserStore } from "../store/userStore";
+import TableEmptyState from "../components/TableEmptyState";
+import { Pagination } from "../modules/Pagination";
 
 const Products = () => {
 	const { user } = useUserStore();
@@ -229,6 +231,14 @@ const Products = () => {
 					</thead>
 					{loading ? (
 						<TableLoader columns={columns.length} />
+					) : data.length === 0 ? (
+						<TableEmptyState
+							title="No products found"
+							description="You haven't added any products yet. Create your first product to get started."
+							colSpan={columns.length}
+							action={() => setOpen(true)}
+							buttonCopy="Add Product"
+						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
@@ -249,35 +259,19 @@ const Products = () => {
 						</tbody>
 					)}
 				</table>
-				<div className="flex items-center justify-between mt-[30px]">
-					<p>
-						Showing 1 to {data.length} of {products?.products?.totalCount}{" "}
-						entries
-					</p>
-					<div className="flex items-center gap-[15px]">
-						<Button
-							variant="tetriary"
-							disabled={
-								!products?.products?.pageInfo?.hasPreviousPage || loading
-							}
-							size="small"
-							onClick={prevPage}
-						>
-							Previous
-						</Button>
-						<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
-							{page}
-						</div>
-						<Button
-							variant="tetriary"
-							size="small"
-							disabled={!products?.products?.pageInfo?.hasNextPage || loading}
-							onClick={nextPage}
-						>
-							Next
-						</Button>
-					</div>
-				</div>
+
+				<Pagination
+					page={page}
+					loading={loading}
+					totalCount={products?.products.totalCount ?? 0}
+					dataLength={data.length}
+					hasNextPage={products?.products?.pageInfo?.hasNextPage ?? false}
+					hasPreviousPage={
+						products?.products?.pageInfo?.hasPreviousPage ?? false
+					}
+					onNextPage={nextPage}
+					onPrevPage={prevPage}
+				/>
 			</div>
 
 			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />

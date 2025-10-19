@@ -8,6 +8,7 @@ query Brands($pagination: PaginationInput) {
 					name
 					logoUrl
 					isActive
+					isOwned
 					products {
 						uuid
 						name

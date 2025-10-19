@@ -1,0 +1,32 @@
+query Me {
+	me {
+		uuid
+		role
+		email
+		phone
+		lastName
+		isActive
+		firstName
+		createdAt
+		updatedAt
+		ownedStores {
+			uuid
+			name
+			phone
+			businessRegistration
+			description
+			address
+			isActive
+		}
+		createdByMe
+		assignedStore {
+			uuid
+			name
+			address
+			phone
+			isActive
+			createdAt
+			updatedAt
+		}
+	}
+}

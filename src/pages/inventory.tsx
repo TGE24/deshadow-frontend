@@ -1,196 +1,65 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import {
 	Inventory,
+	useDeleteProductMutation,
 	UserRole,
-	useInventoryLazyQuery,
 } from "../generated/graphql";
 import {
-	ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
 import TableLoader from "../components/TableLoader";
 import AddProduct from "../modules/Modals/Product/AddProduct";
-import { formatNaira } from "../utils/formatters";
 import { useUserStore } from "../store/userStore";
 import UpdateInventory from "../modules/Modals/Inventory/UpdateInventory";
-// import EditProduct from "../modules/Modals/Product/EditProduct";
+import TableEmptyState from "../components/TableEmptyState";
+import {
+	createInventoryColumns,
+	useInventoryData,
+	StoreFilter,
+} from "../modules/Inventory";
+import { Pagination } from "../modules/Pagination";
+import DeleteModal from "../modules/Modals/DeleteModal";
+import { toast } from "react-toastify";
 
 const StoreInventory = () => {
 	const { user } = useUserStore();
+	const [filterStore, setFilterStore] = useState("");
 	const [selectedProduct, setSelectedProduct] = useState<Inventory | null>(
 		null
 	);
-	const [page, setPage] = useState(1);
 	const [open, setOpen] = useState(false);
 	const [updateOpen, setUpdateOpen] = useState(false);
-	// const [editOpen, setEditOpen] = useState(false);
-	const [getInventory, { data: products, loading, refetch }] =
-		useInventoryLazyQuery({
-			fetchPolicy: "network-only",
-		});
-	const [data, setData] = useState<Inventory[]>([]);
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [page, setPage] = useState(1);
 
-	const columns = useMemo<ColumnDef<Inventory>[]>(() => {
-		const baseColumns: ColumnDef<Inventory>[] = [
-			{
-				accessorKey: "product.name",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Name</h4>,
-			},
-			{
-				accessorKey: "product.model",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Model</h4>,
-			},
-			{
-				accessorKey: "product.condition",
-				cell: (info) => {
-					const condition = info.getValue() as string;
-					const getConditionStyle = (condition: string) => {
-						switch (condition?.toLowerCase()) {
-							case "new":
-								return "bg-green-100 text-green-800 border-green-200";
-							case "used":
-								return "bg-yellow-100 text-yellow-800 border-yellow-200";
-							case "refurbished":
-								return "bg-blue-100 text-blue-800 border-blue-200";
-							case "damaged":
-								return "bg-red-100 text-red-800 border-red-200";
-							default:
-								return "bg-gray-100 text-gray-800 border-gray-200";
-						}
-					};
+	const { data, loading, stores, products, nextPage, prevPage, refetch } =
+		useInventoryData({ filterStore, setFilterStore });
 
-					return (
-						<span
-							className={`px-3 py-1 rounded-full text-xs font-medium border ${getConditionStyle(
-								condition
-							)}`}
-						>
-							{condition
-								?.replace("_", " ")
-								.toLowerCase()
-								.replace(/\b\w/g, (c) => c.toUpperCase()) || "Unknown"}
-						</span>
-					);
-				},
-				header: () => <h4>Condition</h4>,
-			},
-			{
-				accessorKey: "quantityAvailable",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Quantity Available</h4>,
-			},
+	const [deleteProduct, { loading: deleteLoading }] =
+		useDeleteProductMutation();
 
-			{
-				accessorKey: "quantityReserved",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Quantity Reserved</h4>,
-			},
-			{
-				accessorKey: "product.costPrice",
-				cell: (info) => {
-					const value = info.getValue() as number;
-					return formatNaira(value);
-				},
-				header: () => <h4>Cost Price</h4>,
-			},
-			{
-				accessorKey: "product.sellingPrice",
-				cell: (info) => {
-					const value = info.getValue() as number;
-					return formatNaira(value);
-				},
-				header: () => <h4>Selling Price</h4>,
-			},
-			{
-				header: "Actions",
-				cell: ({ row }) => (
-					<div className="flex gap-[20px]">
-						{/* <button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setSelectedProduct(row.original);
-								setEditOpen(true);
-							}}
-						>
-							Edit
-						</button> */}
-						<button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setUpdateOpen(true);
-								setSelectedProduct(row.original);
-							}}
-						>
-							Update
-						</button>
-					</div>
-				),
-			},
-		];
+	const handleUpdateProduct = (product: Inventory) => {
+		setUpdateOpen(true);
+		setSelectedProduct(product);
+	};
 
-		return baseColumns;
-	}, []);
-
-	useEffect(() => {
-		getInventory({
-			variables: {
-				pagination: { first: 10 },
-				storeUuid: "c12b3258-55e7-4ebc-8403-a00d80eeab66",
-			},
-		});
-	}, [getInventory]);
-
-	useEffect(() => {
-		if (products?.inventory?.edges) {
-			setData(
-				products.inventory.edges
-					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "Inventory") as Inventory[]
-			);
-		}
-	}, [products]);
+	const columns = createInventoryColumns({
+		onUpdate: handleUpdateProduct,
+		onDelete: (product: Inventory) => {
+			setSelectedProduct(product);
+			setDeleteOpen(true);
+		},
+	});
 
 	const table = useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});
-
-	const nextPage = () => {
-		if (products?.inventory?.pageInfo?.hasNextPage) {
-			getInventory({
-				variables: {
-					pagination: {
-						first: 10,
-						after: products?.inventory?.pageInfo?.endCursor,
-					},
-					storeUuid: "c12b3258-55e7-4ebc-8403-a00d80eeab66",
-				},
-			});
-			setPage(page + 1);
-		}
-	};
-
-	const prevPage = () => {
-		if (products?.inventory?.pageInfo?.hasPreviousPage) {
-			getInventory({
-				variables: {
-					pagination: {
-						last: 10,
-						before: products?.inventory?.pageInfo?.startCursor,
-					},
-					storeUuid: "c12b3258-55e7-4ebc-8403-a00d80eeab66",
-				},
-			});
-			setPage(page - 1);
-		}
-	};
 
 	return (
 		<>
@@ -211,6 +80,18 @@ const StoreInventory = () => {
 					</Button>
 				)}
 			</div>
+
+			{user?.role === UserRole.StoreOwner && (
+				<div className="mt-[24px]">
+					<StoreFilter
+						filterStore={filterStore}
+						setFilterStore={setFilterStore}
+						setPage={setPage}
+						stores={stores}
+					/>
+				</div>
+			)}
+
 			<div className="w-full mt-[48px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
 					<thead className="bg-[#D4E7E6] h-[41px]">
@@ -232,8 +113,17 @@ const StoreInventory = () => {
 							</tr>
 						))}
 					</thead>
+
 					{loading ? (
 						<TableLoader columns={columns.length} />
+					) : data.length === 0 ? (
+						<TableEmptyState
+							title="No product found"
+							description="You haven't added any products yet. Create your first product to get started."
+							colSpan={columns.length}
+							action={() => setOpen(true)}
+							buttonCopy="Add Product"
+						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
@@ -254,35 +144,19 @@ const StoreInventory = () => {
 						</tbody>
 					)}
 				</table>
-				<div className="flex items-center justify-between mt-[30px]">
-					<p>
-						Showing 1 to {data.length} of {products?.inventory?.totalCount}{" "}
-						entries
-					</p>
-					<div className="flex items-center gap-[15px]">
-						<Button
-							variant="tetriary"
-							disabled={
-								!products?.inventory?.pageInfo?.hasPreviousPage || loading
-							}
-							size="small"
-							onClick={prevPage}
-						>
-							Previous
-						</Button>
-						<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
-							{page}
-						</div>
-						<Button
-							variant="tetriary"
-							size="small"
-							disabled={!products?.inventory?.pageInfo?.hasNextPage || loading}
-							onClick={nextPage}
-						>
-							Next
-						</Button>
-					</div>
-				</div>
+
+				<Pagination
+					page={page}
+					loading={loading}
+					totalCount={products?.inventory.totalCount ?? 0}
+					dataLength={data.length}
+					hasNextPage={products?.inventory?.pageInfo?.hasNextPage ?? false}
+					hasPreviousPage={
+						products?.inventory?.pageInfo?.hasPreviousPage ?? false
+					}
+					onNextPage={nextPage}
+					onPrevPage={prevPage}
+				/>
 			</div>
 
 			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />
@@ -292,12 +166,25 @@ const StoreInventory = () => {
 				refetch={refetch}
 				selectedProduct={selectedProduct}
 			/>
-			{/* <EditProduct
-				open={editOpen}
-				setOpen={setEditOpen}
+
+			<DeleteModal
+				open={deleteOpen}
+				setOpen={setDeleteOpen}
 				refetch={refetch}
-				selectedProduct={selectedProduct}
-			/> */}
+				title="Delete Product"
+				copy={`Are you sure you want to delete ${selectedProduct?.product.name}?`}
+				action={() => {
+					deleteProduct({
+						variables: { uuid: selectedProduct?.product.uuid },
+						onCompleted: () => {
+							setDeleteOpen(false);
+							refetch();
+							toast.success("Product deleted successfully");
+						},
+					});
+				}}
+				loading={deleteLoading}
+			/>
 		</>
 	);
 };

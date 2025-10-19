@@ -11,6 +11,7 @@ query Inventory($pagination: PaginationInput, $storeUuid: UUID!) {
 					createdAt
 					updatedAt
 					product {
+						uuid
 						name
 						brand {
 							name

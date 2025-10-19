@@ -28,20 +28,21 @@ import {
 	calculateSubtotal,
 	createNewProductItem,
 } from "../../utils/helpers";
-// import { useUserStore } from "../../store/userStore";
+import { useUserStore } from "../../store/userStore";
 
 const DirectSale = ({ setOpen }: DirectSaleProps) => {
+	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
 	const [initializePayment] = useInitializePaymentMutation();
-	// const { user } = useUserStore();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
 		createNewProductItem(),
 	]);
+
 	const { data: products } = useProductsQuery({
 		variables: {
 			pagination: { first: 100 },
-			filter: { storeUuid: "c12b3258-55e7-4ebc-8403-a00d80eeab66" },
+			filter: { storeUuid: user?.assignedStore?.uuid || "" },
 		},
 	});
 

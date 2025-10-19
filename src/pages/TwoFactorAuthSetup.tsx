@@ -7,7 +7,11 @@ import Button from "../components/Button";
 import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 import { useAuth } from "../hooks/useAuth";
-import { useLoginWith2FaMutation, UserRole } from "../generated/graphql";
+import {
+	useLoginWith2FaMutation,
+	useMeLazyQuery,
+	UserRole,
+} from "../generated/graphql";
 
 const TwoFactorAuthentication = () => {
 	const navigate = useNavigate();
@@ -18,6 +22,7 @@ const TwoFactorAuthentication = () => {
 	const { login: loginToken } = useAuth();
 
 	// GraphQL mutation
+	const [getUser] = useMeLazyQuery();
 	const [login, { loading }] = useLoginWith2FaMutation();
 
 	// Local state
@@ -50,14 +55,18 @@ const TwoFactorAuthentication = () => {
 					challengeToken: authPayload.challengeToken,
 					code: otp,
 				},
-				onCompleted(data) {
-					const { accessToken, refreshToken, user } = data.loginWith2FA;
+				async onCompleted(data) {
+					const { accessToken, refreshToken } = data.loginWith2FA;
 
 					// First, authenticate the user
 					if (accessToken && refreshToken) {
 						loginToken(accessToken, refreshToken);
 					}
 
+					// Get user data and wait for the response
+					const userResponse = await getUser();
+
+					const user = userResponse.data?.me;
 					// Then set user data
 					if (user) {
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,13 +97,8 @@ const TwoFactorAuthentication = () => {
 		loginToken,
 		setUser,
 		navigate,
+		getUser,
 	]);
-
-	useEffect(() => {
-		if (otp.length === 6 && !loading && !errorMessage) {
-			onSubmit();
-		}
-	}, [otp, loading, onSubmit, errorMessage]);
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">

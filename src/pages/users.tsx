@@ -20,8 +20,11 @@ import { cn } from "../utils/cn";
 import EditUser from "../modules/Modals/User/EditUser";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
+import TableEmptyState from "../components/TableEmptyState";
+import { useUserStore } from "../store/userStore";
 
 const Users = () => {
+	const { user } = useUserStore();
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
 	const [openEdit, setOpenEdit] = useState(false);
 	const [page, setPage] = useState(1);
@@ -171,49 +174,51 @@ const Users = () => {
 			</div>
 
 			{/* Filter Section */}
-			<div className="mt-[24px]">
-				<div className="flex flex-col sm:flex-row gap-[16px] items-start sm:items-center">
-					<label className="text-[14px] font-medium text-gray-700">
-						Filter by Role:
-					</label>
-					<div className="w-full sm:w-[200px]">
-						<Select
-							value={
-								role === "all"
-									? { value: "all", label: "All Roles" }
-									: {
-											value: role,
-											label: role
-												.replace("_", " ")
-												.toLowerCase()
-												.replace(/\b\w/g, (c) => c.toUpperCase()),
-									  }
-							}
-							onChange={(option) => {
-								setRole((option?.value as UserRole | "all") || "all");
-								setPage(1); // Reset to first page when filter changes
-							}}
-							options={[
-								{ value: "all", label: "All Roles" },
-								...Object.values(UserRole).map((userRole) => ({
-									value: userRole,
-									label: userRole
-										.replace("_", " ")
-										.toLowerCase()
-										.replace(/\b\w/g, (c) => c.toUpperCase()),
-								})),
-							]}
-							classNames={{
-								control: () =>
-									"h-[40px] !rounded-[8px] !border-[#E5E7EB] border-[1px] cursor-pointer outline-none focus:outline-none text-[14px]",
-								container: () => "w-full",
-								indicatorSeparator: () => "hidden",
-							}}
-							placeholder="Select role..."
-						/>
+			{user?.role !== UserRole.StoreOwner && (
+				<div className="mt-[24px]">
+					<div className="flex flex-col sm:flex-row gap-[16px] items-start sm:items-center">
+						<label className="text-[14px] font-medium text-gray-700">
+							Filter by Role:
+						</label>
+						<div className="w-full sm:w-[200px]">
+							<Select
+								value={
+									role === "all"
+										? { value: "all", label: "All Roles" }
+										: {
+												value: role,
+												label: role
+													.replace("_", " ")
+													.toLowerCase()
+													.replace(/\b\w/g, (c) => c.toUpperCase()),
+										  }
+								}
+								onChange={(option) => {
+									setRole((option?.value as UserRole | "all") || "all");
+									setPage(1); // Reset to first page when filter changes
+								}}
+								options={[
+									{ value: "all", label: "All Roles" },
+									...Object.values(UserRole).map((userRole) => ({
+										value: userRole,
+										label: userRole
+											.replace("_", " ")
+											.toLowerCase()
+											.replace(/\b\w/g, (c) => c.toUpperCase()),
+									})),
+								]}
+								classNames={{
+									control: () =>
+										"h-[40px] !rounded-[8px] !border-[#E5E7EB] border-[1px] cursor-pointer outline-none focus:outline-none text-[14px]",
+									container: () => "w-full",
+									indicatorSeparator: () => "hidden",
+								}}
+								placeholder="Select role..."
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="w-full mt-[24px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
@@ -238,6 +243,14 @@ const Users = () => {
 					</thead>
 					{loading ? (
 						<TableLoader columns={columns.length} />
+					) : data.length === 0 ? (
+						<TableEmptyState
+							title="No users found"
+							description="You haven't added any users yet. Create your first user to get started."
+							colSpan={columns.length}
+							action={() => setOpen(true)}
+							buttonCopy="Add User"
+						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
@@ -258,32 +271,34 @@ const Users = () => {
 						</tbody>
 					)}
 				</table>
-				<div className="flex items-center justify-between mt-[30px]">
-					<p>
-						Showing 1 to {data.length} of {users?.users?.totalCount} entries
-					</p>
-					<div className="flex items-center gap-[15px]">
-						<Button
-							variant="tetriary"
-							disabled={!users?.users?.pageInfo?.hasPreviousPage || loading}
-							size="small"
-							onClick={prevPage}
-						>
-							Previous
-						</Button>
-						<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
-							{page}
+				{(users?.users.totalCount ?? 0) > 10 && (
+					<div className="flex items-center justify-between mt-[30px]">
+						<p>
+							Showing 1 to {data.length} of {users?.users?.totalCount} entries
+						</p>
+						<div className="flex items-center gap-[15px]">
+							<Button
+								variant="tetriary"
+								disabled={!users?.users?.pageInfo?.hasPreviousPage || loading}
+								size="small"
+								onClick={prevPage}
+							>
+								Previous
+							</Button>
+							<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
+								{page}
+							</div>
+							<Button
+								variant="tetriary"
+								size="small"
+								disabled={!users?.users?.pageInfo?.hasNextPage || loading}
+								onClick={nextPage}
+							>
+								Next
+							</Button>
 						</div>
-						<Button
-							variant="tetriary"
-							size="small"
-							disabled={!users?.users?.pageInfo?.hasNextPage || loading}
-							onClick={nextPage}
-						>
-							Next
-						</Button>
 					</div>
-				</div>
+				)}
 			</div>
 			<AddUser open={open} setOpen={setOpen} refetch={refetch} />
 			<EditUser

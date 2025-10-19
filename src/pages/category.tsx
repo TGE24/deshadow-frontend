@@ -13,10 +13,12 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { cn } from "../utils/cn";
-import CategoryLoading from "../components/TableLoader";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import AddCategory from "../modules/Modals/Category/AddCategory";
 import EditCategory from "../modules/Modals/Category/EditCategory";
+import { toast } from "react-toastify";
+import TableLoader from "../components/TableLoader";
+import TableEmptyState from "../components/TableEmptyState";
 
 const Category = () => {
 	const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(
@@ -64,20 +66,34 @@ const Category = () => {
 				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
 						<button
-							className="font-medium cursor-pointer"
+							className={cn("font-medium cursor-pointer", {
+								"cursor-not-allowed": !row.original.isOwned,
+							})}
 							onClick={() => {
-								setEditOpen(true);
-								setSelectedCategory(row.original);
+								if (row.original.isOwned) {
+									setEditOpen(true);
+									setSelectedCategory(row.original);
+								} else {
+									toast.error("You cannot edit this category");
+								}
 							}}
+							disabled={!row.original.isOwned}
 						>
 							Edit
 						</button>
 						<button
-							className="font-medium cursor-pointer"
+							className={cn("font-medium cursor-pointer", {
+								"cursor-not-allowed": !row.original.isOwned,
+							})}
 							onClick={() => {
-								setDeleteOpen(true);
-								setSelectedCategory(row.original);
+								if (row.original.isOwned) {
+									setDeleteOpen(true);
+									setSelectedCategory(row.original);
+								} else {
+									toast.error("You cannot delete this category");
+								}
 							}}
+							disabled={!row.original.isOwned}
 						>
 							Delete
 						</button>
@@ -175,7 +191,15 @@ const Category = () => {
 						))}
 					</thead>
 					{loading ? (
-						<CategoryLoading />
+						<TableLoader columns={columns.length} />
+					) : data.length === 0 ? (
+						<TableEmptyState
+							title="No categories found"
+							description="You haven't added any categories yet. Create your first category to get started."
+							colSpan={columns.length}
+							action={() => setOpen(true)}
+							buttonCopy="Add Category"
+						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (

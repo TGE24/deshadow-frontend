@@ -12,14 +12,14 @@ const Share = () => {
 				stroke="#141B34"
 				strokeWidth="1.5"
 				strokeLinecap="round"
-				stroke-linejoin="round"
+				strokeLinejoin="round"
 			/>
 			<path
 				d="M14 3H18C19.4142 3 20.1213 3 20.5607 3.43934C21 3.87868 21 4.58579 21 6V10M20 4L11 13"
 				stroke="#141B34"
 				strokeWidth="1.5"
 				strokeLinecap="round"
-				stroke-linejoin="round"
+				strokeLinejoin="round"
 			/>
 		</svg>
 	);

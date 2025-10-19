@@ -17,6 +17,7 @@ import TableLoader from "../components/TableLoader";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import AddBrand from "../modules/Modals/Brand/AddBrand";
 import EditBrand from "../modules/Modals/Brand/EditBrand";
+import { toast } from "react-toastify";
 
 const Brand = () => {
 	const [selectedBrand, setSelectedBrand] = useState<BrandType | null>(null);
@@ -62,20 +63,34 @@ const Brand = () => {
 				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
 						<button
-							className="font-medium cursor-pointer"
+							className={cn("font-medium cursor-pointer", {
+								"cursor-not-allowed": !row.original.isOwned,
+							})}
 							onClick={() => {
-								setEditOpen(true);
-								setSelectedBrand(row.original);
+								if (row.original.isOwned) {
+									setEditOpen(true);
+									setSelectedBrand(row.original);
+								} else {
+									toast.error("You cannot edit this brand");
+								}
 							}}
+							disabled={!row.original.isOwned}
 						>
 							Edit
 						</button>
 						<button
-							className="font-medium cursor-pointer"
+							className={cn("font-medium cursor-pointer", {
+								"cursor-not-allowed": !row.original.isOwned,
+							})}
 							onClick={() => {
-								setDeleteOpen(true);
-								setSelectedBrand(row.original);
+								if (row.original.isOwned) {
+									setDeleteOpen(true);
+									setSelectedBrand(row.original);
+								} else {
+									toast.error("You cannot delete this brand");
+								}
 							}}
+							disabled={!row.original.isOwned}
 						>
 							Delete
 						</button>

@@ -9,6 +9,7 @@ query Categories($pagination: PaginationInput) {
 					description
 					createdAt
 					status
+					isOwned
 					parent {
 						name
 					}

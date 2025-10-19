@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import Modal from "react-responsive-modal";
@@ -6,6 +6,7 @@ import Select from "react-select";
 
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
+import Accordion from "../../../components/Accordion";
 import {
 	Brand,
 	Category,
@@ -15,6 +16,7 @@ import {
 	useCategoriesLazyQuery,
 	useCreateProductMutation,
 	useStoresQuery,
+	useUpdateInventoryMutation,
 } from "../../../generated/graphql";
 
 interface AddProductModalProps {
@@ -54,6 +56,12 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	setOpen,
 	refetch,
 }) => {
+	const [quantity, setQuantity] = useState<{
+		available: number;
+		reserved: number;
+	}>({ available: 0, reserved: 0 });
+	const [updateInventory, { loading: inventoryLoading }] =
+		useUpdateInventoryMutation();
 	const [getCategories, { data: categories }] = useCategoriesLazyQuery({
 		fetchPolicy: "network-only",
 	});
@@ -140,7 +148,29 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						specifications: JSON.stringify(data.specifications),
 					},
 				},
-				onCompleted() {
+				async onCompleted(data) {
+					if (quantity.available > 0 || quantity.reserved > 0) {
+						await updateInventory({
+							variables: {
+								input: {
+									productUuid: data.createProduct.uuid ?? "",
+									quantityAvailable: quantity.available,
+									quantityReserved: quantity.reserved,
+								},
+								uuid: data.createProduct.inventory?.uuid ?? "",
+							},
+							onCompleted() {
+								setOpen(false);
+								reset();
+								refetch();
+								toast.success("Product created successfully");
+							},
+							onError(error: { message: string }) {
+								console.log(error.message);
+							},
+						});
+						return;
+					}
 					setOpen(false);
 					reset();
 					refetch();
@@ -171,7 +201,7 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 				Enter product details
 			</h2>
 			<form onSubmit={handleSubmit(handleSubmitForm)}>
-				<div className="mb-[76px] mt-[16px] flex gap-[24px] flex-col">
+				<div className="mb-[40px] mt-[16px] flex gap-[24px] flex-col">
 					<div className="flex flex-col md:flex-row gap-[16px]">
 						<div className="w-full">
 							<label
@@ -388,14 +418,42 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 							errors={errors.sellingPrice}
 						/>
 					</div>
+					<Accordion title="Update Quantity" defaultOpen={false}>
+						<div className="flex gap-[16px]">
+							<Input
+								label="Available"
+								placeholder="Enter quantity available"
+								variant="secondary"
+								id="quantityAvailable"
+								onChange={(e) =>
+									setQuantity((prev) => ({
+										...prev,
+										available: parseInt(e.target.value, 10) || 0,
+									}))
+								}
+							/>
+							<Input
+								label="Reserved"
+								placeholder="Enter quantity reserved"
+								variant="secondary"
+								id="quantityReserved"
+								onChange={(e) =>
+									setQuantity((prev) => ({
+										...prev,
+										reserved: parseInt(e.target.value, 10) || 0,
+									}))
+								}
+							/>
+						</div>
+					</Accordion>
 				</div>
 				<Button
 					size="large"
 					className="w-full"
 					type="submit"
-					disabled={loading}
+					disabled={loading || inventoryLoading}
 				>
-					{loading ? "Adding..." : "ADD PRODUCT"}
+					{loading || inventoryLoading ? "Adding..." : "ADD PRODUCT"}
 				</Button>
 			</form>
 		</Modal>

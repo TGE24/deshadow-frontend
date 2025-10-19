@@ -55,7 +55,7 @@ const TableEmptyState: React.FC<TableEmptyStateProps> = ({
 									size="small"
 									icon={<Plus color="#060606" />}
 									onClick={action}
-									className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+									className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE] mx-auto mt-[20px]"
 								>
 									{buttonCopy}
 								</Button>
