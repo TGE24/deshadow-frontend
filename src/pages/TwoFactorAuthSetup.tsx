@@ -65,7 +65,9 @@ const TwoFactorAuthentication = () => {
 
 						// Navigate based on user role
 						const navigationPath =
-							user.role === UserRole.Admin ? "/users" : "/dashboard";
+							user.role === UserRole.Admin || user.role === UserRole.SuperAdmin
+								? "/users"
+								: "/dashboard";
 						navigate(navigationPath);
 					}
 				},

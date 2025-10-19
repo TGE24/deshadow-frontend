@@ -210,13 +210,11 @@ const Layout = ({ children }: LayoutProps) => {
 				{user?.role === UserRole.Reseller && (
 					<>
 						<SectionLabel>MAIN MENU</SectionLabel>
-						<MenuList
-							items={RESELLER_MENU}
-							onItemClick={() => setIsMobileMenuOpen(false)}
-						/>
+						<MenuList items={RESELLER_MENU} />
 					</>
 				)}
-				{user?.role === UserRole.Admin && (
+				{(user?.role === UserRole.Admin ||
+					user?.role === UserRole.SuperAdmin) && (
 					<div className="mt-[70px] pb-[20px]">
 						<MenuList items={ADMIN_MENU} />
 					</div>

@@ -13,10 +13,6 @@ mutation RefreshToken($refreshToken: String!) {
 			ownedStores {
 				name
 			}
-			engineerProfile {
-				uuid
-				rating
-			}
 		}
 	}
 }

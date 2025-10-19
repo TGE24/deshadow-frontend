@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
-import { useAuth } from "../hooks/useAuth";
 import { LoginMutation, useLoginMutation } from "../generated/graphql";
 
 interface LoginFormData {
@@ -18,7 +17,6 @@ const Login = () => {
 
 	// Stores and hooks
 	const { setAuthPayload } = useAuthStore();
-	const { login: authLogin } = useAuth();
 
 	// GraphQL mutation
 	const [login, { loading }] = useLoginMutation();
@@ -49,35 +47,27 @@ const Login = () => {
 					const { login: loginData } = data;
 
 					// Case 1: User needs to set up 2FA (first time)
-					if (loginData.twoFactorSecret) {
-						setAuthPayload({
-							twoFactorSecret: loginData.twoFactorSecret,
-							accessToken: loginData.accessToken ?? "",
-							refreshToken: loginData.refreshToken ?? "",
-							requires2FA: loginData.requires2FA,
-							challengeToken: loginData.challengeToken ?? "",
-							twoFactorQRCodeURL: loginData.twoFactorQRCodeURL ?? "",
-						});
-						navigate("/setup-2fa");
-						return;
-					}
+					// if (loginData.twoFactorSecret) {
+					// 	setAuthPayload({
+					// 		twoFactorSecret: loginData.twoFactorSecret,
+					// 		accessToken: loginData.accessToken ?? "",
+					// 		refreshToken: loginData.refreshToken ?? "",
+					// 		requires2FA: loginData.requires2FA,
+					// 		challengeToken: loginData.challengeToken ?? "",
+					// 		twoFactorQRCodeURL: loginData.twoFactorQRCodeURL ?? "",
+					// 	});
+					// 	navigate("/setup-2fa");
+					// 	return;
+					// }
 
 					// Case 2: User has 2FA enabled and needs to enter OTP
-					if (loginData.requires2FA && loginData.challengeToken) {
+					if (loginData.challengeToken) {
 						setAuthPayload({
 							accessToken: loginData.accessToken ?? "",
 							refreshToken: loginData.refreshToken ?? "",
 							challengeToken: loginData.challengeToken,
-							requires2FA: loginData.requires2FA,
 						});
 						navigate("/otp");
-						return;
-					}
-
-					// Case 3: Successful login without 2FA requirements
-					if (loginData.accessToken && loginData.refreshToken) {
-						authLogin(loginData.accessToken, loginData.refreshToken);
-						navigate("/dashboard");
 						return;
 					}
 

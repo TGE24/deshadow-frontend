@@ -109,7 +109,7 @@ const Input: React.FC<InputProps> = ({
 			{errors && (
 				<p
 					id={`${inputId}-error`}
-					className="text-red-500 text-[12px] mt-[6px] pl-[20px] font-medium"
+					className="text-red-500 text-[12px] mt-[6px] pl-[10px] font-medium"
 					role="alert"
 				>
 					{errors.message}

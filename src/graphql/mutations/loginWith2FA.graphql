@@ -2,11 +2,7 @@ mutation LoginWith2FA($challengeToken: String!, $code: String!) {
 	loginWith2FA(challengeToken: $challengeToken, code: $code) {
 		accessToken
 		refreshToken
-		requires2FA
 		challengeToken
-		requires2FASetup
-		twoFactorSecret
-		twoFactorQRCodeURL
 		user {
 			uuid
 			role
@@ -17,14 +13,24 @@ mutation LoginWith2FA($challengeToken: String!, $code: String!) {
 			firstName
 			createdAt
 			updatedAt
-			role
 			ownedStores {
 				uuid
 				name
+				phone
+				businessRegistration
+				description
+				address
+				isActive
 			}
+			createdByMe
 			assignedStore {
 				uuid
 				name
+				address
+				phone
+				isActive
+				createdAt
+				updatedAt
 			}
 		}
 	}

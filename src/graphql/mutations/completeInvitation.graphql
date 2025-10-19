@@ -1,0 +1,16 @@
+mutation CompleteInvitation($input: CompleteInvitationInput!) {
+	completeInvitation(input: $input) {
+		twoFactorSecret
+		twoFactorQRCodeURL
+		challengeToken
+		user {
+			uuid
+			role
+			email
+			phone
+			lastName
+			isActive
+			firstName
+		}
+	}
+}

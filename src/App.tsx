@@ -15,6 +15,7 @@ import OTP from "./pages/otp";
 import Stores from "./pages/stores";
 import Inventory from "./pages/inventory";
 import SalesManagement from "./pages/Sales";
+import SetPassword from "./pages/set-password";
 
 function App() {
 	return (
@@ -23,6 +24,7 @@ function App() {
 				<Route path="/" element={<Login />} />
 				<Route path="/setup-2fa" element={<TwoFactorAuthentication />} />
 				<Route path="/otp" element={<OTP />} />
+				<Route path="complete-invitation" element={<SetPassword />} />
 				<Route
 					path="/*"
 					element={
