@@ -50,7 +50,6 @@ const EditStore: React.FC<ModalProps> = ({
 				address: selectedStore.address || "",
 				description: selectedStore.description || "",
 				phone: selectedStore.phone || "",
-				businessRegistration: selectedStore.businessRegistration || "",
 			};
 			reset(formData);
 		} else if (open && !selectedStore) {
@@ -74,7 +73,6 @@ const EditStore: React.FC<ModalProps> = ({
 					description: data.description,
 					address: data.address,
 					phone: data.phone,
-					businessRegistration: data.businessRegistration,
 				},
 				storeId: selectedStore?.uuid || "",
 			},

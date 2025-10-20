@@ -43,7 +43,6 @@ const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 					description: data.description,
 					address: data.address,
 					phone: data.phone,
-					businessRegistration: data.businessRegistration,
 				},
 			},
 			onCompleted() {
