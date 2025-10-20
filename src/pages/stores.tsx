@@ -4,7 +4,7 @@ import Plus from "../components/Icons/Plus";
 import {
 	Store,
 	useDeleteStoreMutation,
-	useMyStoresLazyQuery,
+	useStoresLazyQuery,
 } from "../generated/graphql";
 import {
 	ColumnDef,
@@ -25,7 +25,7 @@ const Stores = () => {
 	const [open, setOpen] = useState(false);
 	const [editOpen, setEditOpen] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
-	const [getStores, { data: stores, loading, refetch }] = useMyStoresLazyQuery({
+	const [getStores, { data: stores, loading, refetch }] = useStoresLazyQuery({
 		fetchPolicy: "network-only",
 	});
 	const [deleteBrand, { loading: deleteLoading }] = useDeleteStoreMutation();
@@ -97,9 +97,9 @@ const Stores = () => {
 	}, [getStores]);
 
 	useEffect(() => {
-		if (stores?.myStores?.edges) {
+		if (stores?.stores?.edges) {
 			setData(
-				stores.myStores.edges
+				stores.stores.edges
 					.map((edge) => edge.node)
 					.filter((node) => node.__typename === "Store") as Store[]
 			);
@@ -113,12 +113,12 @@ const Stores = () => {
 	});
 
 	const nextPage = () => {
-		if (stores?.myStores?.pageInfo?.hasNextPage) {
+		if (stores?.stores?.pageInfo?.hasNextPage) {
 			getStores({
 				variables: {
 					pagination: {
 						first: 10,
-						after: stores?.myStores?.pageInfo?.endCursor,
+						after: stores?.stores?.pageInfo?.endCursor,
 					},
 				},
 			});
@@ -127,12 +127,12 @@ const Stores = () => {
 	};
 
 	const prevPage = () => {
-		if (stores?.myStores?.pageInfo?.hasPreviousPage) {
+		if (stores?.stores?.pageInfo?.hasPreviousPage) {
 			getStores({
 				variables: {
 					pagination: {
 						last: 10,
-						before: stores?.myStores?.pageInfo?.startCursor,
+						before: stores?.stores?.pageInfo?.startCursor,
 					},
 				},
 			});
@@ -208,18 +208,16 @@ const Stores = () => {
 						</tbody>
 					)}
 				</table>
-				{(stores?.myStores?.totalCount ?? 0) > 10 && (
+				{(stores?.stores?.totalCount ?? 0) > 10 && (
 					<div className="flex items-center justify-between mt-[30px]">
 						<p>
-							Showing 1 to {data.length} of {stores?.myStores?.totalCount ?? 0}{" "}
+							Showing 1 to {data.length} of {stores?.stores?.totalCount ?? 0}{" "}
 							entries
 						</p>
 						<div className="flex items-center gap-[15px]">
 							<Button
 								variant="tetriary"
-								disabled={
-									!stores?.myStores?.pageInfo?.hasPreviousPage || loading
-								}
+								disabled={!stores?.stores?.pageInfo?.hasPreviousPage || loading}
 								size="small"
 								onClick={prevPage}
 							>
@@ -231,7 +229,7 @@ const Stores = () => {
 							<Button
 								variant="tetriary"
 								size="small"
-								disabled={!stores?.myStores?.pageInfo?.hasNextPage || loading}
+								disabled={!stores?.stores?.pageInfo?.hasNextPage || loading}
 								onClick={nextPage}
 							>
 								Next

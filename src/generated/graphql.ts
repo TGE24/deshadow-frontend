@@ -688,7 +688,6 @@ export type Query = {
   me: User;
   myBankAccounts: Array<UserBankAccount>;
   myEarningsTransactions: PaginatedResponse;
-  myStores: PaginatedResponse;
   myTotalEarnings: Scalars['Float']['output'];
   myWithdrawalHistory: PaginatedResponse;
   paymentStats: Scalars['JSON']['output'];
@@ -786,11 +785,6 @@ export type QueryMarketplaceListingsArgs = {
 export type QueryMyEarningsTransactionsArgs = {
   pagination?: InputMaybe<PaginationInput>;
   storeUuid?: InputMaybe<Scalars['UUID']['input']>;
-};
-
-
-export type QueryMyStoresArgs = {
-  pagination?: InputMaybe<PaginationInput>;
 };
 
 
@@ -1027,7 +1021,6 @@ export enum SaleType {
 export type Store = {
   __typename?: 'Store';
   address?: Maybe<Scalars['String']['output']>;
-  businessRegistration?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['Time']['output'];
   description?: Maybe<Scalars['String']['output']>;
   isActive: Scalars['Boolean']['output'];
@@ -1055,7 +1048,6 @@ export type StoreEarnings = {
 
 export type StoreInput = {
   address?: InputMaybe<Scalars['String']['input']>;
-  businessRegistration?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   phone?: InputMaybe<Scalars['String']['input']>;
@@ -1076,6 +1068,8 @@ export type SwapTransaction = {
 export type User = {
   __typename?: 'User';
   assignedStore?: Maybe<Store>;
+  businessName?: Maybe<Scalars['String']['output']>;
+  businessRegistration?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['Time']['output'];
   createdByMe?: Maybe<Scalars['Boolean']['output']>;
   email: Scalars['String']['output'];
@@ -1103,6 +1097,8 @@ export type UserBankAccount = {
 };
 
 export type UserInput = {
+  businessName?: InputMaybe<Scalars['String']['input']>;
+  businessRegistration?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
@@ -1356,14 +1352,7 @@ export type InvoiceQuery = { __typename?: 'Query', invoice?: { __typename?: 'Inv
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, createdByMe?: boolean | null, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string, phone?: string | null, businessRegistration?: string | null, description?: string | null, address?: string | null, isActive: boolean }>, assignedStore?: { __typename?: 'Store', uuid: any, name: string, address?: string | null, phone?: string | null, isActive: boolean, createdAt: any, updatedAt: any } | null } };
-
-export type MyStoresQueryVariables = Exact<{
-  pagination?: InputMaybe<PaginationInput>;
-}>;
-
-
-export type MyStoresQuery = { __typename?: 'Query', myStores: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Bank' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'Credit' } | { __typename: 'EarningsTransaction' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store', uuid: any, name: string, phone?: string | null, address?: string | null, isActive: boolean, description?: string | null, businessRegistration?: string | null } | { __typename: 'StoreEarnings' } | { __typename: 'User' } | { __typename: 'UserBankAccount' } | { __typename: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, createdByMe?: boolean | null, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string, phone?: string | null, description?: string | null, address?: string | null, isActive: boolean }>, assignedStore?: { __typename?: 'Store', uuid: any, name: string, address?: string | null, phone?: string | null, isActive: boolean, createdAt: any, updatedAt: any } | null } };
 
 export type ProductQueryVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -1401,7 +1390,7 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Bank' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, assignedStore?: { __typename?: 'Store', uuid: any, name: string } | null } | { __typename?: 'UserBankAccount' } | { __typename?: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Bank' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } | { __typename?: 'UserBankAccount' } | { __typename?: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 
 export const AssignResellerToStoreDocument = gql`
@@ -2596,7 +2585,6 @@ export const MeDocument = gql`
       uuid
       name
       phone
-      businessRegistration
       description
       address
       isActive
@@ -2646,66 +2634,6 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
-export const MyStoresDocument = gql`
-    query MyStores($pagination: PaginationInput) {
-  myStores(pagination: $pagination) {
-    edges {
-      node {
-        __typename
-        ... on Store {
-          uuid
-          name
-          phone
-          address
-          isActive
-          description
-          businessRegistration
-        }
-      }
-    }
-    totalCount
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
-    }
-  }
-}
-    `;
-
-/**
- * __useMyStoresQuery__
- *
- * To run a query within a React component, call `useMyStoresQuery` and pass it any options that fit your needs.
- * When your component renders, `useMyStoresQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useMyStoresQuery({
- *   variables: {
- *      pagination: // value for 'pagination'
- *   },
- * });
- */
-export function useMyStoresQuery(baseOptions?: Apollo.QueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
-      }
-export function useMyStoresLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
-        }
-export function useMyStoresSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyStoresQuery, MyStoresQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<MyStoresQuery, MyStoresQueryVariables>(MyStoresDocument, options);
-        }
-export type MyStoresQueryHookResult = ReturnType<typeof useMyStoresQuery>;
-export type MyStoresLazyQueryHookResult = ReturnType<typeof useMyStoresLazyQuery>;
-export type MyStoresSuspenseQueryHookResult = ReturnType<typeof useMyStoresSuspenseQuery>;
-export type MyStoresQueryResult = Apollo.QueryResult<MyStoresQuery, MyStoresQueryVariables>;
 export const ProductDocument = gql`
     query Product($uuid: UUID!) {
   product(uuid: $uuid) {
@@ -3000,10 +2928,6 @@ export const UsersDocument = gql`
           lastName
           isActive
           firstName
-          assignedStore {
-            uuid
-            name
-          }
         }
       }
     }

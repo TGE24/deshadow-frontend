@@ -13,7 +13,6 @@ query Me {
 			uuid
 			name
 			phone
-			businessRegistration
 			description
 			address
 			isActive

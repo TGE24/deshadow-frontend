@@ -4,7 +4,6 @@ import Button from "../../../components/Button";
 import { useForm } from "react-hook-form";
 import {
 	Store,
-	useAssignResellerToStoreMutation,
 	useCreateUserMutation,
 	UserRole,
 	useStoresQuery,
@@ -23,9 +22,15 @@ interface ModalProps {
 
 const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 	const [storeUuid, setStoreUuid] = useState<string>("");
+	const [businessInfo, setBusinessInfo] = useState<{
+		name: string;
+		registrationNumber: string;
+	}>({
+		name: "",
+		registrationNumber: "",
+	});
 	const { user } = useUserStore();
 	const [createUser, { loading }] = useCreateUserMutation();
-	const [assignResellerToStore] = useAssignResellerToStoreMutation();
 	const { data: stores } = useStoresQuery({
 		variables: { pagination: { first: 100 } },
 	});
@@ -35,6 +40,7 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 		formState: { errors },
 		reset,
 		setValue,
+		watch,
 	} = useForm<{
 		email: string;
 		role: UserRole;
@@ -67,19 +73,14 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 					firstName: data.firstName,
 					lastName: data.lastName,
 					phone: data.phone,
+					storeUuid: storeUuid,
+					businessName: businessInfo.name,
+					businessRegistration: businessInfo.registrationNumber,
 				},
 			},
-			onCompleted(data) {
-				if (user?.role === UserRole.StoreOwner) {
-					assignResellerToStore({
-						variables: {
-							resellerUUID: data.createUser.uuid,
-							storeUUID: storeUuid,
-						},
-					});
-				}
+			onCompleted() {
 				setOpen(false);
-				toast("User invitaion sent successfully", { type: "success" });
+				toast("User invitation sent successfully", { type: "success" });
 				reset();
 				refetch();
 			},
@@ -174,6 +175,33 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 							id="lastName"
 						/>
 					</div>
+
+					{watch("role") === UserRole.StoreOwner && (
+						<>
+							<Input
+								label="Business name"
+								placeholder="Enter business name"
+								variant="secondary"
+								id="businessName"
+								onChange={(e) =>
+									setBusinessInfo({ ...businessInfo, name: e.target.value })
+								}
+							/>
+							<Input
+								label="Business registration number"
+								placeholder="Enter business registration number"
+								variant="secondary"
+								id="businessRegistrationNumber"
+								onChange={(e) =>
+									setBusinessInfo({
+										...businessInfo,
+										registrationNumber: e.target.value,
+									})
+								}
+							/>
+						</>
+					)}
+
 					<Input
 						label="Phone Number"
 						placeholder="Enter phone number"
@@ -184,7 +212,8 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 						errors={errors.phone}
 						id="phone"
 					/>
-					{user?.role === UserRole.StoreOwner && (
+					{(user?.role === UserRole.StoreOwner ||
+						watch("role") === UserRole.Reseller) && (
 						<div className="w-full">
 							<label
 								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"

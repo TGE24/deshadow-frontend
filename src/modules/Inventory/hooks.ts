@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Inventory, Store, UserRole } from "../../generated/graphql";
 import {
-	useInventoryLazyQuery,
-	useMyStoresLazyQuery,
+	Inventory,
+	Store,
+	UserRole,
+	useStoresLazyQuery,
 } from "../../generated/graphql";
+import { useInventoryLazyQuery } from "../../generated/graphql";
 import { DEFAULT_PAGINATION_SIZE } from "../../utils/constants";
 import { useUserStore } from "../../store/userStore";
 
@@ -23,13 +25,13 @@ export const useInventoryData = ({
 	const [getInventory, { data: products, loading, refetch }] =
 		useInventoryLazyQuery();
 	const [getStores, { data: stores, loading: storesLoading }] =
-		useMyStoresLazyQuery();
+		useStoresLazyQuery();
 
 	// Set default store when stores load
 	useEffect(() => {
 		if (user?.role === UserRole.StoreOwner) {
-			if (stores?.myStores.edges.length && !storesLoading) {
-				setFilterStore((stores?.myStores.edges[0]?.node as Store)?.uuid || "");
+			if (stores?.stores.edges.length && !storesLoading) {
+				setFilterStore((stores?.stores.edges[0]?.node as Store)?.uuid || "");
 			}
 		} else {
 			setFilterStore(user?.assignedStore?.uuid || "");
