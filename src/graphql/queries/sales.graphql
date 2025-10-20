@@ -6,6 +6,7 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 					uuid
 					saleType
 					invoices {
+						uuid
 						filePath
 					}
 					saleDate

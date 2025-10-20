@@ -1,12 +1,13 @@
 import Button from "../../components/Button";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	SaleType,
 	useProductsQuery,
 	Product,
 	useCreateSaleMutation,
 	useInitializePaymentMutation,
+	useProductLazyQuery,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 
@@ -23,14 +24,12 @@ import PaymentDetails from "./PaymentDetails";
 
 // Import utilities
 import { canProceedToNextStep } from "./validation";
-import {
-	calculateFinalTotal,
-	calculateSubtotal,
-	createNewProductItem,
-} from "../../utils/helpers";
+import { calculateSubtotal, createNewProductItem } from "../../utils/helpers";
 import { useUserStore } from "../../store/userStore";
+import { useProductStore } from "../../store/productStore";
 
 const DirectSale = ({ setOpen }: DirectSaleProps) => {
+	const { setProduct } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
 	const [initializePayment] = useInitializePaymentMutation();
@@ -45,6 +44,22 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 			filter: { storeUuid: user?.assignedStore?.uuid || "" },
 		},
 	});
+
+	const [getProduct, { data }] = useProductLazyQuery();
+
+	const handleViewProductDetails = (productUuid: string) => {
+		getProduct({
+			variables: {
+				uuid: productUuid,
+			},
+		});
+	};
+
+	useEffect(() => {
+		if (data && data.product) {
+			setProduct(data.product as Product);
+		}
+	}, [data, setProduct]);
 
 	const {
 		register,
@@ -103,16 +118,6 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 	};
 
 	const onSubmit = async (data: CreateSaleForm) => {
-		// Handle form submission logic here
-		console.log("Form submitted:", {
-			...data,
-			totalAmount: calculateFinalTotal(productItems, formData.discountAmount),
-			items: productItems.map((item) => ({
-				productUuid: item.product?.uuid || "",
-				quantity: item.quantity,
-				unitPrice: item.unitPrice,
-			})),
-		});
 		await createSale({
 			variables: {
 				input: {
@@ -123,7 +128,7 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 						quantity: item.quantity,
 						unitPrice: item.unitPrice,
 					})),
-					storeUuid: "c12b3258-55e7-4ebc-8403-a00d80eeab66",
+					storeUuid: user?.assignedStore?.uuid || "",
 				},
 			},
 			onCompleted: async (data) => {
@@ -136,6 +141,12 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 								amount: data.createSale.totalAmount || 0,
 								customerPhone: data.createSale.customerPhone ?? "",
 							},
+						},
+						onCompleted: (paymentData) => {
+							window.open(
+								paymentData.initializePayment.authorizationUrl || "",
+								"_blank"
+							);
 						},
 					});
 			},
@@ -155,7 +166,10 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 						onAddProduct={addProductItem}
 						onRemoveProduct={removeProductItem}
 						onUpdateProduct={updateProductItem}
-						onViewProductDetails={() => setOpen(true)}
+						onViewProductDetails={(id) => {
+							setOpen(true);
+							handleViewProductDetails(id);
+						}}
 						discountAmount={formData.discountAmount}
 						onDiscountChange={(value) => setValue("discountAmount", value)}
 					/>
@@ -204,7 +218,20 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 				{/* Content - Right Side */}
 				<div className="flex-1 bg-white rounded-r-[10px] p-[32px] pt-0">
 					<form
-						onSubmit={handleSubmit(onSubmit)}
+						onSubmit={(e) => {
+							// Only allow submission if it's the last step
+							if (currentStep !== steps.length) {
+								e.preventDefault();
+								return;
+							}
+							handleSubmit(onSubmit)(e);
+						}}
+						onKeyDown={(e) => {
+							// Prevent Enter key from submitting the form
+							if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+								e.preventDefault();
+							}
+						}}
 						className="h-full flex flex-col"
 					>
 						<div className="flex-1">{renderStepContent()}</div>
@@ -225,8 +252,7 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 							>
 								←
 							</Button>
-
-							{currentStep < steps.length ? (
+							{currentStep < steps.length && (
 								<Button
 									type="button"
 									onClick={nextStep}
@@ -240,12 +266,12 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 								>
 									→
 								</Button>
-							) : (
+							)}
+							{currentStep === steps.length && (
 								<Button
 									type="submit"
-									// onClick={() => setOverviewOpen(true)}
 									disabled={!canProceed()}
-									className={cn("w-[120px] h-[50px] rounded-full", {
+									className={cn("w-[150px] px-[16px] h-[50px] rounded-full", {
 										"opacity-50 cursor-not-allowed": !canProceed(),
 									})}
 								>

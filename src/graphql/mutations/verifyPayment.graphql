@@ -1,0 +1,8 @@
+mutation VerifyPayment($input: PaymentVerifyInput!) {
+	verifyPayment(input: $input) {
+		uuid
+		status
+		createdAt
+		updatedAt
+	}
+}

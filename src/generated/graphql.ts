@@ -1182,7 +1182,7 @@ export type CreateSaleMutationVariables = Exact<{
 }>;
 
 
-export type CreateSaleMutation = { __typename?: 'Mutation', createSale: { __typename?: 'Sale', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, totalAmount: number, paymentStatus: PaymentStatus, saleDate: any, createdAt: any, updatedAt: any, saleStatus: SaleStatus, paymentTransactions: Array<{ __typename?: 'PaymentTransaction', paystackReference: string, paystackTransactionId?: string | null, paystackAccessCode?: string | null, authorizationUrl?: string | null, amount: number, requestedAmount?: number | null, currency: string, status: PaymentTransactionStatus }> } };
+export type CreateSaleMutation = { __typename?: 'Mutation', createSale: { __typename?: 'Sale', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, totalAmount: number, paymentStatus: PaymentStatus, saleDate: any, createdAt: any, updatedAt: any, saleStatus: SaleStatus, paymentTransactions: Array<{ __typename?: 'PaymentTransaction', paystackReference: string, paystackTransactionId?: string | null, paystackAccessCode?: string | null, authorizationUrl?: string | null, amount: number, requestedAmount?: number | null, currency: string, status: PaymentTransactionStatus }>, invoices: Array<{ __typename?: 'Invoice', uuid: any, invoiceNumber: string }> } };
 
 export type CreateStoreMutationVariables = Exact<{
   input: StoreInput;
@@ -1310,6 +1310,13 @@ export type UpdateUserMutationVariables = Exact<{
 
 export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', uuid: any, email: string, isActive: boolean, firstName: string, lastName: string } };
 
+export type VerifyPaymentMutationVariables = Exact<{
+  input: PaymentVerifyInput;
+}>;
+
+
+export type VerifyPaymentMutation = { __typename?: 'Mutation', verifyPayment: { __typename?: 'PaymentTransaction', uuid: any, status: PaymentTransactionStatus, createdAt: any, updatedAt: any } };
+
 export type BrandsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
@@ -1324,6 +1331,13 @@ export type CategoriesQueryVariables = Exact<{
 
 export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Bank' } | { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, isOwned: boolean, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'Credit' } | { __typename: 'EarningsTransaction' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } | { __typename: 'UserBankAccount' } | { __typename: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
+export type FinancialDashboardQueryVariables = Exact<{
+  storeId?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type FinancialDashboardQuery = { __typename?: 'Query', financialDashboard: any };
+
 export type InventoryQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
   storeUuid: Scalars['UUID']['input'];
@@ -1331,6 +1345,13 @@ export type InventoryQueryVariables = Exact<{
 
 
 export type InventoryQuery = { __typename?: 'Query', inventory: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Bank' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Inventory', uuid: any, quantityAvailable: number, quantityReserved: number, status: InventoryStatus, lastUpdated: any, createdAt: any, updatedAt: any, product: { __typename?: 'Product', uuid: any, name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, description?: string | null, specifications?: any | null, brand: { __typename?: 'Brand', name: string, uuid: any } } } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } | { __typename?: 'UserBankAccount' } | { __typename?: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type InvoiceQueryVariables = Exact<{
+  invoiceId: Scalars['UUID']['input'];
+}>;
+
+
+export type InvoiceQuery = { __typename?: 'Query', invoice?: { __typename?: 'Invoice', uuid: any, filePath?: string | null, sale: { __typename?: 'Sale', items: Array<{ __typename?: 'SaleItem', product: { __typename?: 'Product', name: string, model?: string | null, condition: ProductCondition, specifications?: any | null } }> } } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1343,6 +1364,13 @@ export type MyStoresQueryVariables = Exact<{
 
 
 export type MyStoresQuery = { __typename?: 'Query', myStores: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Bank' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'Credit' } | { __typename: 'EarningsTransaction' } | { __typename: 'Inventory' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store', uuid: any, name: string, phone?: string | null, address?: string | null, isActive: boolean, description?: string | null, businessRegistration?: string | null } | { __typename: 'StoreEarnings' } | { __typename: 'User' } | { __typename: 'UserBankAccount' } | { __typename: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type ProductQueryVariables = Exact<{
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, condition: ProductCondition, costPrice?: number | null, sellingPrice?: number | null, serialNumber?: string | null, description?: string | null, specifications?: any | null, brand: { __typename?: 'Brand', name: string, uuid: any }, images: Array<{ __typename?: 'ProductImage', imageUrl: string }>, category: { __typename?: 'Category', name: string, uuid: any }, store: { __typename?: 'Store', name: string, uuid: any }, inventory?: { __typename?: 'Inventory', quantityAvailable: number, quantityReserved: number, status: InventoryStatus } | null } | null };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1358,7 +1386,7 @@ export type SalesQueryVariables = Exact<{
 }>;
 
 
-export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Bank' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', filePath?: string | null }>, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, product: { __typename?: 'Product', name: string } }> } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } | { __typename?: 'UserBankAccount' } | { __typename?: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Bank' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'Credit' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Inventory' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null }>, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, product: { __typename?: 'Product', name: string } }> } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } | { __typename?: 'UserBankAccount' } | { __typename?: 'WithdrawalTransaction' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1585,6 +1613,10 @@ export const CreateSaleDocument = gql`
       requestedAmount
       currency
       status
+    }
+    invoices {
+      uuid
+      invoiceNumber
     }
     paymentStatus
     saleDate
@@ -2221,6 +2253,42 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const VerifyPaymentDocument = gql`
+    mutation VerifyPayment($input: PaymentVerifyInput!) {
+  verifyPayment(input: $input) {
+    uuid
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type VerifyPaymentMutationFn = Apollo.MutationFunction<VerifyPaymentMutation, VerifyPaymentMutationVariables>;
+
+/**
+ * __useVerifyPaymentMutation__
+ *
+ * To run a mutation, you first call `useVerifyPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyPaymentMutation, { data, loading, error }] = useVerifyPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useVerifyPaymentMutation(baseOptions?: Apollo.MutationHookOptions<VerifyPaymentMutation, VerifyPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyPaymentMutation, VerifyPaymentMutationVariables>(VerifyPaymentDocument, options);
+      }
+export type VerifyPaymentMutationHookResult = ReturnType<typeof useVerifyPaymentMutation>;
+export type VerifyPaymentMutationResult = Apollo.MutationResult<VerifyPaymentMutation>;
+export type VerifyPaymentMutationOptions = Apollo.BaseMutationOptions<VerifyPaymentMutation, VerifyPaymentMutationVariables>;
 export const BrandsDocument = gql`
     query Brands($pagination: PaginationInput) {
   brands(pagination: $pagination) {
@@ -2348,6 +2416,44 @@ export type CategoriesQueryHookResult = ReturnType<typeof useCategoriesQuery>;
 export type CategoriesLazyQueryHookResult = ReturnType<typeof useCategoriesLazyQuery>;
 export type CategoriesSuspenseQueryHookResult = ReturnType<typeof useCategoriesSuspenseQuery>;
 export type CategoriesQueryResult = Apollo.QueryResult<CategoriesQuery, CategoriesQueryVariables>;
+export const FinancialDashboardDocument = gql`
+    query FinancialDashboard($storeId: Int) {
+  financialDashboard(storeId: $storeId)
+}
+    `;
+
+/**
+ * __useFinancialDashboardQuery__
+ *
+ * To run a query within a React component, call `useFinancialDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFinancialDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFinancialDashboardQuery({
+ *   variables: {
+ *      storeId: // value for 'storeId'
+ *   },
+ * });
+ */
+export function useFinancialDashboardQuery(baseOptions?: Apollo.QueryHookOptions<FinancialDashboardQuery, FinancialDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FinancialDashboardQuery, FinancialDashboardQueryVariables>(FinancialDashboardDocument, options);
+      }
+export function useFinancialDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FinancialDashboardQuery, FinancialDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FinancialDashboardQuery, FinancialDashboardQueryVariables>(FinancialDashboardDocument, options);
+        }
+export function useFinancialDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FinancialDashboardQuery, FinancialDashboardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FinancialDashboardQuery, FinancialDashboardQueryVariables>(FinancialDashboardDocument, options);
+        }
+export type FinancialDashboardQueryHookResult = ReturnType<typeof useFinancialDashboardQuery>;
+export type FinancialDashboardLazyQueryHookResult = ReturnType<typeof useFinancialDashboardLazyQuery>;
+export type FinancialDashboardSuspenseQueryHookResult = ReturnType<typeof useFinancialDashboardSuspenseQuery>;
+export type FinancialDashboardQueryResult = Apollo.QueryResult<FinancialDashboardQuery, FinancialDashboardQueryVariables>;
 export const InventoryDocument = gql`
     query Inventory($pagination: PaginationInput, $storeUuid: UUID!) {
   inventory(pagination: $pagination, storeUuid: $storeUuid) {
@@ -2423,6 +2529,57 @@ export type InventoryQueryHookResult = ReturnType<typeof useInventoryQuery>;
 export type InventoryLazyQueryHookResult = ReturnType<typeof useInventoryLazyQuery>;
 export type InventorySuspenseQueryHookResult = ReturnType<typeof useInventorySuspenseQuery>;
 export type InventoryQueryResult = Apollo.QueryResult<InventoryQuery, InventoryQueryVariables>;
+export const InvoiceDocument = gql`
+    query Invoice($invoiceId: UUID!) {
+  invoice(invoiceId: $invoiceId) {
+    uuid
+    filePath
+    sale {
+      items {
+        product {
+          name
+          model
+          condition
+          specifications
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useInvoiceQuery__
+ *
+ * To run a query within a React component, call `useInvoiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInvoiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInvoiceQuery({
+ *   variables: {
+ *      invoiceId: // value for 'invoiceId'
+ *   },
+ * });
+ */
+export function useInvoiceQuery(baseOptions: Apollo.QueryHookOptions<InvoiceQuery, InvoiceQueryVariables> & ({ variables: InvoiceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InvoiceQuery, InvoiceQueryVariables>(InvoiceDocument, options);
+      }
+export function useInvoiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InvoiceQuery, InvoiceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InvoiceQuery, InvoiceQueryVariables>(InvoiceDocument, options);
+        }
+export function useInvoiceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InvoiceQuery, InvoiceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InvoiceQuery, InvoiceQueryVariables>(InvoiceDocument, options);
+        }
+export type InvoiceQueryHookResult = ReturnType<typeof useInvoiceQuery>;
+export type InvoiceLazyQueryHookResult = ReturnType<typeof useInvoiceLazyQuery>;
+export type InvoiceSuspenseQueryHookResult = ReturnType<typeof useInvoiceSuspenseQuery>;
+export type InvoiceQueryResult = Apollo.QueryResult<InvoiceQuery, InvoiceQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {
@@ -2549,6 +2706,74 @@ export type MyStoresQueryHookResult = ReturnType<typeof useMyStoresQuery>;
 export type MyStoresLazyQueryHookResult = ReturnType<typeof useMyStoresLazyQuery>;
 export type MyStoresSuspenseQueryHookResult = ReturnType<typeof useMyStoresSuspenseQuery>;
 export type MyStoresQueryResult = Apollo.QueryResult<MyStoresQuery, MyStoresQueryVariables>;
+export const ProductDocument = gql`
+    query Product($uuid: UUID!) {
+  product(uuid: $uuid) {
+    uuid
+    name
+    brand {
+      name
+      uuid
+    }
+    model
+    images {
+      imageUrl
+    }
+    category {
+      name
+      uuid
+    }
+    store {
+      name
+      uuid
+    }
+    condition
+    costPrice
+    sellingPrice
+    serialNumber
+    description
+    specifications
+    inventory {
+      quantityAvailable
+      quantityReserved
+      status
+    }
+  }
+}
+    `;
+
+/**
+ * __useProductQuery__
+ *
+ * To run a query within a React component, call `useProductQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProductQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProductQuery({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useProductQuery(baseOptions: Apollo.QueryHookOptions<ProductQuery, ProductQueryVariables> & ({ variables: ProductQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProductQuery, ProductQueryVariables>(ProductDocument, options);
+      }
+export function useProductLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProductQuery, ProductQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProductQuery, ProductQueryVariables>(ProductDocument, options);
+        }
+export function useProductSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProductQuery, ProductQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProductQuery, ProductQueryVariables>(ProductDocument, options);
+        }
+export type ProductQueryHookResult = ReturnType<typeof useProductQuery>;
+export type ProductLazyQueryHookResult = ReturnType<typeof useProductLazyQuery>;
+export type ProductSuspenseQueryHookResult = ReturnType<typeof useProductSuspenseQuery>;
+export type ProductQueryResult = Apollo.QueryResult<ProductQuery, ProductQueryVariables>;
 export const ProductsDocument = gql`
     query Products($pagination: PaginationInput, $filter: ProductFilter) {
   products(pagination: $pagination, filter: $filter) {
@@ -2640,6 +2865,7 @@ export const SalesDocument = gql`
           uuid
           saleType
           invoices {
+            uuid
             filePath
           }
           saleDate

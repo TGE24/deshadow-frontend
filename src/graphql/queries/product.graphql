@@ -1,0 +1,33 @@
+query Product($uuid: UUID!) {
+	product(uuid: $uuid) {
+		uuid
+		name
+		brand {
+			name
+			uuid
+		}
+		model
+		images {
+			imageUrl
+		}
+		category {
+			name
+			uuid
+		}
+		store {
+			name
+			uuid
+		}
+		condition
+		costPrice
+		sellingPrice
+		serialNumber
+		description
+		specifications
+		inventory {
+			quantityAvailable
+			quantityReserved
+			status
+		}
+	}
+}

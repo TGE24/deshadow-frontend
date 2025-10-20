@@ -46,21 +46,7 @@ const Login = () => {
 				onCompleted(data: LoginMutation) {
 					const { login: loginData } = data;
 
-					// Case 1: User needs to set up 2FA (first time)
-					// if (loginData.twoFactorSecret) {
-					// 	setAuthPayload({
-					// 		twoFactorSecret: loginData.twoFactorSecret,
-					// 		accessToken: loginData.accessToken ?? "",
-					// 		refreshToken: loginData.refreshToken ?? "",
-					// 		requires2FA: loginData.requires2FA,
-					// 		challengeToken: loginData.challengeToken ?? "",
-					// 		twoFactorQRCodeURL: loginData.twoFactorQRCodeURL ?? "",
-					// 	});
-					// 	navigate("/setup-2fa");
-					// 	return;
-					// }
-
-					// Case 2: User has 2FA enabled and needs to enter OTP
+					// User has 2FA enabled and needs to enter OTP
 					if (loginData.challengeToken) {
 						setAuthPayload({
 							accessToken: loginData.accessToken ?? "",

@@ -15,6 +15,10 @@ mutation CreateSale($input: SaleInput!) {
 			currency
 			status
 		}
+		invoices {
+			uuid
+			invoiceNumber
+		}
 		paymentStatus
 		saleDate
 		createdAt

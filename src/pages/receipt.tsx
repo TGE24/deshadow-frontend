@@ -1,70 +1,44 @@
 import Button from "../components/Button";
 import Share from "../components/Icons/Share";
-import MapMarker from "../components/Icons/MapMarker";
-import Phone from "../components/Icons/Phone";
-import Mail from "../components/Icons/Mail";
-import Calendar from "../components/Icons/Calendar";
-import Card from "../components/Icons/Card";
+import { useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
-
-type Product = {
-	name: string;
-	color: string;
-	storage: number;
-	imei: number;
-	price: string;
-	status: string;
-};
-
-const ProductDetails = [
-	{
-		imei: 237890456189046,
-		name: "Iphone 14 Pro Max",
-		storage: 256,
-		price: "N 780,000",
-		status: "UK Used",
-		color: "Deep Purple",
-	},
-];
-
-const columnHelper = createColumnHelper<Product>();
-
-const columns = [
-	columnHelper.accessor("imei", {
-		cell: (info) => info.getValue(),
-		header: () => <h4>IMEI No.</h4>,
-	}),
-	columnHelper.accessor((row) => row.name, {
-		id: "name",
-		cell: (info) => info.getValue(),
-		header: () => <h4>Product Name</h4>,
-	}),
-	columnHelper.accessor("storage", {
-		header: () => <h4>Storage</h4>,
-		cell: (info) => info.renderValue(),
-	}),
-	columnHelper.accessor("color", {
-		header: () => <h4>Color</h4>,
-	}),
-	columnHelper.accessor("status", {
-		header: () => <h4>Status</h4>,
-	}),
-];
+	PaymentTransactionStatus,
+	useInvoiceLazyQuery,
+	useVerifyPaymentMutation,
+} from "../generated/graphql";
 
 const Receipt = () => {
-	const [data, _setData] = useState(() => [...ProductDetails]);
+	const { id } = useParams<{ id: string }>();
+	const [searchParams] = useSearchParams();
 
-	const table = useReactTable({
-		data,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-	});
+	const [fetchInvoice, { data: invoiceData }] = useInvoiceLazyQuery();
+	const [verifyPayment] = useVerifyPaymentMutation();
+
+	useEffect(() => {
+		const reference = searchParams.get("reference");
+		if (reference) {
+			verifyPayment({
+				variables: {
+					input: {
+						reference,
+					},
+				},
+				onCompleted(data) {
+					if (data.verifyPayment.status === PaymentTransactionStatus.Success) {
+						fetchInvoice({
+							variables: {
+								invoiceId: id || "",
+							},
+						});
+					}
+				},
+			});
+		}
+	}, [fetchInvoice, id, searchParams, verifyPayment]);
+
+	console.log(invoiceData);
+
 	return (
 		<section>
 			<div className="flex items-center justify-between mb-[24px]">
@@ -80,7 +54,7 @@ const Receipt = () => {
 					Share
 				</Button>
 			</div>
-			<div className="bg-[#F9FCFC] rounded-[6px] p-[45px] max-w-[826px] mx-auto flex flex-col items-center relative">
+			{/* <div className="bg-[#F9FCFC] rounded-[6px] p-[45px] max-w-[826px] mx-auto flex flex-col items-center relative">
 				<h2 className="text-[20px] text-[#282828] font-semibold">
 					GREATFAITH COMMUNICATION SYNERGY LINK LIMITED
 				</h2>
@@ -183,7 +157,7 @@ const Receipt = () => {
 						</tbody>
 					</table>
 				</div>
-			</div>
+			</div> */}
 		</section>
 	);
 };

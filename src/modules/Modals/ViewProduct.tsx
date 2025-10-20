@@ -1,4 +1,5 @@
 import Modal from "react-responsive-modal";
+import { useProductStore } from "../../store/productStore";
 
 interface ViewProductProps {
 	open: boolean;
@@ -6,6 +7,8 @@ interface ViewProductProps {
 }
 
 const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
+	const { product } = useProductStore();
+
 	return (
 		<Modal
 			open={open}
@@ -23,7 +26,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 				<div className="mt-[58px] flex gap-[25px] flex-col items-center">
 					<div className="flex justify-between w-full max-w-[304px]">
 						<p className="text-[14px] font-semibold">IMEI:</p>
-						<p className="text-[14px]">237890456189046</p>
+						<p className="text-[14px]">{product?.serialNumber}</p>
 					</div>
 					<div className="flex justify-between w-full max-w-[304px]">
 						<p className="text-[14px] font-semibold">Color:</p>
@@ -31,11 +34,11 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 					</div>
 					<div className="flex justify-between w-full max-w-[304px]">
 						<p className="text-[14px] font-semibold">Status:</p>
-						<p className="text-[14px]">Uk Used</p>
+						<p className="text-[14px]">{product?.condition}</p>
 					</div>
 					<div className="flex justify-between w-full max-w-[304px]">
 						<p className="text-[14px] font-semibold">Product Name:</p>
-						<p className="text-[14px]">Iphone 13 promax</p>
+						<p className="text-[14px]">{product?.name}</p>
 					</div>
 					<div className="flex justify-between w-full max-w-[304px]">
 						<p className="text-[14px] font-semibold">Storage:</p>

@@ -12,6 +12,7 @@ import Input from "../components/Input";
 import DatePicker from "react-datepicker";
 import Calendar from "../components/Icons/Calendar";
 import AddProduct from "../modules/Modals/Product/AddProduct";
+import { useSalesQuery } from "../generated/graphql";
 
 type Product = {
 	productName: string;
@@ -155,6 +156,11 @@ const Dashboard = () => {
 	const [startDate] = useState(new Date());
 	const [endDate] = useState(addDays(new Date(), 3));
 
+	const { data: sales } = useSalesQuery({
+		variables: { pagination: { first: 10 } },
+	});
+
+	console.log(sales);
 	// const onChange = (dates) => {
 	// 	const [start, end] = dates;
 	// 	setStartDate(start);

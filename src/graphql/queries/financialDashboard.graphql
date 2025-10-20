@@ -1,0 +1,3 @@
+query FinancialDashboard($storeId: Int) {
+	financialDashboard(storeId: $storeId)
+}
