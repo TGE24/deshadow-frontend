@@ -6,6 +6,8 @@ query Stores($pagination: PaginationInput) {
 					uuid
 					name
 					isActive
+					address
+					phone
 				}
 			}
 		}

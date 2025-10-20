@@ -64,19 +64,36 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 		lastName: string;
 		phone: string;
 	}) => {
+		// Build input object conditionally
+		const input: {
+			email: string;
+			role: UserRole;
+			firstName: string;
+			lastName: string;
+			phone: string;
+			storeUuid: string;
+			businessName?: string;
+			businessRegistration?: string;
+		} = {
+			email: data.email,
+			role: user?.role === UserRole.StoreOwner ? UserRole.Reseller : data.role,
+			firstName: data.firstName,
+			lastName: data.lastName,
+			phone: data.phone,
+			storeUuid: storeUuid,
+		};
+
+		// Only include business fields if they have values
+		if (businessInfo.name.trim()) {
+			input.businessName = businessInfo.name;
+		}
+		if (businessInfo.registrationNumber.trim()) {
+			input.businessRegistration = businessInfo.registrationNumber;
+		}
+
 		await createUser({
 			variables: {
-				input: {
-					email: data.email,
-					role:
-						user?.role === UserRole.StoreOwner ? UserRole.Reseller : data.role,
-					firstName: data.firstName,
-					lastName: data.lastName,
-					phone: data.phone,
-					storeUuid: storeUuid,
-					businessName: businessInfo.name,
-					businessRegistration: businessInfo.registrationNumber,
-				},
+				input,
 			},
 			onCompleted() {
 				setOpen(false);

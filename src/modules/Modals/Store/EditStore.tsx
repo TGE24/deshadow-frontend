@@ -17,7 +17,6 @@ type FormData = {
 	address: string;
 	description: string;
 	phone: string;
-	businessRegistration: string;
 };
 
 const EditStore: React.FC<ModalProps> = ({
@@ -38,7 +37,6 @@ const EditStore: React.FC<ModalProps> = ({
 			address: "",
 			description: "",
 			phone: "",
-			businessRegistration: "",
 		},
 	});
 
@@ -59,7 +57,6 @@ const EditStore: React.FC<ModalProps> = ({
 				address: "",
 				description: "",
 				phone: "",
-				businessRegistration: "",
 			};
 			reset(formData);
 		}
@@ -131,16 +128,6 @@ const EditStore: React.FC<ModalProps> = ({
 						})}
 						errors={errors.phone}
 						id="phone"
-					/>
-					<Input
-						label="Business Registration"
-						placeholder="Enter business registration"
-						variant="secondary"
-						register={register("businessRegistration", {
-							required: "Please Enter your Business Registration",
-						})}
-						errors={errors.businessRegistration}
-						id="businessRegistration"
 					/>
 					<Input
 						label="Store description"

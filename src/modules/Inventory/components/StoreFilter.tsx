@@ -24,7 +24,7 @@ export const StoreFilter: React.FC<StoreFilterProps> = ({
 				<Select
 					value={{
 						value: filterStore,
-						label: stores?.myStores.edges
+						label: stores?.stores.edges
 							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							.map((edge: any) => edge.node)
 							// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,7 +35,7 @@ export const StoreFilter: React.FC<StoreFilterProps> = ({
 						setPage(1); // Reset to first page when filter changes
 					}}
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					options={stores?.myStores.edges.map((edge: any) => ({
+					options={stores?.stores.edges.map((edge: any) => ({
 						value: edge.node.uuid,
 						label: edge.node.name,
 					}))}

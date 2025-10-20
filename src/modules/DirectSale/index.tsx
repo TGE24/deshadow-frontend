@@ -8,6 +8,7 @@ import {
 	useCreateSaleMutation,
 	useInitializePaymentMutation,
 	useProductLazyQuery,
+	UserRole,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 
@@ -41,7 +42,9 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 	const { data: products } = useProductsQuery({
 		variables: {
 			pagination: { first: 100 },
-			filter: { storeUuid: user?.assignedStore?.uuid || "" },
+			...(user?.role === UserRole.Reseller && {
+				filter: { storeUuid: user?.assignedStore?.uuid || "" },
+			}),
 		},
 	});
 

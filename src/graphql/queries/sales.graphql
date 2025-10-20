@@ -22,9 +22,6 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 						uuid
 						quantity
 						unitPrice
-						product {
-							name
-						}
 					}
 				}
 			}

@@ -1,9 +1,8 @@
 import Button from "../components/Button";
 import Share from "../components/Icons/Share";
-import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
 import {
-	PaymentTransactionStatus,
 	useInvoiceLazyQuery,
 	useVerifyPaymentMutation,
 } from "../generated/graphql";
@@ -18,38 +17,40 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const Receipt = () => {
 	const { id } = useParams<{ id: string }>();
-	const [searchParams] = useSearchParams();
 	const [numPages, setNumPages] = useState<number>();
 	const [pageNumber, setPageNumber] = useState<number>(1);
+	const hasVerified = useRef<string | null>(null);
 
-	const [fetchInvoice] = useInvoiceLazyQuery();
 	const [verifyPayment] = useVerifyPaymentMutation();
+	const [fetchInvoice, { data }] = useInvoiceLazyQuery();
 
 	const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
 		setNumPages(numPages);
 	};
 
 	useEffect(() => {
-		const reference = searchParams.get("reference");
-		if (reference) {
+		if (id && hasVerified.current !== id) {
+			hasVerified.current = id;
 			verifyPayment({
 				variables: {
 					input: {
-						reference,
+						reference: id,
 					},
 				},
-				onCompleted(data) {
-					if (data.verifyPayment.status === PaymentTransactionStatus.Success) {
-						fetchInvoice({
+				onCompleted: async (data) => {
+					const invoiceId = data.verifyPayment.sale?.invoices[0]?.uuid || "";
+					if (invoiceId) {
+						await fetchInvoice({
 							variables: {
-								invoiceId: id || "",
+								invoiceId: invoiceId,
 							},
 						});
 					}
 				},
 			});
 		}
-	}, [fetchInvoice, id, searchParams, verifyPayment]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [id]);
 
 	return (
 		<section>
@@ -67,69 +68,62 @@ const Receipt = () => {
 				</Button>
 			</div>
 
-			{/* PDF Display using react-pdf */}
-			{/* <div className="w-full bg-gray-50 rounded-lg p-4"> */}
-			<Document
-				file={
-					"https://api.staging.de-shadow.com/invoices/2025-10-17_INV-002026_Technical_Catalyst.pdf"
-				}
-				onLoadSuccess={onDocumentLoadSuccess}
-				onLoadError={(error) => {
-					console.error("Error loading PDF:", error);
-				}}
-				loading={
-					<div className="text-center py-8">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-						<p className="text-gray-600">Loading Invoice...</p>
-					</div>
-				}
-				error={
-					<div className="text-center py-8">
-						<p className="text-red-600 mb-4">Failed to load PDF</p>
-						<a
-							href={
-								"https://api.staging.de-shadow.com/invoices/2025-10-17_INV-002026_Technical_Catalyst.pdf"
-							}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-						>
-							Open PDF in New Tab
-						</a>
-					</div>
-				}
-				className="w-full flex justify-center"
-			>
-				<Page
-					pageNumber={pageNumber}
-					width={800}
-					className="mx-auto shadow-lg rounded-lg"
-				/>
-			</Document>
+			{data?.invoice?.filePath && (
+				<>
+					<Document
+						file={`https://api.staging.de-shadow.com${data?.invoice?.filePath}`}
+						onLoadSuccess={onDocumentLoadSuccess}
+						onLoadError={(error) => {
+							console.error("Error loading PDF:", error);
+						}}
+						loading={
+							<div className="text-center py-8">
+								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+								<p className="text-gray-600">Loading Invoice...</p>
+							</div>
+						}
+						error={
+							<div className="text-center py-8">
+								<p className="text-red-600 mb-4">
+									Your Invoice is being generated. Please check back later.
+								</p>
+							</div>
+						}
+						className="w-full flex justify-center"
+					>
+						<Page
+							pageNumber={pageNumber}
+							width={800}
+							className="mx-auto shadow-lg rounded-lg"
+						/>
+					</Document>
 
-			{/* Page navigation if multiple pages */}
-			{numPages && numPages > 1 && (
-				<div className="flex justify-center items-center mt-4 space-x-4">
-					<button
-						onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
-						disabled={pageNumber <= 1}
-						className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300"
-					>
-						Previous
-					</button>
-					<span className="text-gray-600">
-						Page {pageNumber} of {numPages}
-					</span>
-					<button
-						onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
-						disabled={pageNumber >= numPages}
-						className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300"
-					>
-						Next
-					</button>
-				</div>
+					{/* Page navigation if multiple pages */}
+					{numPages && numPages > 1 && (
+						<div className="flex justify-center items-center mt-4 space-x-4">
+							<button
+								onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+								disabled={pageNumber <= 1}
+								className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300"
+							>
+								Previous
+							</button>
+							<span className="text-gray-600">
+								Page {pageNumber} of {numPages}
+							</span>
+							<button
+								onClick={() =>
+									setPageNumber(Math.min(numPages, pageNumber + 1))
+								}
+								disabled={pageNumber >= numPages}
+								className="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-300"
+							>
+								Next
+							</button>
+						</div>
+					)}
+				</>
 			)}
-			{/* </div> */}
 		</section>
 	);
 };

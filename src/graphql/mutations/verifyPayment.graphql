@@ -4,5 +4,10 @@ mutation VerifyPayment($input: PaymentVerifyInput!) {
 		status
 		createdAt
 		updatedAt
+		sale {
+			invoices {
+				uuid
+			}
+		}
 	}
 }

@@ -15,7 +15,6 @@ type FormData = {
 	address: string;
 	description: string;
 	phone: string;
-	businessRegistration: string;
 };
 
 const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
@@ -31,7 +30,6 @@ const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 			address: "",
 			description: "",
 			phone: "",
-			businessRegistration: "",
 		},
 	});
 
@@ -100,16 +98,6 @@ const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 						})}
 						errors={errors.phone}
 						id="phone"
-					/>
-					<Input
-						label="Business Registration"
-						placeholder="Enter business registration"
-						variant="secondary"
-						register={register("businessRegistration", {
-							required: "Please Enter your Business Registration",
-						})}
-						errors={errors.businessRegistration}
-						id="businessRegistration"
 					/>
 					<Input
 						label="Store description"
