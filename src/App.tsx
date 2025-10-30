@@ -10,7 +10,6 @@ import Category from "./pages/category";
 import Brand from "./pages/brand";
 import Users from "./pages/users";
 import Products from "./pages/products";
-import TwoFactorAuthentication from "./pages/TwoFactorAuthSetup";
 import OTP from "./pages/otp";
 import Stores from "./pages/stores";
 import Inventory from "./pages/inventory";
@@ -22,7 +21,6 @@ function App() {
 		<Router>
 			<Routes>
 				<Route path="/" element={<Login />} />
-				<Route path="/setup-2fa" element={<TwoFactorAuthentication />} />
 				<Route path="/otp" element={<OTP />} />
 				<Route path="complete-invitation" element={<SetPassword />} />
 				<Route
