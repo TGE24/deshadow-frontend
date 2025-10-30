@@ -6,7 +6,6 @@ import {
 	useProductsQuery,
 	Product,
 	useCreateSaleMutation,
-	useInitializePaymentMutation,
 	useProductLazyQuery,
 	UserRole,
 } from "../../generated/graphql";
@@ -33,7 +32,7 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 	const { setProduct } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
-	const [initializePayment] = useInitializePaymentMutation();
+	// const [initializePayment] = useInitializePaymentMutation();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
 		createNewProductItem(),
@@ -135,23 +134,23 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 				},
 			},
 			onCompleted: async (data) => {
-				if (data)
-					await initializePayment({
-						variables: {
-							input: {
-								saleUuid: data.createSale.uuid,
-								customerEmail: data.createSale.customerEmail ?? "",
-								amount: data.createSale.totalAmount || 0,
-								customerPhone: data.createSale.customerPhone ?? "",
-							},
-						},
-						onCompleted: (paymentData) => {
-							window.open(
-								paymentData.initializePayment.authorizationUrl || "",
-								"_blank"
-							);
-						},
-					});
+				if (data) console.log(data);
+				// await initializePayment({
+				// 	variables: {
+				// 		input: {
+				// 			saleUuid: data.createSale.uuid,
+				// 			customerEmail: data.createSale.customerEmail ?? "",
+				// 			amount: data.createSale.totalAmount || 0,
+				// 			customerPhone: data.createSale.customerPhone ?? "",
+				// 		},
+				// 	},
+				// 	onCompleted: (paymentData) => {
+				// 		window.open(
+				// 			paymentData.initializePayment.authorizationUrl || "",
+				// 			"_blank"
+				// 		);
+				// 	},
+				// });
 			},
 		});
 	};

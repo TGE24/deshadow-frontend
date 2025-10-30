@@ -6,8 +6,6 @@ type AuthStoreType = {
 	challengeToken?: string;
 	refreshToken?: string;
 	requires2FA?: boolean;
-	twoFactorQRCodeURL?: string;
-	twoFactorSecret?: string;
 };
 
 export type AuthStore = {

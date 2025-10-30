@@ -6,14 +6,11 @@ mutation CreateSale($input: SaleInput!) {
 		customerPhone
 		totalAmount
 		paymentTransactions {
-			paystackReference
-			paystackTransactionId
-			paystackAccessCode
-			authorizationUrl
 			amount
 			requestedAmount
 			currency
 			status
+			manualReference
 		}
 		invoices {
 			uuid

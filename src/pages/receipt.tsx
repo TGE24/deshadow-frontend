@@ -1,56 +1,51 @@
 import Button from "../components/Button";
 import Share from "../components/Icons/Share";
-import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
-import {
-	useInvoiceLazyQuery,
-	useVerifyPaymentMutation,
-} from "../generated/graphql";
-import { Document, Page, pdfjs } from "react-pdf";
+// import { useState } from "react";
+// import { useParams } from "react-router-dom";
+// import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-	"pdfjs-dist/build/pdf.worker.min.mjs",
-	import.meta.url
-).toString();
+// pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+// 	"pdfjs-dist/build/pdf.worker.min.mjs",
+// 	import.meta.url
+// ).toString();
 
 const Receipt = () => {
-	const { id } = useParams<{ id: string }>();
-	const [numPages, setNumPages] = useState<number>();
-	const [pageNumber, setPageNumber] = useState<number>(1);
-	const hasVerified = useRef<string | null>(null);
+	// const { id } = useParams<{ id: string }>();/
+	// const [numPages, setNumPages] = useState<number>();
+	// const [pageNumber, setPageNumber] = useState<number>(1);
+	// const hasVerified = useRef<string | null>(null);
 
-	const [verifyPayment] = useVerifyPaymentMutation();
-	const [fetchInvoice, { data }] = useInvoiceLazyQuery();
+	// const [verifyPayment] = useVerifyPaymentMutation();
+	// const [fetchInvoice, { data }] = useInvoiceLazyQuery();
 
-	const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-		setNumPages(numPages);
-	};
+	// const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+	// 	setNumPages(numPages);
+	// };
 
-	useEffect(() => {
-		if (id && hasVerified.current !== id) {
-			hasVerified.current = id;
-			verifyPayment({
-				variables: {
-					input: {
-						reference: id,
-					},
-				},
-				onCompleted: async (data) => {
-					const invoiceId = data.verifyPayment.sale?.invoices[0]?.uuid || "";
-					if (invoiceId) {
-						await fetchInvoice({
-							variables: {
-								invoiceId: invoiceId,
-							},
-						});
-					}
-				},
-			});
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [id]);
+	// useEffect(() => {
+	// 	if (id && hasVerified.current !== id) {
+	// 		hasVerified.current = id;
+	// 		verifyPayment({
+	// 			variables: {
+	// 				input: {
+	// 					reference: id,
+	// 				},
+	// 			},
+	// 			onCompleted: async (data) => {
+	// 				const invoiceId = data.verifyPayment.sale?.invoices[0]?.uuid || "";
+	// 				if (invoiceId) {
+	// 					await fetchInvoice({
+	// 						variables: {
+	// 							invoiceId: invoiceId,
+	// 						},
+	// 					});
+	// 				}
+	// 			},
+	// 		});
+	// 	}
+	// }, [id]);
 
 	return (
 		<section>
@@ -68,7 +63,7 @@ const Receipt = () => {
 				</Button>
 			</div>
 
-			{data?.invoice?.filePath && (
+			{/* {data?.invoice?.filePath && (
 				<>
 					<Document
 						file={`https://api.staging.de-shadow.com${data?.invoice?.filePath}`}
@@ -98,7 +93,6 @@ const Receipt = () => {
 						/>
 					</Document>
 
-					{/* Page navigation if multiple pages */}
 					{numPages && numPages > 1 && (
 						<div className="flex justify-center items-center mt-4 space-x-4">
 							<button
@@ -123,7 +117,7 @@ const Receipt = () => {
 						</div>
 					)}
 				</>
-			)}
+			)} */}
 		</section>
 	);
 };

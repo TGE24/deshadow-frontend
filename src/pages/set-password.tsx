@@ -6,7 +6,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
 import {
-	CompleteInvitationMutation,
+	// CompleteInvitationMutation,
 	useCompleteInvitationMutation,
 } from "../generated/graphql";
 
@@ -69,17 +69,15 @@ const SetPassword = () => {
 						password: formData.password,
 					},
 				},
-				onCompleted(data: CompleteInvitationMutation) {
+				onCompleted(data) {
 					const { completeInvitation } = data;
 
 					// Case 1: User needs to set up 2FA (first time)
-					if (completeInvitation.twoFactorSecret) {
+					if (completeInvitation.challengeToken) {
 						setAuthPayload({
-							twoFactorSecret: completeInvitation.twoFactorSecret,
 							challengeToken: completeInvitation.challengeToken ?? "",
-							twoFactorQRCodeURL: completeInvitation.twoFactorQRCodeURL ?? "",
 						});
-						navigate("/setup-2fa");
+						navigate("/otp");
 					}
 				},
 				onError(error) {

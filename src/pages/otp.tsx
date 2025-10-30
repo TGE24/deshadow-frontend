@@ -110,7 +110,7 @@ const OTP = () => {
 					Enter Verification Code
 				</h1>
 				<p className="text-center text-[#6A6A6A]">
-					Enter the Authentication code from your authenticator app
+					Enter the OTP code from your email
 				</p>
 
 				<div className="flex flex-col items-center justify-center my-[30px] lg:my-[60px] width-full">
