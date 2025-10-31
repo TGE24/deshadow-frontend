@@ -7,8 +7,6 @@ query Invoice($invoiceId: UUID!) {
 				product {
 					name
 					model
-					condition
-					specifications
 				}
 			}
 		}

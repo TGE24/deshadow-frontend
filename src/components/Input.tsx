@@ -85,7 +85,7 @@ const Input: React.FC<InputProps> = ({
 			)}
 			<div className={getContainerStyles()}>
 				{variant === "search" && !isFocused && (
-					<div className="mr-2 text-[#A2A2A2]">
+					<div className="ml-4 mr-2 text-[#A2A2A2]">
 						<Search />
 					</div>
 				)}

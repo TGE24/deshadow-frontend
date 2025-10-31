@@ -1,0 +1,32 @@
+query ProductItems(
+	$productUuid: UUID
+	$status: ProductItemStatus
+	$pagination: PaginationInput
+) {
+	productItems(
+		productUuid: $productUuid
+		status: $status
+		pagination: $pagination
+	) {
+		edges {
+			node {
+				... on ProductItem {
+					uuid
+					product {
+						name
+					}
+					serialNumber
+					condition
+					status
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

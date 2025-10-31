@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import {
-	Inventory,
+	ProductItem,
 	useDeleteProductMutation,
 	UserRole,
 } from "../generated/graphql";
@@ -12,9 +12,7 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import TableLoader from "../components/TableLoader";
-import AddProduct from "../modules/Modals/Product/AddProduct";
 import { useUserStore } from "../store/userStore";
-import UpdateInventory from "../modules/Modals/Inventory/UpdateInventory";
 import TableEmptyState from "../components/TableEmptyState";
 import {
 	createInventoryColumns,
@@ -24,11 +22,12 @@ import {
 import { Pagination } from "../modules/Pagination";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
+import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
 
 const StoreInventory = () => {
 	const { user } = useUserStore();
 	const [filterStore, setFilterStore] = useState("");
-	const [selectedProduct, setSelectedProduct] = useState<Inventory | null>(
+	const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(
 		null
 	);
 	const [open, setOpen] = useState(false);
@@ -42,14 +41,14 @@ const StoreInventory = () => {
 	const [deleteProduct, { loading: deleteLoading }] =
 		useDeleteProductMutation();
 
-	const handleUpdateProduct = (product: Inventory) => {
+	const handleUpdateProduct = (product: ProductItem) => {
 		setUpdateOpen(true);
 		setSelectedProduct(product);
 	};
 
 	const columns = createInventoryColumns({
 		onUpdate: handleUpdateProduct,
-		onDelete: (product: Inventory) => {
+		onDelete: (product: ProductItem) => {
 			setSelectedProduct(product);
 			setDeleteOpen(true);
 		},
@@ -148,24 +147,24 @@ const StoreInventory = () => {
 				<Pagination
 					page={page}
 					loading={loading}
-					totalCount={products?.inventory.totalCount ?? 0}
+					totalCount={products?.productItems.totalCount ?? 0}
 					dataLength={data.length}
-					hasNextPage={products?.inventory?.pageInfo?.hasNextPage ?? false}
+					hasNextPage={products?.productItems?.pageInfo?.hasNextPage ?? false}
 					hasPreviousPage={
-						products?.inventory?.pageInfo?.hasPreviousPage ?? false
+						products?.productItems?.pageInfo?.hasPreviousPage ?? false
 					}
 					onNextPage={nextPage}
 					onPrevPage={prevPage}
 				/>
 			</div>
 
-			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />
-			<UpdateInventory
+			<CreateInventory open={open} setOpen={setOpen} refetch={refetch} />
+			{/* <UpdateInventory
 				open={updateOpen}
 				setOpen={setUpdateOpen}
 				refetch={refetch}
 				selectedProduct={selectedProduct}
-			/>
+			/> */}
 
 			<DeleteModal
 				open={deleteOpen}

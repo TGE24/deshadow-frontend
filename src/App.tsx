@@ -15,6 +15,7 @@ import Stores from "./pages/stores";
 import Inventory from "./pages/inventory";
 import SalesManagement from "./pages/Sales";
 import SetPassword from "./pages/set-password";
+import ProductDetails from "./pages/productDetails";
 
 function App() {
 	return (
@@ -32,6 +33,7 @@ function App() {
 									<Route path="/dashboard" element={<Dashboard />} />
 									<Route path="/invoice" element={<Invoice />} />
 									<Route path="/invoice/:id" element={<Receipt />} />
+									<Route path="/product/:id" element={<ProductDetails />} />
 									<Route path="/credit" element={<Credit />} />
 									<Route path="/category" element={<Category />} />
 									<Route path="/brands" element={<Brand />} />

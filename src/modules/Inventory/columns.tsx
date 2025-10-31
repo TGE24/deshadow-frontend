@@ -37,11 +37,6 @@ export const createInventoryColumns = ({
 		header: () => <h4>Quantity Available</h4>,
 	},
 	{
-		accessorKey: "quantityReserved",
-		cell: (info) => info.getValue(),
-		header: () => <h4>Quantity Reserved</h4>,
-	},
-	{
 		accessorKey: "product.costPrice",
 		cell: (info) => {
 			const value = info.getValue() as number;

@@ -1,0 +1,7 @@
+mutation CreateProductItem($input: ProductItemInput!) {
+	createProductItem(input: $input) {
+		uuid
+		serialNumber
+		condition
+	}
+}

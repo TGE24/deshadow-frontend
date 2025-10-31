@@ -21,15 +21,11 @@ query Products($pagination: PaginationInput, $filter: ProductFilter) {
 						name
 						uuid
 					}
-					condition
-					costPrice
-					sellingPrice
-					serialNumber
 					description
-					specifications
-					inventory {
-						quantityAvailable
-						quantityReserved
+					items {
+						uuid
+						serialNumber
+						condition
 						status
 					}
 				}

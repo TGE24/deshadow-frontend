@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import {
-	Inventory,
 	Store,
+	useProductItemsLazyQuery,
 	UserRole,
 	useStoresLazyQuery,
 } from "../../generated/graphql";
-import { useInventoryLazyQuery } from "../../generated/graphql";
 import { DEFAULT_PAGINATION_SIZE } from "../../utils/constants";
 import { useUserStore } from "../../store/userStore";
+import { ProductItem } from "../DirectSale/types";
 
 interface UseInventoryDataProps {
 	filterStore: string;
@@ -19,11 +19,11 @@ export const useInventoryData = ({
 	setFilterStore,
 }: UseInventoryDataProps) => {
 	const { user } = useUserStore();
-	const [data, setData] = useState<Inventory[]>([]);
+	const [data, setData] = useState<ProductItem[]>([]);
 	const [page, setPage] = useState(1);
 
 	const [getInventory, { data: products, loading, refetch }] =
-		useInventoryLazyQuery();
+		useProductItemsLazyQuery();
 	const [getStores, { data: stores, loading: storesLoading }] =
 		useStoresLazyQuery();
 
@@ -55,7 +55,6 @@ export const useInventoryData = ({
 			getInventory({
 				variables: {
 					pagination: { first: DEFAULT_PAGINATION_SIZE },
-					storeUuid: filterStore,
 				},
 			});
 		}
@@ -63,20 +62,22 @@ export const useInventoryData = ({
 
 	// Update data when products change
 	useEffect(() => {
-		if (products?.inventory?.edges) {
-			setData(products.inventory.edges.map((edge) => edge.node as Inventory));
+		if (products?.productItems?.edges) {
+			setData(
+				products.productItems.edges.map((edge) => edge.node as ProductItem)
+			);
 		}
 	}, [products]);
 
 	const nextPage = () => {
-		if (products?.inventory?.pageInfo?.hasNextPage) {
+		if (products?.productItems?.pageInfo?.hasNextPage) {
 			getInventory({
 				variables: {
 					pagination: {
 						first: DEFAULT_PAGINATION_SIZE,
-						after: products?.inventory?.pageInfo?.endCursor,
+						after: products?.productItems?.pageInfo?.endCursor,
 					},
-					storeUuid: filterStore,
+					// storeUuid: filterStore,
 				},
 			});
 			setPage(page + 1);
@@ -84,14 +85,14 @@ export const useInventoryData = ({
 	};
 
 	const prevPage = () => {
-		if (products?.inventory?.pageInfo?.hasPreviousPage) {
+		if (products?.productItems?.pageInfo?.hasPreviousPage) {
 			getInventory({
 				variables: {
 					pagination: {
 						last: DEFAULT_PAGINATION_SIZE,
-						before: products?.inventory?.pageInfo?.startCursor,
+						before: products?.productItems?.pageInfo?.startCursor,
 					},
-					storeUuid: filterStore,
+					// storeUuid: filterStore,
 				},
 			});
 			setPage(page - 1);

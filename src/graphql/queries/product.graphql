@@ -18,15 +18,17 @@ query Product($uuid: UUID!) {
 			name
 			uuid
 		}
-		condition
-		costPrice
-		sellingPrice
-		serialNumber
+		images {
+			uuid
+			imageUrl
+			altText
+			isPrimary
+		}
 		description
-		specifications
-		inventory {
-			quantityAvailable
-			quantityReserved
+		items {
+			uuid
+			serialNumber
+			condition
 			status
 		}
 	}

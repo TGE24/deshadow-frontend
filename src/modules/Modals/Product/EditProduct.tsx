@@ -10,24 +10,19 @@ import {
 	Brand,
 	Category,
 	Product,
-	ProductCondition,
 	Store,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
 	useStoresQuery,
 	useUpdateProductMutation,
 } from "../../../generated/graphql";
+import { useUserStore } from "../../../store/userStore";
 
 interface AddProductModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	refetch: () => void;
 	selectedProduct: Product | null;
-}
-
-interface ProductSpecifications {
-	storage?: string;
-	color?: string;
 }
 
 interface AddProductForm {
@@ -37,11 +32,6 @@ interface AddProductForm {
 	name: string;
 	description: string;
 	model: string;
-	condition: ProductCondition | "";
-	imei: string;
-	costPrice: string;
-	sellingPrice: string;
-	specifications: ProductSpecifications;
 }
 
 const selectStyles = {
@@ -62,8 +52,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null
 	);
-	const [selectedCondition, setSelectedCondition] =
-		useState<ProductCondition | null>(null);
 
 	const [getCategories, { data: categories }] = useCategoriesLazyQuery({
 		fetchPolicy: "network-only",
@@ -76,6 +64,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	});
 
 	const [updateProduct, { loading }] = useUpdateProductMutation();
+	const { user } = useUserStore();
 
 	useEffect(() => {
 		getCategories({ variables: { pagination: { first: 100 } } });
@@ -89,20 +78,14 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 		reset,
 		setValue,
 		setError,
-		watch,
 	} = useForm<AddProductForm>({
 		defaultValues: {
 			storeUuid: "",
 			categoryUuid: "",
 			brandUuid: "",
 			name: "",
-			imei: "",
-			costPrice: "",
-			sellingPrice: "",
-			condition: "" as ProductCondition,
 			model: "",
 			description: "",
-			specifications: {},
 		},
 		mode: "onChange",
 	});
@@ -115,19 +98,8 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 				categoryUuid: selectedProduct.category?.uuid || "",
 				brandUuid: selectedProduct.brand?.uuid || "",
 				name: selectedProduct.name || "",
-				imei: selectedProduct.serialNumber || "",
-				costPrice: selectedProduct.costPrice
-					? selectedProduct.costPrice.toString()
-					: "",
-				sellingPrice: selectedProduct.sellingPrice
-					? selectedProduct.sellingPrice.toString()
-					: "",
-				condition: selectedProduct.condition as ProductCondition,
 				model: selectedProduct.model || "",
 				description: selectedProduct.description || "",
-				specifications: selectedProduct.specifications
-					? JSON.parse(selectedProduct.specifications)
-					: {},
 			};
 			reset(formData);
 			setSelectedStore(selectedProduct.store ? selectedProduct.store : null);
@@ -135,17 +107,8 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			setSelectedCategory(
 				selectedProduct.category ? selectedProduct.category : null
 			);
-			setSelectedCondition(selectedProduct.condition as ProductCondition);
 		}
 	}, [open, selectedProduct, reset]);
-
-	const updateSpecification = (
-		key: keyof ProductSpecifications,
-		value: string
-	) => {
-		const currentSpecs = watch("specifications") || {};
-		setValue("specifications", { ...currentSpecs, [key]: value });
-	};
 
 	const handleSubmitForm = async (data: AddProductForm) => {
 		// Validate select fields
@@ -161,10 +124,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			setError("brandUuid", { message: "Please select a brand" });
 			return;
 		}
-		if (!data.condition) {
-			setError("condition", { message: "Please select a condition" });
-			return;
-		}
 
 		try {
 			await updateProduct({
@@ -174,13 +133,9 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
-						serialNumber: data.imei,
-						costPrice: parseFloat(data.costPrice),
-						sellingPrice: parseFloat(data.sellingPrice),
-						condition: data.condition as ProductCondition,
 						model: data.model,
 						description: data.description,
-						specifications: JSON.stringify(data.specifications),
+						ownerUuid: user?.uuid || "",
 					},
 					uuid: selectedProduct?.uuid || "",
 				},
@@ -216,47 +171,48 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			</h2>
 			<form onSubmit={handleSubmit(handleSubmitForm)}>
 				<div className="mb-[76px] mt-[16px] flex gap-[24px] flex-col">
+					<div className="w-full">
+						<label
+							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+							htmlFor="store"
+						>
+							Store
+						</label>
+						<Select
+							options={stores?.stores.edges.map((store) => ({
+								value: (store.node as Store).uuid,
+								label: (store.node as Store).name,
+							}))}
+							value={
+								selectedStore
+									? {
+											value: selectedStore.uuid,
+											label: selectedStore.name,
+									  }
+									: null
+							}
+							placeholder="Select Store"
+							classNames={selectStyles}
+							onChange={(option) => {
+								const newStore = option ? option.value : null;
+								setValue("storeUuid", newStore);
+								const storeObj =
+									option &&
+									stores?.stores.edges
+										.map((store) => store.node as Store)
+										.find((store) => store.uuid === option.value);
+								setSelectedStore(storeObj || null);
+							}}
+							name="storeUuid"
+						/>
+						{errors.storeUuid && (
+							<span className="text-red-500 text-sm">
+								{errors.storeUuid.message}
+							</span>
+						)}
+					</div>
+
 					<div className="flex flex-col md:flex-row gap-[16px]">
-						<div className="w-full">
-							<label
-								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-								htmlFor="store"
-							>
-								Store
-							</label>
-							<Select
-								options={stores?.stores.edges.map((store) => ({
-									value: (store.node as Store).uuid,
-									label: (store.node as Store).name,
-								}))}
-								value={
-									selectedStore
-										? {
-												value: selectedStore.uuid,
-												label: selectedStore.name,
-										  }
-										: null
-								}
-								placeholder="Select Store"
-								classNames={selectStyles}
-								onChange={(option) => {
-									const newStore = option ? option.value : null;
-									setValue("storeUuid", newStore);
-									const storeObj =
-										option &&
-										stores?.stores.edges
-											.map((store) => store.node as Store)
-											.find((store) => store.uuid === option.value);
-									setSelectedStore(storeObj || null);
-								}}
-								name="storeUuid"
-							/>
-							{errors.storeUuid && (
-								<span className="text-red-500 text-sm">
-									{errors.storeUuid.message}
-								</span>
-							)}
-						</div>
 						<div className="w-full">
 							<label
 								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
@@ -297,48 +253,48 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 								</span>
 							)}
 						</div>
-					</div>
-					<div>
-						<label
-							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-							htmlFor="categoryUuid"
-						>
-							Category
-						</label>
-						<Select
-							options={categories?.categories.edges
-								.filter((category) => category.node.__typename === "Category")
-								.map((category) => ({
-									value: (category.node as Category).uuid,
-									label: (category.node as Category).name,
-								}))}
-							placeholder="Select Category"
-							classNames={selectStyles}
-							value={
-								selectedCategory
-									? {
-											value: selectedCategory.uuid,
-											label: selectedCategory.name,
-									  }
-									: null
-							}
-							onChange={(option) => {
-								const newCategory = option ? option.value : null;
-								setValue("categoryUuid", newCategory);
-								const categoryObj =
-									option &&
-									categories?.categories.edges
-										.map((category) => category.node as Category)
-										.find((category) => category.uuid === option.value);
-								setSelectedCategory(categoryObj || null);
-							}}
-							name="categoryUuid"
-						/>
-						{errors.categoryUuid && (
-							<span className="text-red-500 text-sm">
-								{errors.categoryUuid.message}
-							</span>
-						)}
+						<div className="w-full">
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="categoryUuid"
+							>
+								Category
+							</label>
+							<Select
+								options={categories?.categories.edges
+									.filter((category) => category.node.__typename === "Category")
+									.map((category) => ({
+										value: (category.node as Category).uuid,
+										label: (category.node as Category).name,
+									}))}
+								placeholder="Select Category"
+								classNames={selectStyles}
+								value={
+									selectedCategory
+										? {
+												value: selectedCategory.uuid,
+												label: selectedCategory.name,
+										  }
+										: null
+								}
+								onChange={(option) => {
+									const newCategory = option ? option.value : null;
+									setValue("categoryUuid", newCategory);
+									const categoryObj =
+										option &&
+										categories?.categories.edges
+											.map((category) => category.node as Category)
+											.find((category) => category.uuid === option.value);
+									setSelectedCategory(categoryObj || null);
+								}}
+								name="categoryUuid"
+							/>
+							{errors.categoryUuid && (
+								<span className="text-red-500 text-sm">
+									{errors.categoryUuid.message}
+								</span>
+							)}
+						</div>
 					</div>
 					<Input
 						label="Name"
@@ -359,136 +315,20 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 						placeholder="Enter description"
 						id="description"
 						variant="secondary"
-						register={register("description", {
-							required: "Product description is required",
-							minLength: {
-								value: 10,
-								message: "Description must be at least 10 characters",
-							},
-						})}
+						register={register("description")}
 						errors={errors.description}
 					/>
-					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Model"
-							placeholder="Enter model"
-							id="model"
-							variant="secondary"
-							register={register("model", {
-								required: "Product model is required",
-								minLength: { value: 1, message: "Model is required" },
-							})}
-							errors={errors.model}
-						/>
-						<div className="w-full">
-							<label
-								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-								htmlFor="status"
-							>
-								Condition
-							</label>
-							<Select
-								options={Object.values(ProductCondition).map((condition) => ({
-									value: condition,
-									label: condition
-										.replace("_", " ")
-										.toLowerCase()
-										.replace(/\b\w/g, (c) => c.toUpperCase()),
-								}))}
-								placeholder="Select condition"
-								classNames={selectStyles}
-								value={
-									selectedCondition
-										? {
-												value: selectedCondition,
-												label: selectedCondition
-													.replace("_", " ")
-													.toLowerCase()
-													.replace(/\b\w/g, (c) => c.toUpperCase()),
-										  }
-										: null
-								}
-								onChange={(option) => {
-									const newCondition = option
-										? (option.value as ProductCondition)
-										: ("" as ProductCondition);
-									setValue("condition", newCondition);
-									setSelectedCondition(newCondition || null);
-								}}
-								name="condition"
-							/>
-							{errors.condition && (
-								<span className="text-red-500 text-sm">
-									{errors.condition.message}
-								</span>
-							)}
-						</div>
-					</div>
-					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Storage"
-							placeholder="Enter storage"
-							id="storage"
-							variant="secondary"
-							onChange={(e) => updateSpecification("storage", e.target.value)}
-							value={watch("specifications")?.storage || ""}
-						/>
-						<Input
-							label="Color"
-							placeholder="Enter color"
-							id="color"
-							variant="secondary"
-							onChange={(e) => updateSpecification("color", e.target.value)}
-							value={watch("specifications")?.color || ""}
-						/>
-					</div>
 					<Input
-						label="Serial Number"
-						placeholder="Enter serial Number"
-						id="imei"
+						label="Model"
+						placeholder="Enter model"
+						id="model"
 						variant="secondary"
-						register={register("imei", {
-							required: "Serial number is required",
-							minLength: {
-								value: 3,
-								message: "Serial number must be at least 3 characters",
-							},
+						register={register("model", {
+							required: "Product model is required",
+							minLength: { value: 1, message: "Model is required" },
 						})}
-						errors={errors.imei}
+						errors={errors.model}
 					/>
-
-					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Cost Price"
-							placeholder="Enter cost price"
-							id="costPrice"
-							variant="secondary"
-							register={register("costPrice", {
-								required: "Cost price is required",
-								pattern: {
-									value: /^\d+(\.\d{1,2})?$/,
-									message: "Please enter a valid price",
-								},
-								min: { value: 0.01, message: "Price must be greater than 0" },
-							})}
-							errors={errors.costPrice}
-						/>
-						<Input
-							label="Selling Price"
-							placeholder="Enter selling price"
-							id="sellingPrice"
-							variant="secondary"
-							register={register("sellingPrice", {
-								required: "Selling price is required",
-								pattern: {
-									value: /^\d+(\.\d{1,2})?$/,
-									message: "Please enter a valid price",
-								},
-								min: { value: 0.01, message: "Price must be greater than 0" },
-							})}
-							errors={errors.sellingPrice}
-						/>
-					</div>
 				</div>
 				<Button
 					size="large"
