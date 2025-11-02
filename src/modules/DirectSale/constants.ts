@@ -4,7 +4,7 @@ export const steps: Step[] = [
 	{
 		id: 1,
 		title: "Product Information",
-		description: "Select product and quantity",
+		description: "Select product and price",
 	},
 	{
 		id: 2,

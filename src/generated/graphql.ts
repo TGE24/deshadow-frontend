@@ -430,6 +430,15 @@ export enum PaymentTransactionStatus {
   Success = 'success'
 }
 
+export enum PaymentType {
+  Cash = 'cash',
+  CashTransfer = 'cash_transfer',
+  Pos = 'pos',
+  PosCash = 'pos_cash',
+  PosTransfer = 'pos_transfer',
+  Transfer = 'transfer'
+}
+
 export type Product = {
   __typename?: 'Product';
   availableItemsCount: Scalars['Int']['output'];
@@ -483,16 +492,17 @@ export type ProductInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  ownerUuid?: InputMaybe<Scalars['UUID']['input']>;
   storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type ProductItem = {
   __typename?: 'ProductItem';
   condition: ProductCondition;
+  costPrice?: Maybe<Scalars['Float']['output']>;
   createdAt: Scalars['Time']['output'];
   notes?: Maybe<Scalars['String']['output']>;
   product: Product;
+  sellingPrice?: Maybe<Scalars['Float']['output']>;
   serialNumber: Scalars['String']['output'];
   status: ProductItemStatus;
   store: Store;
@@ -502,8 +512,10 @@ export type ProductItem = {
 
 export type ProductItemInput = {
   condition: ProductCondition;
+  costPrice?: InputMaybe<Scalars['Float']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   productUuid: Scalars['UUID']['input'];
+  sellingPrice?: InputMaybe<Scalars['Float']['input']>;
   serialNumber: Scalars['String']['input'];
 };
 
@@ -517,7 +529,9 @@ export enum ProductItemStatus {
 
 export type ProductItemUpdateInput = {
   condition: ProductCondition;
+  costPrice?: InputMaybe<Scalars['Float']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
+  sellingPrice?: InputMaybe<Scalars['Float']['input']>;
   serialNumber: Scalars['String']['input'];
 };
 
@@ -527,7 +541,6 @@ export type ProductUpdateInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  ownerUuid?: InputMaybe<Scalars['UUID']['input']>;
   storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
@@ -634,8 +647,7 @@ export type QueryPaymentTransactionsBySaleArgs = {
 
 
 export type QueryProductArgs = {
-  serialNumber?: InputMaybe<Scalars['String']['input']>;
-  uuid?: InputMaybe<Scalars['UUID']['input']>;
+  uuid: Scalars['UUID']['input'];
 };
 
 
@@ -648,6 +660,7 @@ export type QueryProductItemArgs = {
 export type QueryProductItemsArgs = {
   pagination?: InputMaybe<PaginationInput>;
   productUuid?: InputMaybe<Scalars['UUID']['input']>;
+  serialNumber?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ProductItemStatus>;
 };
 
@@ -793,6 +806,7 @@ export type Sale = {
   notes?: Maybe<Scalars['String']['output']>;
   paymentStatus: PaymentStatus;
   paymentTransactions: Array<PaymentTransaction>;
+  paymentType: PaymentType;
   returns: Array<Return>;
   saleDate: Scalars['Time']['output'];
   saleStatus: SaleStatus;
@@ -820,6 +834,7 @@ export type SaleInput = {
   discountAmount?: InputMaybe<Scalars['Float']['input']>;
   items: Array<SaleItemInput>;
   notes?: InputMaybe<Scalars['String']['input']>;
+  paymentType: PaymentType;
   saleType: SaleType;
   storeUuid: Scalars['UUID']['input'];
   totalAmount: Scalars['Float']['input'];
@@ -839,9 +854,8 @@ export type SaleItem = {
 };
 
 export type SaleItemInput = {
-  productItemUuids: Array<Scalars['UUID']['input']>;
+  productItemUuid: Scalars['UUID']['input'];
   productUuid: Scalars['UUID']['input'];
-  quantity: Scalars['Int']['input'];
   unitPrice: Scalars['Float']['input'];
 };
 
@@ -1141,14 +1155,23 @@ export type ProductQueryVariables = Exact<{
 
 export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, images: Array<{ __typename?: 'ProductImage', imageUrl: string, uuid: any, altText?: string | null, isPrimary: boolean }>, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }> } | null };
 
+export type ProductItemQueryVariables = Exact<{
+  uuid?: InputMaybe<Scalars['UUID']['input']>;
+  serialNumber?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ProductItemQuery = { __typename?: 'Query', productItem?: { __typename?: 'ProductItem', uuid: any, condition: ProductCondition, status: ProductItemStatus } | null };
+
 export type ProductItemsQueryVariables = Exact<{
   productUuid?: InputMaybe<Scalars['UUID']['input']>;
   status?: InputMaybe<ProductItemStatus>;
   pagination?: InputMaybe<PaginationInput>;
+  serialNumber?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, product: { __typename?: 'Product', name: string } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -2333,23 +2356,74 @@ export type ProductQueryHookResult = ReturnType<typeof useProductQuery>;
 export type ProductLazyQueryHookResult = ReturnType<typeof useProductLazyQuery>;
 export type ProductSuspenseQueryHookResult = ReturnType<typeof useProductSuspenseQuery>;
 export type ProductQueryResult = Apollo.QueryResult<ProductQuery, ProductQueryVariables>;
+export const ProductItemDocument = gql`
+    query ProductItem($uuid: UUID, $serialNumber: String) {
+  productItem(uuid: $uuid, serialNumber: $serialNumber) {
+    uuid
+    condition
+    status
+  }
+}
+    `;
+
+/**
+ * __useProductItemQuery__
+ *
+ * To run a query within a React component, call `useProductItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProductItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProductItemQuery({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *      serialNumber: // value for 'serialNumber'
+ *   },
+ * });
+ */
+export function useProductItemQuery(baseOptions?: Apollo.QueryHookOptions<ProductItemQuery, ProductItemQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProductItemQuery, ProductItemQueryVariables>(ProductItemDocument, options);
+      }
+export function useProductItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProductItemQuery, ProductItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProductItemQuery, ProductItemQueryVariables>(ProductItemDocument, options);
+        }
+export function useProductItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProductItemQuery, ProductItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProductItemQuery, ProductItemQueryVariables>(ProductItemDocument, options);
+        }
+export type ProductItemQueryHookResult = ReturnType<typeof useProductItemQuery>;
+export type ProductItemLazyQueryHookResult = ReturnType<typeof useProductItemLazyQuery>;
+export type ProductItemSuspenseQueryHookResult = ReturnType<typeof useProductItemSuspenseQuery>;
+export type ProductItemQueryResult = Apollo.QueryResult<ProductItemQuery, ProductItemQueryVariables>;
 export const ProductItemsDocument = gql`
-    query ProductItems($productUuid: UUID, $status: ProductItemStatus, $pagination: PaginationInput) {
+    query ProductItems($productUuid: UUID, $status: ProductItemStatus, $pagination: PaginationInput, $serialNumber: String) {
   productItems(
     productUuid: $productUuid
     status: $status
     pagination: $pagination
+    serialNumber: $serialNumber
   ) {
     edges {
       node {
         ... on ProductItem {
           uuid
-          product {
-            name
-          }
           serialNumber
           condition
           status
+          product {
+            availableItemsCount
+            createdAt
+            description
+            isOwned
+            model
+            name
+            updatedAt
+            uuid
+          }
         }
       }
     }
@@ -2379,6 +2453,7 @@ export const ProductItemsDocument = gql`
  *      productUuid: // value for 'productUuid'
  *      status: // value for 'status'
  *      pagination: // value for 'pagination'
+ *      serialNumber: // value for 'serialNumber'
  *   },
  * });
  */

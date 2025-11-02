@@ -4,19 +4,14 @@ export const createNewProductItem = (): ProductItem => ({
 	id: Date.now().toString(),
 	product: null,
 	productUuid: "",
-	quantity: 1,
+	productItemUuid: "",
 	unitPrice: 0,
+	serialNumber: "",
+	productName: "",
 });
 
 export const calculateSubtotal = (productItems: ProductItem[]): number => {
-	return productItems.reduce(
-		(total, item) => total + item.quantity * item.unitPrice,
-		0
-	);
-};
-
-export const calculateTotalQuantity = (productItems: ProductItem[]): number => {
-	return productItems.reduce((total, item) => total + item.quantity, 0);
+	return productItems.reduce((total, item) => total + item.unitPrice, 0);
 };
 
 export const calculateFinalTotal = (

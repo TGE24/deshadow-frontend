@@ -7,7 +7,9 @@ export const canProceedToNextStep = (
 ): boolean => {
 	switch (currentStep) {
 		case 1: // Product Information
-			return productItems.every((item) => item.product && item.quantity > 0);
+			return productItems.every(
+				(item) => item.productName && item.unitPrice > 0
+			);
 		case 2: // Customer Details
 			return Boolean(
 				formData.customerName &&
@@ -17,7 +19,7 @@ export const canProceedToNextStep = (
 		case 3: // Review
 			return true; // Always can proceed from review
 		case 4: // Payment
-			return formData.totalAmount > 0 && Boolean(formData.paymentStatus);
+			return formData.totalAmount > 0;
 		default:
 			return false;
 	}

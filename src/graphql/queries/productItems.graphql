@@ -2,22 +2,31 @@ query ProductItems(
 	$productUuid: UUID
 	$status: ProductItemStatus
 	$pagination: PaginationInput
+	$serialNumber: String
 ) {
 	productItems(
 		productUuid: $productUuid
 		status: $status
 		pagination: $pagination
+		serialNumber: $serialNumber
 	) {
 		edges {
 			node {
 				... on ProductItem {
 					uuid
-					product {
-						name
-					}
 					serialNumber
 					condition
 					status
+					product {
+						availableItemsCount
+						createdAt
+						description
+						isOwned
+						model
+						name
+						updatedAt
+						uuid
+					}
 				}
 			}
 		}

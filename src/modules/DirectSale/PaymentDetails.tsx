@@ -1,25 +1,15 @@
-import Select from "react-select";
 import Input from "../../components/Input";
-import { PaymentStatus } from "../../generated/graphql";
-import { UseFormRegister, UseFormSetValue, FieldErrors } from "react-hook-form";
+import { UseFormRegister } from "react-hook-form";
 import { CreateSaleForm, ProductItem } from "./types";
-import { selectStyles } from "./constants";
 import { formatNaira } from "../../utils/formatters";
 import { calculateSubtotal } from "../../utils/helpers";
 
 interface PaymentDetailsProps {
 	register: UseFormRegister<CreateSaleForm>;
-	setValue: UseFormSetValue<CreateSaleForm>;
-	errors: FieldErrors<CreateSaleForm>;
 	productItems: ProductItem[];
 }
 
-const PaymentDetails = ({
-	register,
-	setValue,
-	errors,
-	productItems,
-}: PaymentDetailsProps) => {
+const PaymentDetails = ({ register, productItems }: PaymentDetailsProps) => {
 	const subtotal = calculateSubtotal(productItems);
 
 	return (
@@ -59,36 +49,6 @@ const PaymentDetails = ({
 					min: { value: 0, message: "Discount must be positive" },
 				})}
 			/>
-			<div className="w-full">
-				<label
-					className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-					htmlFor="status"
-				>
-					Payment Status
-				</label>
-				<Select
-					options={Object.values(PaymentStatus).map((status) => ({
-						value: status,
-						label: status
-							.replace("_", " ")
-							.toLowerCase()
-							.replace(/\b\w/g, (c) => c.toUpperCase()),
-					}))}
-					placeholder="Select payment status"
-					classNames={selectStyles}
-					onChange={(option) => {
-						if (option) {
-							setValue("paymentStatus", option.value as PaymentStatus);
-						}
-					}}
-					name="paymentStatus"
-				/>
-				{errors.paymentStatus && (
-					<span className="text-red-500 text-sm">
-						{errors.paymentStatus.message}
-					</span>
-				)}
-			</div>
 		</div>
 	);
 };

@@ -1,15 +1,12 @@
-import Select from "react-select";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import { Product } from "../../generated/graphql";
+import SerialNumberAutoSuggest from "../../components/SerialNumberAutoSuggest";
 import { ProductItem } from "./types";
-import { selectStyles } from "./constants";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
 
 interface ProductInformationProps {
 	productItems: ProductItem[];
-	products: Product[] | undefined;
 	onAddProduct: () => void;
 	onRemoveProduct: (id: string) => void;
 	onUpdateProduct: (id: string, updates: Partial<ProductItem>) => void;
@@ -20,7 +17,6 @@ interface ProductInformationProps {
 
 const ProductInformation = ({
 	productItems,
-	products,
 	onAddProduct,
 	onRemoveProduct,
 	onUpdateProduct,
@@ -56,65 +52,60 @@ const ProductInformation = ({
 
 					<div className="flex flex-col gap-[16px]">
 						<div className="w-full">
-							<label
-								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-								htmlFor={`product-${item.id}`}
-							>
-								Select Product
-							</label>
-							<Select
-								options={products?.map((product) => ({
-									value: product.uuid,
-									label: `${product.name}`,
-									product: product,
-								}))}
-								placeholder="Choose a product"
-								classNames={selectStyles}
-								onChange={(option) => {
-									if (option && "product" in option) {
+							<SerialNumberAutoSuggest
+								value={item.serialNumber || ""}
+								onSelect={(productItem) => {
+									if (productItem) {
+										// Store minimal product info for display purposes
+										// We need to get the actual product UUID, but for now use the productItem uuid
 										onUpdateProduct(item.id, {
-											product: option.product as Product,
-											productUuid: option.value,
+											product: productItem.product, // We'll handle display using productName
+											productUuid: productItem.product?.uuid, // Use the product item UUID for now
+											productItemUuid: productItem.uuid,
+											serialNumber: productItem.serialNumber,
+											// Store product name in a custom field for display
+											productName: productItem.product?.name,
+										});
+									} else {
+										onUpdateProduct(item.id, {
+											product: null,
+											productUuid: "",
+											productItemUuid: "",
+											serialNumber: "",
+											productName: "",
 										});
 									}
 								}}
-								value={
-									item.product
-										? {
-												value: item.product.uuid,
-												label: item.product.name,
-												product: item.product,
-										  }
-										: null
-								}
-								name={`product-${item.id}`}
+								placeholder="Enter serial number to search..."
+								label="Search by Serial Number"
 							/>
-							{item.product && (
-								<p
-									className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
-									onClick={() =>
-										item.product && onViewProductDetails(item.product.uuid)
-									}
-								>
-									View product details
-								</p>
+							{item.productName && (
+								<div className="mt-2">
+									<p className="text-[12px] text-gray-600">
+										Selected:{" "}
+										<span className="font-medium">{item.productName}</span>
+									</p>
+									<p className="text-[12px] text-gray-500">
+										Serial: {item.serialNumber}
+									</p>
+									<p
+										className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
+										onClick={() => {
+											console.log(item);
+											// Use productItemUuid if available, or fallback to productUuid
+											const uuid = item.productItemUuid || item.productUuid;
+											if (uuid) {
+												onViewProductDetails(uuid);
+											}
+										}}
+									>
+										View product details
+									</p>
+								</div>
 							)}
 						</div>
 
-						<div className="grid grid-cols-2 gap-[16px]">
-							<Input
-								label="Quantity"
-								type="number"
-								placeholder="Enter quantity"
-								value={item.quantity}
-								onChange={(e) =>
-									onUpdateProduct(item.id, {
-										quantity: parseInt(e.target.value) || 1,
-									})
-								}
-								className="outline-none focus:outline-none text-[14px]"
-								min="1"
-							/>
+						<div className="w-full">
 							<Input
 								label="Unit Price"
 								type="number"
@@ -131,12 +122,12 @@ const ProductInformation = ({
 							/>
 						</div>
 
-						{item.product && item.quantity > 0 && item.unitPrice > 0 && (
+						{item.productName && item.unitPrice > 0 && (
 							<div className="bg-white p-[12px] rounded-[6px] border border-gray-200">
 								<div className="flex justify-between items-center text-[14px]">
-									<span className="text-gray-600">Line Total:</span>
+									<span className="text-gray-600">Price:</span>
 									<span className="font-semibold text-gray-800">
-										{formatNaira(item.quantity * item.unitPrice)}
+										{formatNaira(item.unitPrice)}
 									</span>
 								</div>
 							</div>
@@ -171,7 +162,7 @@ const ProductInformation = ({
 						<span className="font-bold">
 							{formatNaira(
 								productItems.reduce(
-									(total, item) => total + item.quantity * item.unitPrice,
+									(total, item) => total + item.unitPrice,
 									0
 								) - (discountAmount || 0)
 							)}

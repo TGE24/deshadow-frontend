@@ -1,5 +1,5 @@
 import {
-	PaymentStatus,
+	PaymentType,
 	Product,
 	SaleItemInput,
 	SaleType,
@@ -7,7 +7,9 @@ import {
 
 export type ProductItem = SaleItemInput & {
 	id: string;
-	product: Product | null;
+	product: Partial<Product> | null;
+	serialNumber?: string;
+	productName?: string;
 };
 
 export type CreateSaleForm = {
@@ -16,9 +18,9 @@ export type CreateSaleForm = {
 	customerEmail: string;
 	customerPhone: string;
 	saleType: SaleType;
+	paymentType: PaymentType;
 	totalAmount: number;
 	discountAmount: number;
-	paymentStatus: PaymentStatus;
 	notes: string;
 	items: SaleItemInput[];
 };

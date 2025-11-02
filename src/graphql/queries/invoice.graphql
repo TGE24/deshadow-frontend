@@ -3,6 +3,16 @@ query Invoice($invoiceId: UUID!) {
 		uuid
 		filePath
 		sale {
+			customerName
+customerEmail
+customerPhone
+saleType
+paymentType
+totalAmount
+discountAmount
+paymentStatus
+saleStatus
+saleDate
 			items {
 				product {
 					name

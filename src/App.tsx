@@ -12,7 +12,6 @@ import Users from "./pages/users";
 import Products from "./pages/products";
 import OTP from "./pages/otp";
 import Stores from "./pages/stores";
-import Inventory from "./pages/inventory";
 import SalesManagement from "./pages/Sales";
 import SetPassword from "./pages/set-password";
 import ProductDetails from "./pages/productDetails";
@@ -40,7 +39,6 @@ function App() {
 									<Route path="/users" element={<Users />} />
 									<Route path="/products" element={<Products />} />
 									<Route path="/stores" element={<Stores />} />
-									<Route path="/inventory" element={<Inventory />} />
 									<Route path="/sale" element={<SalesManagement />} />
 								</Routes>
 							</Layout>

@@ -1,0 +1,7 @@
+query ProductItem($uuid: UUID, $serialNumber: String) {
+	productItem(uuid: $uuid, serialNumber: $serialNumber) {
+		uuid
+		condition
+		status
+	}
+}

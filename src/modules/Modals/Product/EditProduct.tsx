@@ -16,7 +16,6 @@ import {
 	useStoresQuery,
 	useUpdateProductMutation,
 } from "../../../generated/graphql";
-import { useUserStore } from "../../../store/userStore";
 
 interface AddProductModalProps {
 	open: boolean;
@@ -64,7 +63,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	});
 
 	const [updateProduct, { loading }] = useUpdateProductMutation();
-	const { user } = useUserStore();
 
 	useEffect(() => {
 		getCategories({ variables: { pagination: { first: 100 } } });
@@ -135,7 +133,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 						name: data.name,
 						model: data.model,
 						description: data.description,
-						ownerUuid: user?.uuid || "",
 					},
 					uuid: selectedProduct?.uuid || "",
 				},

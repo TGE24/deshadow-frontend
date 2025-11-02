@@ -1,13 +1,12 @@
 import Button from "../../components/Button";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	SaleType,
-	useProductsQuery,
+	PaymentType,
 	Product,
 	useCreateSaleMutation,
 	useProductLazyQuery,
-	UserRole,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 
@@ -25,27 +24,17 @@ import PaymentDetails from "./PaymentDetails";
 // Import utilities
 import { canProceedToNextStep } from "./validation";
 import { calculateSubtotal, createNewProductItem } from "../../utils/helpers";
-import { useUserStore } from "../../store/userStore";
 import { useProductStore } from "../../store/productStore";
+import { useUserStore } from "../../store/userStore";
 
 const DirectSale = ({ setOpen }: DirectSaleProps) => {
 	const { setProduct } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
-	// const [initializePayment] = useInitializePaymentMutation();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
 		createNewProductItem(),
 	]);
-
-	const { data: products } = useProductsQuery({
-		variables: {
-			pagination: { first: 100 },
-			...(user?.role === UserRole.Reseller && {
-				filter: { storeUuid: user?.assignedStore?.uuid || "" },
-			}),
-		},
-	});
 
 	const [getProduct, { data }] = useProductLazyQuery();
 
@@ -63,19 +52,14 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 		}
 	}, [data, setProduct]);
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-		setValue,
-		watch,
-	} = useForm<CreateSaleForm>({
+	const { register, handleSubmit, setValue, watch } = useForm<CreateSaleForm>({
 		defaultValues: {
 			storeUuid: "",
 			customerName: "",
 			customerEmail: "",
 			customerPhone: "",
 			saleType: SaleType.Direct,
+			paymentType: PaymentType.Cash,
 			totalAmount: 0,
 			discountAmount: 0,
 			notes: "",
@@ -97,11 +81,10 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 	};
 
 	const updateProductItem = (id: string, updates: Partial<ProductItem>) => {
-		setProductItems(
-			productItems.map((item) =>
-				item.id === id ? { ...item, ...updates } : item
-			)
+		const updatedItems = productItems.map((item) =>
+			item.id === id ? { ...item, ...updates } : item
 		);
+		setProductItems(updatedItems);
 	};
 
 	const canProceed = () =>
@@ -118,39 +101,40 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 			setCurrentStep(currentStep - 1);
 		}
 	};
-
+	// console.log(productItems);
 	const onSubmit = async (data: CreateSaleForm) => {
+		const assignedStoreUuid = user?.assignedStore?.uuid ?? "";
+		const ownedStoreUuid =
+			user?.ownedStores && user.ownedStores.length > 0
+				? user.ownedStores[0].uuid
+				: "";
+		const storeUuid = assignedStoreUuid || ownedStoreUuid || "";
+
+		console.log({
+			...data,
+			totalAmount: calculateSubtotal(productItems),
+			items: productItems.map((item) => ({
+				productUuid: item.productUuid || "",
+				productItemUuid: item.productItemUuid || "",
+				unitPrice: item.unitPrice,
+			})),
+			storeUuid,
+		});
 		await createSale({
 			variables: {
 				input: {
 					...data,
 					totalAmount: calculateSubtotal(productItems),
 					items: productItems.map((item) => ({
-						productUuid: item.product?.uuid || "",
-						quantity: item.quantity,
+						productUuid: item.productUuid || "",
+						productItemUuid: item.productItemUuid || "",
 						unitPrice: item.unitPrice,
 					})),
-					storeUuid: user?.assignedStore?.uuid || "",
+					storeUuid,
 				},
 			},
 			onCompleted: async (data) => {
 				if (data) console.log(data);
-				// await initializePayment({
-				// 	variables: {
-				// 		input: {
-				// 			saleUuid: data.createSale.uuid,
-				// 			customerEmail: data.createSale.customerEmail ?? "",
-				// 			amount: data.createSale.totalAmount || 0,
-				// 			customerPhone: data.createSale.customerPhone ?? "",
-				// 		},
-				// 	},
-				// 	onCompleted: (paymentData) => {
-				// 		window.open(
-				// 			paymentData.initializePayment.authorizationUrl || "",
-				// 			"_blank"
-				// 		);
-				// 	},
-				// });
 			},
 		});
 	};
@@ -161,10 +145,6 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 				return (
 					<ProductInformation
 						productItems={productItems}
-						products={
-							products?.products?.edges?.map((edge) => edge.node as Product) ||
-							[]
-						}
 						onAddProduct={addProductItem}
 						onRemoveProduct={removeProductItem}
 						onUpdateProduct={updateProductItem}
@@ -177,30 +157,30 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 					/>
 				);
 			case 2:
-				return <CustomerDetails register={register} />;
+				return (
+					<CustomerDetails
+						register={register}
+						setValue={setValue}
+						watch={watch}
+					/>
+				);
 			case 3:
 				return <ReviewOrder productItems={productItems} formData={formData} />;
 			case 4:
 				return (
-					<PaymentDetails
-						register={register}
-						setValue={setValue}
-						errors={errors}
-						productItems={productItems}
-					/>
+					<PaymentDetails register={register} productItems={productItems} />
 				);
 			default:
 				return (
 					<ProductInformation
 						productItems={productItems}
-						products={
-							products?.products?.edges?.map((edge) => edge.node as Product) ||
-							[]
-						}
 						onAddProduct={addProductItem}
 						onRemoveProduct={removeProductItem}
 						onUpdateProduct={updateProductItem}
-						onViewProductDetails={() => setOpen(true)}
+						onViewProductDetails={(id) => {
+							setOpen(true);
+							handleViewProductDetails(id);
+						}}
 						discountAmount={formData.discountAmount}
 						onDiscountChange={(value) => setValue("discountAmount", value)}
 					/>
