@@ -1,6 +1,12 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { SingleValue } from "react-select";
 import Button from "../components/Button";
-import { Sale, SaleType, useSalesLazyQuery } from "../generated/graphql";
+import {
+	Sale,
+	SaleType,
+	useSalesLazyQuery,
+	useStoresLazyQuery,
+} from "../generated/graphql";
 import {
 	ColumnDef,
 	flexRender,
@@ -9,10 +15,38 @@ import {
 } from "@tanstack/react-table";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import { formatNaira } from "../utils/formatters";
+import { formatDateTime, formatNaira } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import DropdownMenu from "../components/DropdownMenu";
 import MoreVertical from "../components/Icons/MoreVertical";
+import SalesFilterDropdown from "../components/SalesFilterDropdown";
+
+// Types
+interface SelectOption {
+	value: string;
+	label: string;
+}
+
+// Utility functions for date formatting
+const formatToISODateTime = (
+	dateString: string,
+	isEndOfDay = false
+): string => {
+	if (!dateString) return "";
+
+	const date = new Date(dateString);
+
+	if (isEndOfDay) {
+		// For toDate, set to end of day (23:59:59.999Z) to include entire day
+		date.setHours(23, 59, 59, 999);
+	} else {
+		// For fromDate, set to start of day (00:00:00.000Z) to include from beginning
+		date.setHours(0, 0, 0, 0);
+	}
+
+	// Returns format like: 2025-11-04T14:32:30.939Z
+	return date.toISOString();
+};
 
 const SalesManagement = () => {
 	const [open, setOpen] = useState(false);
@@ -22,6 +56,19 @@ const SalesManagement = () => {
 		fetchPolicy: "network-only",
 	});
 	const [data, setData] = useState<Sale[]>([]);
+
+	// Filter States
+	const [selectedSaleType, setSelectedSaleType] = useState("");
+	const [selectedStore, setSelectedStore] = useState("");
+	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
+
+	// Stores data
+	const [getStores, { data: storesData }] = useStoresLazyQuery();
+
+	// Load stores on component mount
+	useEffect(() => {
+		getStores();
+	}, [getStores]);
 
 	const columns = useMemo<ColumnDef<Sale>[]>(() => {
 		const baseColumns: ColumnDef<Sale>[] = [
@@ -40,7 +87,10 @@ const SalesManagement = () => {
 			},
 			{
 				accessorKey: "createdAt",
-				cell: (info) => info.getValue(),
+				cell: (info) => {
+					const value = info.getValue() as string;
+					return formatDateTime(value);
+				},
 				header: () => <h4>Created At</h4>,
 			},
 
@@ -110,16 +160,98 @@ const SalesManagement = () => {
 		return baseColumns;
 	}, []);
 
+	// Filter Options
+	const saleTypeOptions = useMemo(
+		(): SelectOption[] => [
+			{ value: "", label: "All Sale Types" },
+			{ value: SaleType.Direct, label: "Direct Sale" },
+			{ value: SaleType.Swap, label: "Swap Sale" },
+		],
+		[]
+	);
+
+	const storeOptions = useMemo((): SelectOption[] => {
+		const options: SelectOption[] = [{ value: "", label: "All Stores" }];
+
+		if (storesData?.stores?.edges) {
+			storesData.stores.edges.forEach((edge) => {
+				const store = edge.node;
+				if (store.__typename === "Store" && store.uuid && store.name) {
+					options.push({
+						value: store.uuid,
+						label: store.name,
+					});
+				}
+			});
+		}
+
+		return options;
+	}, [storesData]);
+
+	// Filter Handlers
+	const handleSaleTypeChange = useCallback(
+		(option: SingleValue<SelectOption>) => {
+			setSelectedSaleType(option?.value || "");
+		},
+		[]
+	);
+
+	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
+		setSelectedStore(option?.value || "");
+	}, []);
+
+	const handleDateRangeChange = useCallback(
+		(newDateRange: { fromDate: string; toDate: string }) => {
+			setDateRange(newDateRange);
+		},
+		[]
+	);
+
+	const handleClearFilters = useCallback(() => {
+		setSelectedSaleType("");
+		setSelectedStore("");
+		setDateRange({ fromDate: "", toDate: "" });
+	}, []);
+
+	const handleApplyFilters = useCallback(() => {
+		// Filters are applied automatically through useEffect when state changes
+		// This is just a placeholder for the FilterDropdown component
+	}, []);
+
+	// Load sales with filters
 	useEffect(() => {
+		const buildFilters = () => {
+			const filters: Record<string, unknown> = {};
+
+			if (selectedSaleType) {
+				filters.saleType = selectedSaleType;
+			}
+
+			if (selectedStore) {
+				filters.storeUuid = selectedStore;
+			}
+
+			if (dateRange.fromDate) {
+				filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
+			}
+
+			if (dateRange.toDate) {
+				filters.toDate = formatToISODateTime(dateRange.toDate, true);
+			}
+
+			return Object.keys(filters).length > 0 ? filters : undefined;
+		};
+
 		getSales({
 			variables: {
 				pagination: { first: 10 },
-				filter: {
-					saleType: SaleType.Direct,
-				},
+				filter: buildFilters(),
 			},
 		});
-	}, [getSales]);
+
+		// Reset page when filters change
+		setPage(1);
+	}, [getSales, selectedSaleType, selectedStore, dateRange]);
 
 	useEffect(() => {
 		if (sales?.sales?.edges) {
@@ -137,6 +269,28 @@ const SalesManagement = () => {
 		getCoreRowModel: getCoreRowModel(),
 	});
 
+	const buildCurrentFilters = () => {
+		const filters: Record<string, unknown> = {};
+
+		if (selectedSaleType) {
+			filters.saleType = selectedSaleType;
+		}
+
+		if (selectedStore) {
+			filters.storeUuid = selectedStore;
+		}
+
+		if (dateRange.fromDate) {
+			filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
+		}
+
+		if (dateRange.toDate) {
+			filters.toDate = formatToISODateTime(dateRange.toDate, true);
+		}
+
+		return Object.keys(filters).length > 0 ? filters : undefined;
+	};
+
 	const nextPage = () => {
 		if (sales?.sales?.pageInfo?.hasNextPage) {
 			getSales({
@@ -145,6 +299,7 @@ const SalesManagement = () => {
 						first: 10,
 						after: sales?.sales?.pageInfo?.endCursor,
 					},
+					filter: buildCurrentFilters(),
 				},
 			});
 			setPage(page + 1);
@@ -159,6 +314,7 @@ const SalesManagement = () => {
 						last: 10,
 						before: sales?.sales?.pageInfo?.startCursor,
 					},
+					filter: buildCurrentFilters(),
 				},
 			});
 			setPage(page - 1);
@@ -171,6 +327,22 @@ const SalesManagement = () => {
 				<div>
 					<h2 className="text-[16px] md:text-[20px] font-bold">Manage Sales</h2>
 				</div>
+			</div>
+
+			{/* Filters */}
+			<div className="mt-6 flex justify-end items-center">
+				<SalesFilterDropdown
+					saleTypeOptions={saleTypeOptions}
+					storeOptions={storeOptions}
+					selectedSaleType={selectedSaleType}
+					selectedStore={selectedStore}
+					dateRange={dateRange}
+					onSaleTypeChange={handleSaleTypeChange}
+					onStoreChange={handleStoreChange}
+					onDateRangeChange={handleDateRangeChange}
+					onClearFilters={handleClearFilters}
+					onApplyFilters={handleApplyFilters}
+				/>
 			</div>
 			<div className="w-full mt-[48px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
