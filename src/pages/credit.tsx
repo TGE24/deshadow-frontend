@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import Button from "../components/Button";
 import { Sale, SaleType, useSalesLazyQuery } from "../generated/graphql";
 import {
 	ColumnDef,
@@ -14,6 +13,7 @@ import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import DropdownMenu from "../components/DropdownMenu";
 import MoreVertical from "../components/Icons/MoreVertical";
 import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
+import { Pagination } from "../modules/Pagination";
 
 const SalesManagement = () => {
 	const [open, setOpen] = useState(false);
@@ -239,34 +239,17 @@ const SalesManagement = () => {
 						</tbody>
 					)}
 				</table>
-				{(sales?.sales.totalCount ?? 0) > 10 && (
-					<div className="flex items-center justify-between mt-[30px]">
-						<p>
-							Showing 1 to {data.length} of {sales?.sales?.totalCount} entries
-						</p>
-						<div className="flex items-center gap-[15px]">
-							<Button
-								variant="tetriary"
-								disabled={!sales?.sales?.pageInfo?.hasPreviousPage || loading}
-								size="small"
-								onClick={prevPage}
-							>
-								Previous
-							</Button>
-							<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
-								{page}
-							</div>
-							<Button
-								variant="tetriary"
-								size="small"
-								disabled={!sales?.sales?.pageInfo?.hasNextPage || loading}
-								onClick={nextPage}
-							>
-								Next
-							</Button>
-						</div>
-					</div>
-				)}
+
+				<Pagination
+					page={page}
+					loading={loading}
+					totalCount={sales?.sales.totalCount ?? 0}
+					dataLength={data.length}
+					hasNextPage={sales?.sales?.pageInfo?.hasNextPage ?? false}
+					hasPreviousPage={sales?.sales?.pageInfo?.hasPreviousPage ?? false}
+					onNextPage={nextPage}
+					onPrevPage={prevPage}
+				/>
 			</div>
 			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
 			<UpdateStatus

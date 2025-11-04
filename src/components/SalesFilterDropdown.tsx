@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Select, { SingleValue } from "react-select";
+import DatePicker from "react-datepicker";
 import Button from "./Button";
+import Calendar from "./Icons/Calendar";
 
 interface SelectOption {
 	value: string;
@@ -49,6 +51,23 @@ const selectStyles = {
 	}),
 };
 
+// Helper functions to convert between Date objects and string format
+const stringToDate = (dateString: string): Date | null => {
+	if (!dateString) return null;
+	// Parse date in local timezone to avoid timezone offset issues
+	const [year, month, day] = dateString.split("-").map(Number);
+	return new Date(year, month - 1, day); // month is 0-indexed
+};
+
+const dateToString = (date: Date | null): string => {
+	if (!date) return "";
+	// Format date in local timezone to avoid shifting
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0"); // month is 0-indexed
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+};
+
 const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	saleTypeOptions,
 	storeOptions,
@@ -64,7 +83,9 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	const [isOpen, setIsOpen] = useState(false);
 	const [tempSaleType, setTempSaleType] = useState(selectedSaleType);
 	const [tempStore, setTempStore] = useState(selectedStore);
-	const [tempDateRange, setTempDateRange] = useState(dateRange);
+	const [tempDateRange, setTempDateRange] = useState<
+		[Date | null, Date | null]
+	>([stringToDate(dateRange.fromDate), stringToDate(dateRange.toDate)]);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +93,10 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	useEffect(() => {
 		setTempSaleType(selectedSaleType);
 		setTempStore(selectedStore);
-		setTempDateRange(dateRange);
+		setTempDateRange([
+			stringToDate(dateRange.fromDate),
+			stringToDate(dateRange.toDate),
+		]);
 	}, [selectedSaleType, selectedStore, dateRange]);
 
 	// Handle clicks outside the dropdown
@@ -102,7 +126,10 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 		onStoreChange(
 			storeOptions.find((option) => option.value === tempStore) || null
 		);
-		onDateRangeChange(tempDateRange);
+		onDateRangeChange({
+			fromDate: dateToString(tempDateRange[0]),
+			toDate: dateToString(tempDateRange[1]),
+		});
 		onApplyFilters();
 		setIsOpen(false);
 	};
@@ -110,7 +137,7 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	const handleClear = () => {
 		setTempSaleType("");
 		setTempStore("");
-		setTempDateRange({ fromDate: "", toDate: "" });
+		setTempDateRange([null, null]);
 		onClearFilters();
 		setIsOpen(false);
 	};
@@ -251,32 +278,22 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 								<label className="block text-xs font-medium text-gray-700 mb-1">
 									Date Range
 								</label>
-								<div className="grid grid-cols-2 gap-2">
-									<input
-										type="date"
-										value={tempDateRange.fromDate}
-										onChange={(e) =>
-											setTempDateRange({
-												...tempDateRange,
-												fromDate: e.target.value,
-											})
-										}
-										className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-										placeholder="Start Date"
-									/>
-									<input
-										type="date"
-										value={tempDateRange.toDate}
-										onChange={(e) =>
-											setTempDateRange({
-												...tempDateRange,
-												toDate: e.target.value,
-											})
-										}
-										className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-										placeholder="End Date"
-									/>
-								</div>
+								<DatePicker
+									selected={tempDateRange[0]}
+									onChange={(dates) =>
+										setTempDateRange(dates as [Date | null, Date | null])
+									}
+									startDate={tempDateRange[0]}
+									endDate={tempDateRange[1]}
+									selectsRange
+									placeholderText="Select date range"
+									dateFormat="yyyy-MM-dd"
+									rangeSeparator=" - "
+									icon={<Calendar />}
+									showIcon
+									isClearable
+									className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+								/>
 							</div>
 
 							{/* Action Buttons */}

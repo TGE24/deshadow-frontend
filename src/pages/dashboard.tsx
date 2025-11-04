@@ -1,172 +1,299 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import StatCard from "../components/StatCard";
 import {
-	createColumnHelper,
+	ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import Input from "../components/Input";
-import DatePicker from "react-datepicker";
-import Calendar from "../components/Icons/Calendar";
-import AddProduct from "../modules/Modals/Product/AddProduct";
-import { useSalesQuery } from "../generated/graphql";
-
-type Product = {
-	productName: string;
-	color: string;
-	storage: number;
-	amount: number;
-	imei: number;
-	customerName: string;
-	phoneNumber: string;
-	status: string;
-};
-
-const defaultData: Product[] = [
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-	{
-		productName: "Iphone 13 pro max",
-		color: "Blue",
-		storage: 256,
-		amount: 1000,
-		imei: 123456789012345,
-		customerName: "John Doe",
-		phoneNumber: "123-456-7890",
-		status: "Available",
-	},
-];
-
-const columnHelper = createColumnHelper<Product>();
-
-const columns = [
-	columnHelper.accessor("productName", {
-		cell: (info) => info.getValue(),
-		header: () => <h4>Product Name</h4>,
-	}),
-	columnHelper.accessor((row) => row.color, {
-		id: "color",
-		cell: (info) => <i>{info.getValue()}</i>,
-		header: () => <h4>Color</h4>,
-	}),
-	columnHelper.accessor("storage", {
-		header: () => <h4>Storage</h4>,
-		cell: (info) => info.renderValue(),
-	}),
-	columnHelper.accessor("amount", {
-		header: () => <h4>Amount</h4>,
-	}),
-	columnHelper.accessor("imei", {
-		header: () => <h4>IMEI No.</h4>,
-	}),
-	columnHelper.accessor("customerName", {
-		header: () => <h4>Customer Name</h4>,
-	}),
-	columnHelper.accessor("phoneNumber", {
-		header: () => <h4>Phone Number</h4>,
-	}),
-	columnHelper.accessor("status", {
-		header: () => <h4>Status</h4>,
-	}),
-];
+import {
+	Sale,
+	SaleType,
+	useSalesLazyQuery,
+	useStoresLazyQuery,
+} from "../generated/graphql";
+import { formatToISODateTime } from "../utils/helpers";
+import DropdownMenu from "../components/DropdownMenu";
+import MoreVertical from "../components/Icons/MoreVertical";
+import { formatDateTime, formatNaira } from "../utils/formatters";
+import TableLoader from "../components/TableLoader";
+import TableEmptyState from "../components/TableEmptyState";
+import { SingleValue } from "react-select";
+import { SelectOption } from "./Sales";
+import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
+import SalesFilterDropdown from "../components/SalesFilterDropdown";
+import { Pagination } from "../modules/Pagination";
 
 const Dashboard = () => {
 	const [open, setOpen] = useState(false);
-	const [startDate] = useState(new Date());
-	const [endDate] = useState(addDays(new Date(), 3));
+	// const [startDate] = useState(new Date());
+	// const [endDate] = useState(addDays(new Date(), 3));
+	const [page, setPage] = useState(1);
+	const [data, setData] = useState<Sale[]>([]);
 
-	const { data: sales } = useSalesQuery({
-		variables: { pagination: { first: 10 } },
+	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
+
+	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
+		fetchPolicy: "network-only",
 	});
 
-	console.log(sales);
-	// const onChange = (dates) => {
-	// 	const [start, end] = dates;
-	// 	setStartDate(start);
-	// 	setEndDate(end);
-	// };
-	const [data] = useState(() => [...defaultData]);
+	const [getStores, { data: storesData }] = useStoresLazyQuery();
+
+	// Load stores on component mount
+	useEffect(() => {
+		getStores();
+	}, [getStores]);
+
+	// Filter States
+	const [selectedSaleType, setSelectedSaleType] = useState("");
+	const [selectedStore, setSelectedStore] = useState("");
+	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
+
+	// Filter Handlers
+	const handleSaleTypeChange = useCallback(
+		(option: SingleValue<SelectOption>) => {
+			setSelectedSaleType(option?.value || "");
+		},
+		[]
+	);
+
+	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
+		setSelectedStore(option?.value || "");
+	}, []);
+
+	const handleDateRangeChange = useCallback(
+		(newDateRange: { fromDate: string; toDate: string }) => {
+			setDateRange(newDateRange);
+		},
+		[]
+	);
+
+	const handleClearFilters = useCallback(() => {
+		setSelectedSaleType("");
+		setSelectedStore("");
+		setDateRange({ fromDate: "", toDate: "" });
+	}, []);
+
+	const handleApplyFilters = useCallback(() => {
+		// Filters are applied automatically through useEffect when state changes
+		// This is just a placeholder for the FilterDropdown component
+	}, []);
+
+	// Load sales with filters
+	useEffect(() => {
+		const buildFilters = () => {
+			const filters: Record<string, unknown> = {};
+
+			if (selectedSaleType) {
+				filters.saleType = selectedSaleType;
+			}
+
+			if (selectedStore) {
+				filters.storeUuid = selectedStore;
+			}
+
+			if (dateRange.fromDate) {
+				filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
+			}
+
+			if (dateRange.toDate) {
+				filters.toDate = formatToISODateTime(dateRange.toDate, true);
+			}
+
+			return Object.keys(filters).length > 0 ? filters : undefined;
+		};
+
+		getSales({
+			variables: {
+				pagination: { first: 10 },
+				filter: buildFilters(),
+			},
+		});
+
+		// Reset page when filters change
+		setPage(1);
+	}, [getSales, selectedSaleType, selectedStore, dateRange]);
+
+	const columns = useMemo<ColumnDef<Sale>[]>(() => {
+		const baseColumns: ColumnDef<Sale>[] = [
+			{
+				accessorKey: "customerName",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Customer Name</h4>,
+			},
+			{
+				accessorKey: "totalAmount",
+				cell: (info) => {
+					const value = info.getValue() as number;
+					return formatNaira(value);
+				},
+				header: () => <h4>Total Amount</h4>,
+			},
+			{
+				accessorKey: "createdAt",
+				cell: (info) => {
+					const value = info.getValue() as string;
+					return formatDateTime(value);
+				},
+				header: () => <h4>Created At</h4>,
+			},
+
+			{
+				accessorKey: "saleStatus",
+				cell: (info) => {
+					const status = info.getValue() as string;
+					const getStatusStyles = (status: string) => {
+						switch (status?.toLowerCase()) {
+							case "completed":
+								return "bg-green-100 text-green-800 border-green-200";
+							case "pending":
+								return "bg-yellow-100 text-yellow-800 border-yellow-200";
+							case "cancelled":
+								return "bg-red-100 text-red-800 border-red-200";
+							case "returned":
+								return "bg-gray-100 text-gray-800 border-gray-200";
+							default:
+								return "bg-gray-100 text-gray-800 border-gray-200";
+						}
+					};
+
+					return (
+						<span
+							className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
+								status
+							)}`}
+						>
+							{status}
+						</span>
+					);
+				},
+				header: () => <h4>Sale Status</h4>,
+			},
+		];
+
+		{
+			baseColumns.push({
+				header: "Actions",
+				cell: ({ row }) => (
+					<DropdownMenu
+						trigger={
+							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+								<MoreVertical className="w-4 h-4" color="black" />
+							</div>
+						}
+						items={[
+							{
+								label: "View Sale",
+								onClick: () => {
+									setSelectedSale(row.original);
+									setOpen(true);
+								},
+							},
+							{
+								label: "Update Status",
+								onClick: () => {
+									setSelectedSale(row.original);
+								},
+							},
+						]}
+					/>
+				),
+			});
+		}
+
+		return baseColumns;
+	}, []);
+
+	// Filter Options
+	const saleTypeOptions = useMemo(
+		(): SelectOption[] => [
+			{ value: "", label: "All Sale Types" },
+			{ value: SaleType.Direct, label: "Direct Sale" },
+			{ value: SaleType.Swap, label: "Swap Sale" },
+		],
+		[]
+	);
+
+	const storeOptions = useMemo((): SelectOption[] => {
+		const options: SelectOption[] = [{ value: "", label: "All Stores" }];
+
+		if (storesData?.stores?.edges) {
+			storesData.stores.edges.forEach((edge) => {
+				const store = edge.node;
+				if (store.__typename === "Store" && store.uuid && store.name) {
+					options.push({
+						value: store.uuid,
+						label: store.name,
+					});
+				}
+			});
+		}
+
+		return options;
+	}, [storesData]);
+
+	const buildCurrentFilters = () => {
+		const filters: Record<string, unknown> = {};
+
+		if (selectedSaleType) {
+			filters.saleType = selectedSaleType;
+		}
+
+		if (selectedStore) {
+			filters.storeUuid = selectedStore;
+		}
+
+		if (dateRange.fromDate) {
+			filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
+		}
+
+		if (dateRange.toDate) {
+			filters.toDate = formatToISODateTime(dateRange.toDate, true);
+		}
+
+		return Object.keys(filters).length > 0 ? filters : undefined;
+	};
+	const nextPage = () => {
+		if (sales?.sales?.pageInfo?.hasNextPage) {
+			getSales({
+				variables: {
+					pagination: {
+						first: 10,
+						after: sales?.sales?.pageInfo?.endCursor,
+					},
+					filter: buildCurrentFilters(),
+				},
+			});
+			setPage(page + 1);
+		}
+	};
+
+	const prevPage = () => {
+		if (sales?.sales?.pageInfo?.hasPreviousPage) {
+			getSales({
+				variables: {
+					pagination: {
+						last: 10,
+						before: sales?.sales?.pageInfo?.startCursor,
+					},
+					filter: buildCurrentFilters(),
+				},
+			});
+			setPage(page - 1);
+		}
+	};
+
+	useEffect(() => {
+		if (sales?.sales?.edges) {
+			setData(
+				sales.sales.edges
+					.map((edge) => edge.node)
+					.filter((node) => node.__typename === "Sale") as Sale[]
+			);
+		}
+	}, [sales]);
 
 	const table = useReactTable({
 		data,
@@ -218,30 +345,23 @@ const Dashboard = () => {
 				/>
 			</div>
 			<div className="mt-[48px]">
-				<div className="flex flex-col md:flex-row md:items-center justify-between gap-[20px]">
-					<h3 className="font-semibold text-[16px]">Sales History</h3>
-					<div className="flex items-center gap-[16px]">
-						<DatePicker
-							selected={startDate}
-							// onChange={onChange}
-							startDate={startDate}
-							endDate={endDate}
-							selectsRange
-							rangeSeparator=" - "
-							icon={<Calendar />}
-							showIcon
-							className="outline-none border-none w-full !pl-[8px] text-[14px] font-sfpro"
-						/>
-						<Input
-							placeholder="Search sales history"
-							name="search"
-							id="search"
-							variant="search"
-						/>
-					</div>
+				{/* Filters */}
+				<div className="mt-6 flex justify-end items-center">
+					<SalesFilterDropdown
+						saleTypeOptions={saleTypeOptions}
+						storeOptions={storeOptions}
+						selectedSaleType={selectedSaleType}
+						selectedStore={selectedStore}
+						dateRange={dateRange}
+						onSaleTypeChange={handleSaleTypeChange}
+						onStoreChange={handleStoreChange}
+						onDateRangeChange={handleDateRangeChange}
+						onClearFilters={handleClearFilters}
+						onApplyFilters={handleApplyFilters}
+					/>
 				</div>
 
-				<div className="w-full mt-[26px] overflow-x-auto">
+				<div className="w-full mt-[48px] overflow-x-auto">
 					<table className="w-full min-w-[800px]">
 						<thead className="bg-[#D4E7E6] h-[41px]">
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -262,48 +382,51 @@ const Dashboard = () => {
 								</tr>
 							))}
 						</thead>
-						<tbody>
-							{table.getRowModel().rows.map((row) => (
-								<tr key={row.id} className="border-b-[1px] border-[#E3E3E3]">
-									{row.getVisibleCells().map((cell) => (
-										<td
-											key={cell.id}
-											className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</td>
-									))}
-								</tr>
-							))}
-						</tbody>
+						{loading ? (
+							<TableLoader columns={columns.length} />
+						) : data.length === 0 ? (
+							<TableEmptyState
+								title="No Sales Found"
+								description="There are no sales records to display. Sales will appear here once they are created."
+								colSpan={columns.length}
+							/>
+						) : (
+							<tbody>
+								{table.getRowModel().rows.map((row) => (
+									<tr key={row.id} className="border-b-[1px] border-[#E3E3E3]">
+										{row.getVisibleCells().map((cell) => (
+											<td
+												key={cell.id}
+												className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+											>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext()
+												)}
+											</td>
+										))}
+									</tr>
+								))}
+							</tbody>
+						)}
 					</table>
-				</div>
-				<div className="flex items-center justify-between mt-[30px]">
-					<p>Showing 1 to 4 of 4 entries</p>
-					<div className="flex items-center gap-[15px]">
-						<Button variant="tetriary" size="small" className="">
-							Previous
-						</Button>
-						<div className="px-[18px] py-[11px] bg-[#278783] rounded-[6px] text-white">
-							1
-						</div>
-						<Button variant="tetriary" size="small">
-							Next
-						</Button>
-					</div>
+					<Pagination
+						page={page}
+						loading={loading}
+						totalCount={sales?.sales.totalCount ?? 0}
+						dataLength={data.length}
+						hasNextPage={sales?.sales?.pageInfo?.hasNextPage ?? false}
+						hasPreviousPage={sales?.sales?.pageInfo?.hasPreviousPage ?? false}
+						onNextPage={nextPage}
+						onPrevPage={prevPage}
+					/>
 				</div>
 			</div>
-			<AddProduct open={open} setOpen={setOpen} refetch={() => {}} />
+			{/* <AddProduct open={open} setOpen={setOpen} refetch={() => {}} /> */}
+
+			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
 		</>
 	);
 };
 
 export default Dashboard;
-function addDays(date: Date, days: number): Date {
-	const result = new Date(date);
-	result.setDate(result.getDate() + days);
-	return result;
-}
