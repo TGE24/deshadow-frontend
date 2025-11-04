@@ -27,7 +27,10 @@ import { calculateSubtotal, createNewProductItem } from "../../utils/helpers";
 import { useProductStore } from "../../store/productStore";
 import { useUserStore } from "../../store/userStore";
 
-const DirectSale = ({ setOpen }: DirectSaleProps) => {
+const DirectSale = ({
+	setOpen,
+	saleType = SaleType.Direct,
+}: DirectSaleProps) => {
 	const { setProduct } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
@@ -58,7 +61,7 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 			customerName: "",
 			customerEmail: "",
 			customerPhone: "",
-			saleType: SaleType.Direct,
+			saleType: saleType,
 			paymentType: PaymentType.Cash,
 			totalAmount: 0,
 			discountAmount: 0,
@@ -67,6 +70,11 @@ const DirectSale = ({ setOpen }: DirectSaleProps) => {
 		},
 		mode: "onChange",
 	});
+
+	// Update form saleType when prop changes
+	useEffect(() => {
+		setValue("saleType", saleType);
+	}, [saleType, setValue]);
 
 	const formData = watch();
 

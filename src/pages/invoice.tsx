@@ -4,8 +4,9 @@ import PurchaseOverview from "../modules/Modals/PurchaseOverview";
 import ViewProduct from "../modules/Modals/ViewProduct";
 import DirectSale from "../modules/DirectSale";
 import SwapSale from "../modules/SwapSale";
+import { SaleType } from "../generated/graphql";
 
-type TabType = "direct-sale" | "swap-sale" | "credit-sale" | "return-sale";
+type TabType = "direct-sale" | "swap-sale" | "credit-sale";
 
 const Invoice = () => {
 	const [open, setOpen] = useState(false);
@@ -16,7 +17,6 @@ const Invoice = () => {
 		{ id: "direct-sale" as TabType, label: "Direct Sale" },
 		{ id: "swap-sale" as TabType, label: "Swap Sale" },
 		{ id: "credit-sale" as TabType, label: "Credit Sale" },
-		{ id: "return-sale" as TabType, label: "Return Sale" },
 	];
 
 	const renderTabContent = () => {
@@ -26,22 +26,14 @@ const Invoice = () => {
 					<DirectSale setOpen={setOpen} setOverviewOpen={setOverviewOpen} />
 				);
 			case "swap-sale":
-				return <SwapSale setOpen={setOpen} setOverviewOpen={setOverviewOpen} />;
+				return <SwapSale />;
 			case "credit-sale":
 				return (
-					<div className="p-[24px]">
-						<h3 className="text-[18px] font-semibold mb-[16px]">Credit Sale</h3>
-						<p className="text-[#6A6A6A]">Credit sale content goes here...</p>
-						{/* Add your credit sale components here */}
-					</div>
-				);
-			case "return-sale":
-				return (
-					<div className="p-[24px]">
-						<h3 className="text-[18px] font-semibold mb-[16px]">Return Sale</h3>
-						<p className="text-[#6A6A6A]">Return sale content goes here...</p>
-						{/* Add your return sale components here */}
-					</div>
+					<DirectSale
+						setOpen={setOpen}
+						setOverviewOpen={setOverviewOpen}
+						saleType={SaleType.Credit}
+					/>
 				);
 			default:
 				return null;
