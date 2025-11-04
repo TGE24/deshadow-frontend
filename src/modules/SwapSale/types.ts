@@ -1,13 +1,20 @@
-import { PaymentType, SaleItemInput, SaleType } from "../../generated/graphql";
+import {
+	PaymentType,
+	SaleItemInput,
+	SaleType,
+	Product,
+	ProductCondition,
+} from "../../generated/graphql";
 
 // Swap Phone Details
 export type SwapPhoneDetails = {
+	selectedProduct?: Product | null;
 	serialNumber: string;
-	brand: string;
+	brand: string; // Brand UUID from GraphQL
 	model: string;
 	color: string;
 	storage: string;
-	condition: string;
+	condition: ProductCondition | string;
 };
 
 // Product Item for Swap Sale (similar to DirectSale but simpler)

@@ -4,12 +4,8 @@ import {
 	calculateSwapFinalTotal,
 	calculateSwapSubtotal,
 } from "../../utils/swapHelpers";
-import { PaymentType } from "../../generated/graphql";
-import {
-	phoneBrandOptions,
-	phoneConditionOptions,
-	storageOptions,
-} from "./constants";
+import { PaymentType, useBrandsQuery, Brand } from "../../generated/graphql";
+import { phoneConditionOptions } from "./constants";
 
 interface ReviewOrderProps {
 	productItems: SwapProductItem[];
@@ -17,6 +13,11 @@ interface ReviewOrderProps {
 }
 
 const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
+	// Fetch brands for formatting
+	const { data: brands } = useBrandsQuery({
+		variables: { pagination: { first: 100 } },
+	});
+
 	// Helper function to format payment type for display
 	const formatPaymentType = (paymentType: PaymentType) => {
 		switch (paymentType) {
@@ -39,8 +40,10 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 
 	// Helper functions to format dropdown values
 	const formatBrand = (value: string) => {
-		const option = phoneBrandOptions.find((opt) => opt.value === value);
-		return option ? option.label : value;
+		const brand = brands?.brands.edges
+			.map((edge) => edge.node as Brand)
+			.find((brand) => brand.uuid === value);
+		return brand ? brand.name : value;
 	};
 
 	const formatCondition = (value: string) => {
@@ -48,10 +51,10 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 		return option ? option.label : value;
 	};
 
-	const formatStorage = (value: string) => {
-		const option = storageOptions.find((opt) => opt.value === value);
-		return option ? option.label : value;
-	};
+	// const formatStorage = (value: string) => {
+	// 	const option = storageOptions.find((opt) => opt.value === value);
+	// 	return option ? option.label : value;
+	// };
 
 	return (
 		<div className="flex flex-col gap-[24px] border border-gray-200 rounded-[10px] p-[20px]">
@@ -79,23 +82,23 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 							{formatBrand(formData.swapPhoneDetails.brand) || "Not provided"}
 						</span>
 					</div>
-					<div className="flex justify-between items-center py-[6px] px-[8px] rounded-[4px]">
+					{/* <div className="flex justify-between items-center py-[6px] px-[8px] rounded-[4px]">
 						<span className="text-[14px] font-medium text-gray-700">
 							Model:
 						</span>
 						<span className="text-[14px] text-gray-800">
 							{formData.swapPhoneDetails.model || "Not provided"}
 						</span>
-					</div>
-					<div className="flex justify-between items-center py-[6px] px-[8px]">
+					</div> */}
+					{/* <div className="flex justify-between items-center py-[6px] px-[8px]">
 						<span className="text-[14px] font-medium text-gray-700">
 							Color:
 						</span>
 						<span className="text-[14px] text-gray-800">
 							{formData.swapPhoneDetails.color || "Not provided"}
 						</span>
-					</div>
-					<div className="flex justify-between items-center py-[6px] px-[8px] rounded-[4px]">
+					</div> */}
+					{/* <div className="flex justify-between items-center py-[6px] px-[8px] rounded-[4px]">
 						<span className="text-[14px] font-medium text-gray-700">
 							Storage:
 						</span>
@@ -103,7 +106,7 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 							{formatStorage(formData.swapPhoneDetails.storage) ||
 								"Not provided"}
 						</span>
-					</div>
+					</div> */}
 					<div className="flex justify-between items-center py-[6px] px-[8px]">
 						<span className="text-[14px] font-medium text-gray-700">
 							Condition:

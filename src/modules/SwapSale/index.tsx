@@ -2,6 +2,13 @@ import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { SwapSaleFormData, SwapProductItem } from "./types";
 import { INITIAL_SWAP_SALE_FORM_DATA, SWAP_SALE_STEPS } from "./constants";
+import {
+	useCreateSaleMutation,
+	useMeQuery,
+	SaleType,
+	SaleInput,
+	ProductCondition,
+} from "../../generated/graphql";
 import { calculateSwapSubtotal } from "../../utils/swapHelpers";
 import { canProceedToNextStep } from "./validation";
 import { cn } from "../../utils/cn";
@@ -13,6 +20,8 @@ import ReviewOrder from "./ReviewOrder";
 
 const SwapSale: React.FC = () => {
 	const [currentStep, setCurrentStep] = useState(1);
+	const [createSale, { loading: isCreatingSale }] = useCreateSaleMutation();
+	const { data: meData } = useMeQuery();
 	const [productItems, setProductItems] = useState<SwapProductItem[]>([
 		{
 			id: "1",
@@ -65,9 +74,65 @@ const SwapSale: React.FC = () => {
 		[currentStep, formData, productItems]
 	);
 
-	const onSubmit = (data: SwapSaleFormData) => {
-		console.log("Swap Sale Data:", { ...data, productItems });
-		// TODO: Implement swap sale submission logic
+	const onSubmit = async (data: SwapSaleFormData) => {
+		try {
+			// Validate that we have a store UUID
+			const storeUuid =
+				meData?.me?.assignedStore?.uuid || meData?.me?.ownedStores[0]?.uuid;
+			if (!storeUuid) {
+				console.error("No store found for current user");
+				return;
+			}
+			// Prepare the sale input data according to GraphQL SaleInput schema
+			const saleInput: SaleInput = {
+				// Customer information
+				customerName: data.customerName,
+				customerEmail: data.customerEmail || null,
+				customerPhone: data.customerPhone || null,
+
+				// Sale details
+				saleType: SaleType.Swap,
+				paymentType: data.paymentType,
+				totalAmount: data.totalAmount,
+				discountAmount: data.discountAmount || 0,
+
+				// Store information from current user's assigned store
+				storeUuid,
+
+				// Swap phone details (given product information)
+				givenProductUuid: data.swapPhoneDetails.selectedProduct?.uuid || null,
+				givenProductSerialNumber: data.swapPhoneDetails.serialNumber || null,
+				givenProductBrandUuid: data.swapPhoneDetails.brand || null,
+				givenProductCondition:
+					(data.swapPhoneDetails.condition as ProductCondition) || null,
+
+				// Sale items (products being sold to customer)
+				items: productItems
+					.filter((item) => item.productUuid && item.productItemUuid)
+					.map((item) => ({
+						productUuid: item.productUuid,
+						productItemUuid: item.productItemUuid,
+						unitPrice: item.unitPrice,
+					})),
+
+				// Optional notes
+				notes: null,
+			};
+
+			console.log("Creating sale with data:", saleInput);
+
+			const result = await createSale({
+				variables: { input: saleInput },
+			});
+
+			if (result.data?.createSale) {
+				console.log("Sale created successfully:", result.data.createSale);
+				// TODO: Handle success (redirect, show success message, etc.)
+			}
+		} catch (error) {
+			console.error("Error creating sale:", error);
+			// TODO: Handle error (show error message)
+		}
 	};
 
 	const renderCurrentStep = () => {
@@ -88,6 +153,11 @@ const SwapSale: React.FC = () => {
 						onDiscountChange={(value) => form.setValue("discountAmount", value)}
 						swapPhoneDetails={formData.swapPhoneDetails}
 						onSwapPhoneDetailsChange={(details) => {
+							if (details.selectedProduct !== undefined)
+								form.setValue(
+									"swapPhoneDetails.selectedProduct",
+									details.selectedProduct
+								);
 							if (details.serialNumber !== undefined)
 								form.setValue(
 									"swapPhoneDetails.serialNumber",
@@ -95,12 +165,12 @@ const SwapSale: React.FC = () => {
 								);
 							if (details.brand !== undefined)
 								form.setValue("swapPhoneDetails.brand", details.brand);
-							if (details.model !== undefined)
-								form.setValue("swapPhoneDetails.model", details.model);
-							if (details.color !== undefined)
-								form.setValue("swapPhoneDetails.color", details.color);
-							if (details.storage !== undefined)
-								form.setValue("swapPhoneDetails.storage", details.storage);
+							// if (details.model !== undefined)
+							// 	form.setValue("swapPhoneDetails.model", details.model);
+							// if (details.color !== undefined)
+							// 	form.setValue("swapPhoneDetails.color", details.color);
+							// if (details.storage !== undefined)
+							// 	form.setValue("swapPhoneDetails.storage", details.storage);
 							if (details.condition !== undefined)
 								form.setValue("swapPhoneDetails.condition", details.condition);
 							if (
@@ -201,17 +271,22 @@ const SwapSale: React.FC = () => {
 								<Button
 									type="submit"
 									disabled={
-										!canProceedToNextStep(currentStep, formData, productItems)
-									}
-									className={cn("w-[150px] px-[16px] h-[50px] rounded-full", {
-										"opacity-50 cursor-not-allowed": !canProceedToNextStep(
+										!canProceedToNextStep(
 											currentStep,
 											formData,
 											productItems
-										),
+										) || isCreatingSale
+									}
+									className={cn("w-[150px] px-[16px] h-[50px] rounded-full", {
+										"opacity-50 cursor-not-allowed":
+											!canProceedToNextStep(
+												currentStep,
+												formData,
+												productItems
+											) || isCreatingSale,
 									})}
 								>
-									Complete Sale
+									{isCreatingSale ? "Creating Sale..." : "Complete Sale"}
 								</Button>
 							)}
 						</div>

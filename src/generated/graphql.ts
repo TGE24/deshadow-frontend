@@ -822,7 +822,7 @@ export type SaleFilter = {
   fromDate?: InputMaybe<Scalars['Time']['input']>;
   paymentStatus?: InputMaybe<PaymentStatus>;
   saleStatus?: InputMaybe<SaleStatus>;
-  saleType?: InputMaybe<SaleType>;
+  saleTypes?: InputMaybe<Array<SaleType>>;
   storeUuid?: InputMaybe<Scalars['UUID']['input']>;
   toDate?: InputMaybe<Scalars['Time']['input']>;
 };
@@ -832,6 +832,11 @@ export type SaleInput = {
   customerName: Scalars['String']['input'];
   customerPhone?: InputMaybe<Scalars['String']['input']>;
   discountAmount?: InputMaybe<Scalars['Float']['input']>;
+  givenProductBrandUuid?: InputMaybe<Scalars['UUID']['input']>;
+  givenProductCategoryUuid?: InputMaybe<Scalars['UUID']['input']>;
+  givenProductCondition?: InputMaybe<ProductCondition>;
+  givenProductSerialNumber?: InputMaybe<Scalars['String']['input']>;
+  givenProductUuid?: InputMaybe<Scalars['UUID']['input']>;
   items: Array<SaleItemInput>;
   notes?: InputMaybe<Scalars['String']['input']>;
   paymentType: PaymentType;

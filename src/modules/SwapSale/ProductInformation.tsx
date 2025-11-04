@@ -5,10 +5,15 @@ import { SwapProductItem, SwapPhoneDetails } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
 import {
-	phoneBrandOptions,
 	phoneConditionOptions,
-	storageOptions,
+	// storageOptions,
 } from "./constants";
+import {
+	useProductsQuery,
+	useBrandsQuery,
+	Product,
+	Brand,
+} from "../../generated/graphql";
 
 interface ProductInformationProps {
 	productItems: SwapProductItem[];
@@ -29,6 +34,16 @@ const ProductInformation = ({
 	swapPhoneDetails,
 	onSwapPhoneDetailsChange,
 }: ProductInformationProps) => {
+	// Fetch products for selection
+	const { data: products } = useProductsQuery({
+		variables: { pagination: { first: 100 } },
+	});
+
+	// Fetch brands for selection
+	const { data: brands } = useBrandsQuery({
+		variables: { pagination: { first: 100 } },
+	});
+
 	return (
 		<div className="flex flex-col gap-[32px]">
 			{/* Swap Phone Details Section */}
@@ -38,6 +53,73 @@ const ProductInformation = ({
 				</h3>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+					<div className="w-full">
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Select Product
+						</label>
+						<Select
+							value={
+								swapPhoneDetails?.selectedProduct &&
+								swapPhoneDetails.selectedProduct.uuid
+									? {
+											value: swapPhoneDetails.selectedProduct.uuid,
+											label: swapPhoneDetails.selectedProduct.name,
+									  }
+									: null
+							}
+							onChange={(
+								selectedOption: SingleValue<{ value: string; label: string }>
+							) => {
+								if (selectedOption) {
+									const selectedProduct = products?.products.edges
+										.map((edge) => edge.node as Product)
+										.find((product) => product.uuid === selectedOption.value);
+
+									if (selectedProduct) {
+										onSwapPhoneDetailsChange({
+											...swapPhoneDetails,
+											selectedProduct,
+										});
+									}
+								} else {
+									onSwapPhoneDetailsChange({
+										...swapPhoneDetails,
+										selectedProduct: null,
+									});
+								}
+							}}
+							options={
+								products?.products.edges.map((edge) => {
+									const product = edge.node as Product;
+									return {
+										value: product.uuid,
+										label: product.name,
+									};
+								}) || []
+							}
+							className="text-sm"
+							placeholder="Select a product..."
+							menuPortalTarget={document.body}
+							menuPosition="fixed"
+							isClearable
+							styles={{
+								control: (base) => ({
+									...base,
+									minHeight: "48px",
+									borderColor: "#d1d5db",
+									borderRadius: "8px",
+									"&:hover": {
+										borderColor: "#9ca3af",
+									},
+								}),
+								menuPortal: (base) => ({
+									...base,
+									zIndex: 9999,
+								}),
+							}}
+						/>
+					</div>
+
 					<Input
 						label="Phone Serial Number"
 						type="text"
@@ -54,9 +136,16 @@ const ProductInformation = ({
 							Phone Brand
 						</label>
 						<Select
-							value={phoneBrandOptions.find(
-								(option) => option.value === swapPhoneDetails?.brand
-							)}
+							value={
+								brands?.brands.edges
+									.map((edge) => edge.node as Brand)
+									.map((brand) => ({
+										value: brand.uuid,
+										label: brand.name,
+									}))
+									.find((option) => option.value === swapPhoneDetails?.brand) ||
+								null
+							}
 							onChange={(
 								selectedOption: SingleValue<{ value: string; label: string }>
 							) => {
@@ -64,7 +153,15 @@ const ProductInformation = ({
 									onSwapPhoneDetailsChange({ brand: selectedOption.value });
 								}
 							}}
-							options={phoneBrandOptions}
+							options={
+								brands?.brands.edges.map((edge) => {
+									const brand = edge.node as Brand;
+									return {
+										value: brand.uuid,
+										label: brand.name,
+									};
+								}) || []
+							}
 							className="text-sm"
 							placeholder="Select phone brand..."
 							menuPortalTarget={document.body}
@@ -87,7 +184,7 @@ const ProductInformation = ({
 						/>
 					</div>
 
-					<Input
+					{/* <Input
 						label="Phone Model"
 						type="text"
 						placeholder="Enter phone model"
@@ -107,9 +204,9 @@ const ProductInformation = ({
 							onSwapPhoneDetailsChange({ color: e.target.value })
 						}
 						className="outline-none focus:outline-none text-[14px]"
-					/>
+					/> */}
 
-					<div className="w-full">
+					{/* <div className="w-full">
 						<label className="block text-sm font-medium text-gray-700 mb-2">
 							Storage Capacity
 						</label>
@@ -145,7 +242,7 @@ const ProductInformation = ({
 								}),
 							}}
 						/>
-					</div>
+					</div> */}
 
 					<div className="w-full">
 						<label className="block text-sm font-medium text-gray-700 mb-2">

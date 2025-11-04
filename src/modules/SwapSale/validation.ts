@@ -16,9 +16,10 @@ export const canProceedToNextStep = (
 			// Check if swap phone details are filled
 			const hasSwapDetails = Boolean(
 				formData.swapPhoneDetails.serialNumber &&
-					formData.swapPhoneDetails.brand &&
-					formData.swapPhoneDetails.model &&
-					formData.swapPhoneDetails.condition
+					formData.swapPhoneDetails.brand
+				// &&
+				// formData.swapPhoneDetails.model &&
+				// formData.swapPhoneDetails.condition
 			);
 
 			return hasValidProducts && hasSwapDetails;

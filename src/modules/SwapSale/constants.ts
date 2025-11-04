@@ -1,5 +1,5 @@
 import { Step, SwapSaleFormData } from "./types";
-import { PaymentType } from "../../generated/graphql";
+import { PaymentType, ProductCondition } from "../../generated/graphql";
 
 export const SWAP_SALE_STEPS: Step[] = [
 	{
@@ -22,28 +22,16 @@ export const selectStyles = {
 	indicatorSeparator: () => "hidden",
 };
 
-// Phone condition options for dropdown
-export const phoneConditionOptions = [
-	{ value: "excellent", label: "Excellent" },
-	{ value: "very_good", label: "Very Good" },
-	{ value: "good", label: "Good" },
-	{ value: "fair", label: "Fair" },
-	{ value: "poor", label: "Poor" },
-];
-
-// Phone brands for dropdown
-export const phoneBrandOptions = [
-	{ value: "apple", label: "Apple" },
-	{ value: "samsung", label: "Samsung" },
-	{ value: "google", label: "Google" },
-	{ value: "huawei", label: "Huawei" },
-	{ value: "xiaomi", label: "Xiaomi" },
-	{ value: "oppo", label: "OPPO" },
-	{ value: "vivo", label: "Vivo" },
-	{ value: "oneplus", label: "OnePlus" },
-	{ value: "nokia", label: "Nokia" },
-	{ value: "other", label: "Other" },
-];
+// Phone condition options for dropdown using GraphQL ProductCondition enum
+export const phoneConditionOptions = Object.values(ProductCondition).map(
+	(condition) => ({
+		value: condition,
+		label: condition
+			.replace("_", " ")
+			.toLowerCase()
+			.replace(/\b\w/g, (c) => c.toUpperCase()),
+	})
+);
 
 // Storage options for dropdown
 export const storageOptions = [
