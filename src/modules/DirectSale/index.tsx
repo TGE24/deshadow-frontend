@@ -20,6 +20,7 @@ import ProductInformation from "./ProductInformation";
 import CustomerDetails from "./CustomerDetails";
 import ReviewOrder from "./ReviewOrder";
 import PaymentDetails from "./PaymentDetails";
+import SaleSuccess from "./SaleSuccess";
 
 // Import utilities
 import { canProceedToNextStep } from "./validation";
@@ -38,6 +39,15 @@ const DirectSale = ({
 	const [productItems, setProductItems] = useState<ProductItem[]>([
 		createNewProductItem(),
 	]);
+	const [saleCompleted, setSaleCompleted] = useState(false);
+	const [completedSaleData, setCompletedSaleData] = useState<{
+		saleId: string;
+		customerName: string;
+		totalAmount: number;
+		saleType: SaleType;
+		paymentType: PaymentType;
+		createdAt: string;
+	} | null>(null);
 
 	const [getProduct, { data }] = useProductLazyQuery();
 
@@ -109,6 +119,27 @@ const DirectSale = ({
 			setCurrentStep(currentStep - 1);
 		}
 	};
+
+	// Success screen handlers
+	const handleNewSale = () => {
+		// Reset form and state for a new sale
+		setSaleCompleted(false);
+		setCompletedSaleData(null);
+		setCurrentStep(1);
+		setProductItems([createNewProductItem()]);
+		// Reset form values to defaults
+		setValue("customerName", "");
+		setValue("customerEmail", "");
+		setValue("customerPhone", "");
+		setValue("totalAmount", 0);
+		setValue("discountAmount", 0);
+		setValue("notes", "");
+	};
+
+	const handleCloseSale = () => {
+		// Close the entire DirectSale component
+		setOpen(false);
+	};
 	// console.log(productItems);
 	const onSubmit = async (data: CreateSaleForm) => {
 		const assignedStoreUuid = user?.assignedStore?.uuid ?? "";
@@ -118,9 +149,12 @@ const DirectSale = ({
 				: "";
 		const storeUuid = assignedStoreUuid || ownedStoreUuid || "";
 
+		const subtotal = calculateSubtotal(productItems);
+		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);
+
 		console.log({
 			...data,
-			totalAmount: calculateSubtotal(productItems),
+			totalAmount: totalAmountAfterDiscount,
 			items: productItems.map((item) => ({
 				productUuid: item.productUuid || "",
 				productItemUuid: item.productItemUuid || "",
@@ -132,7 +166,7 @@ const DirectSale = ({
 			variables: {
 				input: {
 					...data,
-					totalAmount: calculateSubtotal(productItems),
+					totalAmount: totalAmountAfterDiscount,
 					items: productItems.map((item) => ({
 						productUuid: item.productUuid || "",
 						productItemUuid: item.productItemUuid || "",
@@ -141,8 +175,19 @@ const DirectSale = ({
 					storeUuid,
 				},
 			},
-			onCompleted: async (data) => {
-				if (data) console.log(data);
+			onCompleted: async (response) => {
+				if (response?.createSale) {
+					const sale = response.createSale;
+					setCompletedSaleData({
+						saleId: sale.uuid,
+						customerName: sale.customerName,
+						totalAmount: sale.totalAmount,
+						saleType: data.saleType,
+						paymentType: data.paymentType,
+						createdAt: sale.createdAt,
+					});
+					setSaleCompleted(true);
+				}
 			},
 		});
 	};
@@ -195,6 +240,23 @@ const DirectSale = ({
 				);
 		}
 	};
+
+	// Show success screen if sale is completed
+	if (saleCompleted && completedSaleData) {
+		return (
+			<div className="py-[32px]">
+				<div className="bg-white rounded-[10px] w-full">
+					<SaleSuccess
+						saleData={completedSaleData}
+						productItems={productItems}
+						formData={formData}
+						onNewSale={handleNewSale}
+						onClose={handleCloseSale}
+					/>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="py-[32px]">

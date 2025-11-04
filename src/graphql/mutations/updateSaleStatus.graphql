@@ -1,0 +1,5 @@
+mutation UpdateSaleStatus($uuid: UUID!, $status: SaleStatus!) {
+	updateSaleStatus(uuid: $uuid, status: $status) {
+		uuid
+	}
+}

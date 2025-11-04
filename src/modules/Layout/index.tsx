@@ -34,7 +34,7 @@ const STORE_OWNER_MENU: MenuItem[] = [
 	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
 	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
 	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
-	{ name: "Credit", link: "/credit", icon: <Credit /> },
+	{ name: "Resellers Record", link: "/credit", icon: <Credit /> },
 	// { name: "Inventory", link: "/inventory", icon: <Products /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
 	{ name: "Users", link: "/users", icon: <Attribute /> },
@@ -47,7 +47,7 @@ const RESELLER_MENU: MenuItem[] = [
 	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
 	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
 	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
-	{ name: "Credit", link: "/credit", icon: <Credit /> },
+	{ name: "Resellers Record", link: "/credit", icon: <Credit /> },
 	// { name: "Inventory", link: "/inventory", icon: <Products /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
 ];

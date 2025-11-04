@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import Modal from "react-responsive-modal";
 import Select from "react-select";
+import { useState } from "react";
 
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
@@ -11,6 +12,7 @@ import {
 	useCreateProductItemMutation,
 	useProductsQuery,
 } from "../../../generated/graphql";
+import { formatNaira } from "../../../utils/formatters";
 
 interface CreateInventoryModalProps {
 	open: boolean;
@@ -46,6 +48,31 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	});
 
 	const [createProductItem, { loading }] = useCreateProductItemMutation();
+	const [costPriceDisplay, setCostPriceDisplay] = useState("");
+	const [sellingPriceDisplay, setSellingPriceDisplay] = useState("");
+
+	// Helper function to extract numeric value from formatted currency
+	const extractNumericValue = (formattedValue: string) => {
+		return formattedValue.replace(/[^\d.]/g, "");
+	};
+
+	// Handle cost price change
+	const handleCostPriceChange = (value: string) => {
+		const numericValue = extractNumericValue(value);
+		setValue("costPrice", numericValue);
+		setCostPriceDisplay(
+			numericValue ? formatNaira(parseFloat(numericValue)) : ""
+		);
+	};
+
+	// Handle selling price change
+	const handleSellingPriceChange = (value: string) => {
+		const numericValue = extractNumericValue(value);
+		setValue("sellingPrice", numericValue);
+		setSellingPriceDisplay(
+			numericValue ? formatNaira(parseFloat(numericValue)) : ""
+		);
+	};
 
 	const {
 		register,
@@ -59,6 +86,8 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 			serialNumber: "",
 			notes: "",
 			condition: undefined,
+			costPrice: "",
+			sellingPrice: "",
 		},
 		mode: "onChange",
 	});
@@ -72,6 +101,10 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 						serialNumber: data.serialNumber,
 						condition: data.condition as ProductCondition,
 						notes: data.notes,
+						costPrice: data.costPrice ? parseFloat(data.costPrice) : undefined,
+						sellingPrice: data.sellingPrice
+							? parseFloat(data.sellingPrice)
+							: undefined,
 					},
 				},
 				async onCompleted() {
@@ -190,36 +223,70 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 					</div>
 
 					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Cost Price"
-							placeholder="Enter cost price"
-							id="costPrice"
-							variant="secondary"
-							register={register("costPrice", {
-								required: "Cost price is required",
-								pattern: {
-									value: /^\d+(\.\d{1,2})?$/,
-									message: "Please enter a valid price",
-								},
-								min: { value: 0.01, message: "Price must be greater than 0" },
-							})}
-							errors={errors.costPrice}
-						/>
-						<Input
-							label="Selling Price"
-							placeholder="Enter selling price"
-							id="sellingPrice"
-							variant="secondary"
-							register={register("sellingPrice", {
-								required: "Selling price is required",
-								pattern: {
-									value: /^\d+(\.\d{1,2})?$/,
-									message: "Please enter a valid price",
-								},
-								min: { value: 0.01, message: "Price must be greater than 0" },
-							})}
-							errors={errors.sellingPrice}
-						/>
+						<div className="w-full">
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="costPrice"
+							>
+								Cost Price
+							</label>
+							<input
+								id="costPrice"
+								type="text"
+								placeholder="Enter cost price"
+								value={costPriceDisplay}
+								onChange={(e) => handleCostPriceChange(e.target.value)}
+								className="w-full h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[12px] outline-none focus:outline-none text-[14px]"
+							/>
+							<input
+								type="hidden"
+								{...register("costPrice", {
+									required: "Cost price is required",
+									pattern: {
+										value: /^\d+(\.\d{1,2})?$/,
+										message: "Please enter a valid price",
+									},
+									min: { value: 0.01, message: "Price must be greater than 0" },
+								})}
+							/>
+							{errors.costPrice && (
+								<span className="text-red-500 text-sm">
+									{errors.costPrice.message}
+								</span>
+							)}
+						</div>
+						<div className="w-full">
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="sellingPrice"
+							>
+								Selling Price
+							</label>
+							<input
+								id="sellingPrice"
+								type="text"
+								placeholder="Enter selling price"
+								value={sellingPriceDisplay}
+								onChange={(e) => handleSellingPriceChange(e.target.value)}
+								className="w-full h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[12px] outline-none focus:outline-none text-[14px]"
+							/>
+							<input
+								type="hidden"
+								{...register("sellingPrice", {
+									required: "Selling price is required",
+									pattern: {
+										value: /^\d+(\.\d{1,2})?$/,
+										message: "Please enter a valid price",
+									},
+									min: { value: 0.01, message: "Price must be greater than 0" },
+								})}
+							/>
+							{errors.sellingPrice && (
+								<span className="text-red-500 text-sm">
+									{errors.sellingPrice.message}
+								</span>
+							)}
+						</div>
 					</div>
 
 					<Input

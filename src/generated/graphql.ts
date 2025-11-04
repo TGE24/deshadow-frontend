@@ -1099,6 +1099,14 @@ export type UpdateProductMutationVariables = Exact<{
 
 export type UpdateProductMutation = { __typename?: 'Mutation', updateProduct: { __typename?: 'Product', uuid: any, name: string } };
 
+export type UpdateSaleStatusMutationVariables = Exact<{
+  uuid: Scalars['UUID']['input'];
+  status: SaleStatus;
+}>;
+
+
+export type UpdateSaleStatusMutation = { __typename?: 'Mutation', updateSaleStatus: { __typename?: 'Sale', uuid: any } };
+
 export type UpdateStoreMutationVariables = Exact<{
   input: StoreInput;
   storeId: Scalars['UUID']['input'];
@@ -1141,7 +1149,7 @@ export type InvoiceQueryVariables = Exact<{
 }>;
 
 
-export type InvoiceQuery = { __typename?: 'Query', invoice?: { __typename?: 'Invoice', uuid: any, filePath?: string | null, sale: { __typename?: 'Sale', items: Array<{ __typename?: 'SaleItem', product: { __typename?: 'Product', name: string, model?: string | null } }> } } | null };
+export type InvoiceQuery = { __typename?: 'Query', invoice?: { __typename?: 'Invoice', uuid: any, filePath?: string | null, sale: { __typename?: 'Sale', customerName: string, customerEmail?: string | null, customerPhone?: string | null, saleType: SaleType, paymentType: PaymentType, totalAmount: number, discountAmount: number, paymentStatus: PaymentStatus, saleStatus: SaleStatus, saleDate: any, items: Array<{ __typename?: 'SaleItem', product: { __typename?: 'Product', name: string, model?: string | null } }> } } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1187,7 +1195,7 @@ export type SalesQueryVariables = Exact<{
 }>;
 
 
-export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null }>, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number }> } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, product: { __typename?: 'Product', name: string } }> } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1934,6 +1942,40 @@ export function useUpdateProductMutation(baseOptions?: Apollo.MutationHookOption
 export type UpdateProductMutationHookResult = ReturnType<typeof useUpdateProductMutation>;
 export type UpdateProductMutationResult = Apollo.MutationResult<UpdateProductMutation>;
 export type UpdateProductMutationOptions = Apollo.BaseMutationOptions<UpdateProductMutation, UpdateProductMutationVariables>;
+export const UpdateSaleStatusDocument = gql`
+    mutation UpdateSaleStatus($uuid: UUID!, $status: SaleStatus!) {
+  updateSaleStatus(uuid: $uuid, status: $status) {
+    uuid
+  }
+}
+    `;
+export type UpdateSaleStatusMutationFn = Apollo.MutationFunction<UpdateSaleStatusMutation, UpdateSaleStatusMutationVariables>;
+
+/**
+ * __useUpdateSaleStatusMutation__
+ *
+ * To run a mutation, you first call `useUpdateSaleStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSaleStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSaleStatusMutation, { data, loading, error }] = useUpdateSaleStatusMutation({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useUpdateSaleStatusMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSaleStatusMutation, UpdateSaleStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSaleStatusMutation, UpdateSaleStatusMutationVariables>(UpdateSaleStatusDocument, options);
+      }
+export type UpdateSaleStatusMutationHookResult = ReturnType<typeof useUpdateSaleStatusMutation>;
+export type UpdateSaleStatusMutationResult = Apollo.MutationResult<UpdateSaleStatusMutation>;
+export type UpdateSaleStatusMutationOptions = Apollo.BaseMutationOptions<UpdateSaleStatusMutation, UpdateSaleStatusMutationVariables>;
 export const UpdateStoreDocument = gql`
     mutation UpdateStore($input: StoreInput!, $storeId: UUID!) {
   updateStore(input: $input, storeId: $storeId) {
@@ -2178,6 +2220,16 @@ export const InvoiceDocument = gql`
     uuid
     filePath
     sale {
+      customerName
+      customerEmail
+      customerPhone
+      saleType
+      paymentType
+      totalAmount
+      discountAmount
+      paymentStatus
+      saleStatus
+      saleDate
       items {
         product {
           name
@@ -2559,9 +2611,14 @@ export const SalesDocument = gql`
         ... on Sale {
           uuid
           saleType
+          paymentType
+          discountAmount
           invoices {
             uuid
             filePath
+          }
+          store {
+            name
           }
           saleDate
           saleStatus
@@ -2576,6 +2633,10 @@ export const SalesDocument = gql`
             uuid
             quantity
             unitPrice
+            lineTotal
+            product {
+              name
+            }
           }
         }
       }

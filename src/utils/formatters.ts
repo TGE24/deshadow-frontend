@@ -55,3 +55,34 @@ export const formatNairaWithDecimals = (
 		minimumFractionDigits: 2,
 	});
 };
+
+/**
+ * Formats a date string or Date object to a human-readable format
+ * @param dateValue - The date string or Date object to format
+ * @returns Formatted date string (e.g., "Nov 4, 2025 3:45 PM")
+ */
+export const formatDateTime = (
+	dateValue: string | Date | null | undefined
+): string => {
+	if (!dateValue) return "N/A";
+
+	try {
+		const date =
+			typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+
+		if (isNaN(date.getTime())) {
+			return "Invalid Date";
+		}
+
+		return date.toLocaleString("en-US", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: true,
+		});
+	} catch {
+		return "Invalid Date";
+	}
+};

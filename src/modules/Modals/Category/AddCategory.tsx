@@ -30,7 +30,7 @@ const AddCategory: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 		},
 	});
 
-	const onSumbit = async (data: {
+	const onSubmit = async (data: {
 		name: string;
 		status: CategoryStatus;
 		description: string;
@@ -67,7 +67,7 @@ const AddCategory: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 			<h2 className="text-[#278783] font-bold text-[20px] mb-[30px]">
 				Enter category details
 			</h2>
-			<form onSubmit={handleSubmit(onSumbit)}>
+			<form onSubmit={handleSubmit(onSubmit)}>
 				<div className="mb-[46px] mt-[16px] flex gap-[24px] flex-col">
 					<Input
 						label="Category name"

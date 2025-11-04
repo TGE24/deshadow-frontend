@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import Button from "../components/Button";
-import { Sale, useSalesLazyQuery } from "../generated/graphql";
+import { Sale, SaleType, useSalesLazyQuery } from "../generated/graphql";
 import {
 	ColumnDef,
 	flexRender,
@@ -10,9 +10,13 @@ import {
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import { formatNaira } from "../utils/formatters";
+import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
+import DropdownMenu from "../components/DropdownMenu";
+import MoreVertical from "../components/Icons/MoreVertical";
 
 const SalesManagement = () => {
-	// const { user } = useUserStore();
+	const [open, setOpen] = useState(false);
+	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [page, setPage] = useState(1);
 	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
@@ -71,23 +75,37 @@ const SalesManagement = () => {
 				},
 				header: () => <h4>Sale Status</h4>,
 			},
-			// {
-			// 	accessorKey: "product.costPrice",
-			// 	cell: (info) => {
-			// 		const value = info.getValue() as number;
-			// 		return formatNaira(value);
-			// 	},
-			// 	header: () => <h4>Cost Price</h4>,
-			// },
-			// {
-			// 	accessorKey: "product.sellingPrice",
-			// 	cell: (info) => {
-			// 		const value = info.getValue() as number;
-			// 		return formatNaira(value);
-			// 	},
-			// 	header: () => <h4>Selling Price</h4>,
-			// },
 		];
+
+		{
+			baseColumns.push({
+				header: "Actions",
+				cell: ({ row }) => (
+					<DropdownMenu
+						trigger={
+							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+								<MoreVertical className="w-4 h-4" color="black" />
+							</div>
+						}
+						items={[
+							{
+								label: "View Sale",
+								onClick: () => {
+									setSelectedSale(row.original);
+									setOpen(true);
+								},
+							},
+							{
+								label: "Update Status",
+								onClick: () => {
+									setSelectedSale(row.original);
+								},
+							},
+						]}
+					/>
+				),
+			});
+		}
 
 		return baseColumns;
 	}, []);
@@ -96,6 +114,9 @@ const SalesManagement = () => {
 		getSales({
 			variables: {
 				pagination: { first: 10 },
+				filter: {
+					saleType: SaleType.Direct,
+				},
 			},
 		});
 	}, [getSales]);
@@ -229,6 +250,7 @@ const SalesManagement = () => {
 					</div>
 				)}
 			</div>
+			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
 		</>
 	);
 };
