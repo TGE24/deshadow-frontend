@@ -4,6 +4,8 @@ import Select, { SingleValue } from "react-select";
 import DatePicker from "react-datepicker";
 import Button from "./Button";
 import Calendar from "./Icons/Calendar";
+import { useUserStore } from "../store/userStore";
+import { UserRole } from "../generated/graphql";
 
 interface SelectOption {
 	value: string;
@@ -13,10 +15,10 @@ interface SelectOption {
 interface SalesFilterDropdownProps {
 	saleTypeOptions: SelectOption[];
 	storeOptions: SelectOption[];
-	selectedSaleType: string;
+	selectedSaleTypes: string[];
 	selectedStore: string;
 	dateRange: { fromDate: string; toDate: string };
-	onSaleTypeChange: (option: SingleValue<SelectOption>) => void;
+	onSaleTypeChange: (selectedOptions: SelectOption[]) => void;
 	onStoreChange: (option: SingleValue<SelectOption>) => void;
 	onDateRangeChange: (dateRange: { fromDate: string; toDate: string }) => void;
 	onClearFilters: () => void;
@@ -71,7 +73,7 @@ const dateToString = (date: Date | null): string => {
 const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	saleTypeOptions,
 	storeOptions,
-	selectedSaleType,
+	selectedSaleTypes,
 	selectedStore,
 	dateRange,
 	onSaleTypeChange,
@@ -81,23 +83,24 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	onApplyFilters,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [tempSaleType, setTempSaleType] = useState(selectedSaleType);
+	const [tempSaleTypes, setTempSaleTypes] = useState(selectedSaleTypes);
 	const [tempStore, setTempStore] = useState(selectedStore);
 	const [tempDateRange, setTempDateRange] = useState<
 		[Date | null, Date | null]
 	>([stringToDate(dateRange.fromDate), stringToDate(dateRange.toDate)]);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const { user } = useUserStore();
 
 	// Update temp values when props change
 	useEffect(() => {
-		setTempSaleType(selectedSaleType);
+		setTempSaleTypes(selectedSaleTypes);
 		setTempStore(selectedStore);
 		setTempDateRange([
 			stringToDate(dateRange.fromDate),
 			stringToDate(dateRange.toDate),
 		]);
-	}, [selectedSaleType, selectedStore, dateRange]);
+	}, [selectedSaleTypes, selectedStore, dateRange]);
 
 	// Handle clicks outside the dropdown
 	useEffect(() => {
@@ -120,9 +123,10 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	}, [isOpen]);
 
 	const handleApply = () => {
-		onSaleTypeChange(
-			saleTypeOptions.find((option) => option.value === tempSaleType) || null
+		const selectedOptions = saleTypeOptions.filter((option) =>
+			tempSaleTypes.includes(option.value)
 		);
+		onSaleTypeChange(selectedOptions);
 		onStoreChange(
 			storeOptions.find((option) => option.value === tempStore) || null
 		);
@@ -135,7 +139,7 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	};
 
 	const handleClear = () => {
-		setTempSaleType("");
+		setTempSaleTypes([]);
 		setTempStore("");
 		setTempDateRange([null, null]);
 		onClearFilters();
@@ -143,7 +147,10 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	};
 
 	const hasActiveFilters =
-		selectedSaleType || selectedStore || dateRange.fromDate || dateRange.toDate;
+		selectedSaleTypes.length > 0 ||
+		selectedStore ||
+		dateRange.fromDate ||
+		dateRange.toDate;
 
 	const getDropdownPosition = () => {
 		if (!triggerRef.current) return { top: 0, left: 0 };
@@ -210,14 +217,12 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 				Filters
 				{hasActiveFilters && (
 					<span className="ml-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-						{
-							[
-								selectedSaleType,
-								selectedStore,
-								dateRange.fromDate,
-								dateRange.toDate,
-							].filter(Boolean).length
-						}
+						{[
+							selectedSaleTypes.length > 0 ? 1 : 0,
+							selectedStore ? 1 : 0,
+							dateRange.fromDate ? 1 : 0,
+							dateRange.toDate ? 1 : 0,
+						].reduce((a, b) => a + b, 0)}
 					</span>
 				)}
 			</button>
@@ -243,12 +248,18 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 									Sale Type
 								</label>
 								<Select
+									isMulti
 									options={saleTypeOptions}
-									value={saleTypeOptions.find(
-										(option) => option.value === tempSaleType
+									value={saleTypeOptions.filter((option) =>
+										tempSaleTypes.includes(option.value)
 									)}
-									onChange={(option) => setTempSaleType(option?.value || "")}
-									placeholder="All Sale Types"
+									onChange={(selectedOptions) => {
+										const values = selectedOptions
+											? selectedOptions.map((option) => option.value)
+											: [];
+										setTempSaleTypes(values);
+									}}
+									placeholder="Select Sale Types"
 									isClearable
 									isSearchable
 									styles={selectStyles}
@@ -256,25 +267,27 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 							</div>
 
 							{/* Store Filter */}
-							<div>
-								<label className="block text-xs font-medium text-gray-700 mb-1">
-									Store
-								</label>
-								<Select
-									options={storeOptions}
-									value={storeOptions.find(
-										(option) => option.value === tempStore
-									)}
-									onChange={(option) => setTempStore(option?.value || "")}
-									placeholder="All Stores"
-									isClearable
-									isSearchable
-									styles={selectStyles}
-								/>
-							</div>
+							{user?.role !== UserRole.Reseller && (
+								<div>
+									<label className="block text-xs font-medium text-gray-700 mb-1">
+										Store
+									</label>
+									<Select
+										options={storeOptions}
+										value={storeOptions.find(
+											(option) => option.value === tempStore
+										)}
+										onChange={(option) => setTempStore(option?.value || "")}
+										placeholder="All Stores"
+										isClearable
+										isSearchable
+										styles={selectStyles}
+									/>
+								</div>
+							)}
 
 							{/* Date Range Filter */}
-							<div>
+							<div className="w-full">
 								<label className="block text-xs font-medium text-gray-700 mb-1">
 									Date Range
 								</label>
@@ -292,7 +305,7 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 									icon={<Calendar />}
 									showIcon
 									isClearable
-									className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+									className="px-3 pl-[6px]! border-none border-gray-300 rounded-md text-sm focus:outline-none focus:ring-0  focus:border-none w-full"
 								/>
 							</div>
 

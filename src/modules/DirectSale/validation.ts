@@ -8,7 +8,10 @@ export const canProceedToNextStep = (
 	switch (currentStep) {
 		case 1: // Product Information
 			return productItems.every(
-				(item) => item.productName && item.unitPrice > 0
+				(item) =>
+					item.productName &&
+					item.unitPrice > 0 &&
+					(!item.sellingPrice || item.unitPrice >= item.sellingPrice)
 			);
 		case 2: // Customer Details
 			return Boolean(

@@ -10,6 +10,7 @@ export type ProductItem = SaleItemInput & {
 	product: Partial<Product> | null;
 	serialNumber?: string;
 	productName?: string;
+	sellingPrice?: number;
 };
 
 export type CreateSaleForm = {

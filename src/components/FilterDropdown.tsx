@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Select, { SingleValue } from "react-select";
 import Button from "./Button";
+import { useUserStore } from "../store/userStore";
+import { UserRole } from "../generated/graphql";
 
 interface SelectOption {
 	value: string;
@@ -69,6 +71,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 	const [tempCategory, setTempCategory] = useState(selectedCategory);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const { user } = useUserStore();
 
 	// Update temp values when props change
 	useEffect(() => {
@@ -210,22 +213,24 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 							</h3>
 
 							{/* Store Filter */}
-							<div>
-								<label className="block text-xs font-medium text-gray-700 mb-1">
-									Store
-								</label>
-								<Select
-									options={storeOptions}
-									value={storeOptions.find(
-										(option) => option.value === tempStore
-									)}
-									onChange={(option) => setTempStore(option?.value || "")}
-									placeholder="All Stores"
-									isClearable
-									isSearchable
-									styles={selectStyles}
-								/>
-							</div>
+							{user?.role !== UserRole.Reseller && (
+								<div>
+									<label className="block text-xs font-medium text-gray-700 mb-1">
+										Store
+									</label>
+									<Select
+										options={storeOptions}
+										value={storeOptions.find(
+											(option) => option.value === tempStore
+										)}
+										onChange={(option) => setTempStore(option?.value || "")}
+										placeholder="All Stores"
+										isClearable
+										isSearchable
+										styles={selectStyles}
+									/>
+								</div>
+							)}
 
 							{/* Brand Filter */}
 							<div>

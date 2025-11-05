@@ -111,6 +111,20 @@ const DirectSale = ({
 	const nextStep = () => {
 		if (currentStep < steps.length && canProceed()) {
 			setCurrentStep(currentStep + 1);
+		} else if (currentStep === 1) {
+			// Check for specific validation issues on step 1
+			const hasInvalidPrice = productItems.some(
+				(item) =>
+					item.sellingPrice &&
+					item.unitPrice &&
+					item.unitPrice < item.sellingPrice
+			);
+
+			if (hasInvalidPrice) {
+				alert(
+					"Please ensure all unit prices meet or exceed the minimum selling price before proceeding."
+				);
+			}
 		}
 	};
 
@@ -140,8 +154,20 @@ const DirectSale = ({
 		// Close the entire DirectSale component
 		setOpen(false);
 	};
-	// console.log(productItems);
+
 	const onSubmit = async (data: CreateSaleForm) => {
+		// Validate that no product has a unit price lower than selling price
+		const hasInvalidPrice = productItems.some(
+			(item) => item.sellingPrice && item.unitPrice < item.sellingPrice
+		);
+
+		if (hasInvalidPrice) {
+			alert(
+				"Cannot complete sale: Some products have unit prices lower than their selling prices."
+			);
+			return;
+		}
+
 		const assignedStoreUuid = user?.assignedStore?.uuid ?? "";
 		const ownedStoreUuid =
 			user?.ownedStores && user.ownedStores.length > 0
@@ -152,16 +178,6 @@ const DirectSale = ({
 		const subtotal = calculateSubtotal(productItems);
 		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);
 
-		console.log({
-			...data,
-			totalAmount: totalAmountAfterDiscount,
-			items: productItems.map((item) => ({
-				productUuid: item.productUuid || "",
-				productItemUuid: item.productItemUuid || "",
-				unitPrice: item.unitPrice,
-			})),
-			storeUuid,
-		});
 		await createSale({
 			variables: {
 				input: {

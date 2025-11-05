@@ -67,10 +67,10 @@ input[type="number"] {
 	-moz-appearance: textfield;
 }
 .react-datepicker-wrapper {
-	width: 218px !important;
+	width: 100% !important;
 	border: 1px solid #e4e4e4 !important;
 	border-radius: 10px !important;
-	height: 48px !important;
+	height: 40px !important;
 }
 
 .react-datepicker__input-container {

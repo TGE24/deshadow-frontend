@@ -32,8 +32,13 @@ const Dashboard = () => {
 	// const [endDate] = useState(addDays(new Date(), 3));
 	const [page, setPage] = useState(1);
 	const [data, setData] = useState<Sale[]>([]);
-
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
+
+	// Filter States
+	const [selectedSaleTypes, setSelectedSaleTypes] = useState([
+		SaleType.Direct,
+		SaleType.Swap,
+	]);
 
 	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
@@ -53,8 +58,10 @@ const Dashboard = () => {
 
 	// Filter Handlers
 	const handleSaleTypeChange = useCallback(
-		(option: SingleValue<SelectOption>) => {
-			setSelectedSaleType(option?.value || "");
+		(selectedOptions: SelectOption[] | []) => {
+			setSelectedSaleTypes(
+				selectedOptions.map((option) => option.value as SaleType)
+			);
 		},
 		[]
 	);
@@ -86,8 +93,8 @@ const Dashboard = () => {
 		const buildFilters = () => {
 			const filters: Record<string, unknown> = {};
 
-			if (selectedSaleType) {
-				filters.saleType = selectedSaleType;
+			if (selectedSaleTypes && selectedSaleTypes.length > 0) {
+				filters.saleTypes = selectedSaleTypes;
 			}
 
 			if (selectedStore) {
@@ -114,7 +121,7 @@ const Dashboard = () => {
 
 		// Reset page when filters change
 		setPage(1);
-	}, [getSales, selectedSaleType, selectedStore, dateRange]);
+	}, [getSales, selectedSaleTypes, selectedStore, dateRange]);
 
 	const columns = useMemo<ColumnDef<Sale>[]>(() => {
 		const baseColumns: ColumnDef<Sale>[] = [
@@ -350,7 +357,7 @@ const Dashboard = () => {
 					<SalesFilterDropdown
 						saleTypeOptions={saleTypeOptions}
 						storeOptions={storeOptions}
-						selectedSaleType={selectedSaleType}
+						selectedSaleTypes={selectedSaleTypes}
 						selectedStore={selectedStore}
 						dateRange={dateRange}
 						onSaleTypeChange={handleSaleTypeChange}

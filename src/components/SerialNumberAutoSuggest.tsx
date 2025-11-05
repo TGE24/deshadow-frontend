@@ -15,6 +15,7 @@ interface ProductItemResult {
 	condition: string;
 	status: ProductItemStatus;
 	product: Partial<Product>;
+	sellingPrice?: number;
 }
 
 interface SerialNumberAutoSuggestProps {
@@ -81,8 +82,10 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 			try {
 				const { data } = await getProductItems({
 					variables: {
-						status: ProductItemStatus.Available,
-						serialNumber: debouncedInputValue,
+						filter: {
+							serialNumber: debouncedInputValue,
+							status: ProductItemStatus.Available,
+						},
 					},
 				});
 

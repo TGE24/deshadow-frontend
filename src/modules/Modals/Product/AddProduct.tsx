@@ -99,7 +99,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			await createProduct({
 				variables: {
 					input: {
-						storeUuid: data.storeUuid,
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,

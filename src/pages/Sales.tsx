@@ -38,7 +38,10 @@ const SalesManagement = () => {
 	const [data, setData] = useState<Sale[]>([]);
 
 	// Filter States
-	const [selectedSaleType, setSelectedSaleType] = useState("");
+	const [selectedSaleTypes, setSelectedSaleTypes] = useState([
+		SaleType.Direct,
+		SaleType.Swap,
+	]);
 	const [selectedStore, setSelectedStore] = useState("");
 	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
 
@@ -170,8 +173,10 @@ const SalesManagement = () => {
 
 	// Filter Handlers
 	const handleSaleTypeChange = useCallback(
-		(option: SingleValue<SelectOption>) => {
-			setSelectedSaleType(option?.value || "");
+		(selectedOptions: SelectOption[] | []) => {
+			setSelectedSaleTypes(
+				selectedOptions.map((option) => option.value as SaleType)
+			);
 		},
 		[]
 	);
@@ -188,7 +193,7 @@ const SalesManagement = () => {
 	);
 
 	const handleClearFilters = useCallback(() => {
-		setSelectedSaleType("");
+		setSelectedSaleTypes([SaleType.Direct, SaleType.Swap]);
 		setSelectedStore("");
 		setDateRange({ fromDate: "", toDate: "" });
 	}, []);
@@ -203,8 +208,8 @@ const SalesManagement = () => {
 		const buildFilters = () => {
 			const filters: Record<string, unknown> = {};
 
-			if (selectedSaleType) {
-				filters.saleType = selectedSaleType;
+			if (selectedSaleTypes && selectedSaleTypes.length > 0) {
+				filters.saleTypes = selectedSaleTypes;
 			}
 
 			if (selectedStore) {
@@ -231,7 +236,7 @@ const SalesManagement = () => {
 
 		// Reset page when filters change
 		setPage(1);
-	}, [getSales, selectedSaleType, selectedStore, dateRange]);
+	}, [getSales, selectedSaleTypes, selectedStore, dateRange]);
 
 	useEffect(() => {
 		if (sales?.sales?.edges) {
@@ -252,8 +257,8 @@ const SalesManagement = () => {
 	const buildCurrentFilters = () => {
 		const filters: Record<string, unknown> = {};
 
-		if (selectedSaleType) {
-			filters.saleType = selectedSaleType;
+		if (selectedSaleTypes && selectedSaleTypes.length > 0) {
+			filters.saleTypes = selectedSaleTypes;
 		}
 
 		if (selectedStore) {
@@ -314,7 +319,7 @@ const SalesManagement = () => {
 				<SalesFilterDropdown
 					saleTypeOptions={saleTypeOptions}
 					storeOptions={storeOptions}
-					selectedSaleType={selectedSaleType}
+					selectedSaleTypes={selectedSaleTypes}
 					selectedStore={selectedStore}
 					dateRange={dateRange}
 					onSaleTypeChange={handleSaleTypeChange}

@@ -125,7 +125,7 @@ const SalesManagement = () => {
 			variables: {
 				pagination: { first: 10 },
 				filter: {
-					saleType: SaleType.Credit,
+					saleTypes: [SaleType.Credit],
 				},
 			},
 		});
@@ -156,7 +156,7 @@ const SalesManagement = () => {
 						after: sales?.sales?.pageInfo?.endCursor,
 					},
 					filter: {
-						saleType: SaleType.Credit,
+						saleTypes: [SaleType.Credit],
 					},
 				},
 			});
@@ -173,7 +173,7 @@ const SalesManagement = () => {
 						before: sales?.sales?.pageInfo?.startCursor,
 					},
 					filter: {
-						saleType: SaleType.Credit,
+						saleTypes: [SaleType.Credit],
 					},
 				},
 			});

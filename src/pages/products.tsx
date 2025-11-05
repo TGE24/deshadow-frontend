@@ -145,14 +145,19 @@ const Products = () => {
 	const columns = useMemo<ColumnDef<Product>[]>(() => {
 		const baseColumns: ColumnDef<Product>[] = [
 			{
+				accessorKey: "category.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Category</h4>,
+			},
+			{
+				accessorKey: "brand.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Brand</h4>,
+			},
+			{
 				accessorKey: "name",
 				cell: (info) => info.getValue(),
 				header: () => <h4>Name</h4>,
-			},
-			{
-				accessorKey: "model",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Model</h4>,
 			},
 			{
 				accessorKey: "items",
@@ -165,50 +170,54 @@ const Products = () => {
 		];
 
 		// Only add Actions column if user is not a reseller
-		if (user?.role !== UserRole.Reseller) {
-			baseColumns.push({
-				header: "Actions",
-				cell: ({ row }) => (
-					<DropdownMenu
-						trigger={
-							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-								<MoreVertical className="w-4 h-4" color="black" />
-							</div>
-						}
-						items={[
-							{
-								label: "Edit",
-								onClick: () => {
-									setSelectedProduct(row.original);
-									setEditOpen(true);
-								},
+		// if (user?.role !== UserRole.Reseller) {
+		baseColumns.push({
+			header: "Actions",
+			cell: ({ row }) => (
+				<DropdownMenu
+					trigger={
+						<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+							<MoreVertical className="w-4 h-4" color="black" />
+						</div>
+					}
+					items={[
+						...(user?.role !== UserRole.Reseller
+							? [
+									{
+										label: "Edit",
+										onClick: () => {
+											setSelectedProduct(row.original);
+											setEditOpen(true);
+										},
+									},
+									{
+										label: "Delete",
+										onClick: () => {
+											setDeleteOpen(true);
+											setSelectedProduct(row.original);
+										},
+										className: "text-red-600 hover:bg-red-50",
+									},
+							  ]
+							: []),
+						{
+							label: "View Details",
+							onClick: () => {
+								navigate(`/product/${row.original.uuid}`);
 							},
-							{
-								label: "Delete",
-								onClick: () => {
-									setDeleteOpen(true);
-									setSelectedProduct(row.original);
-								},
-								className: "text-red-600 hover:bg-red-50",
+						},
+						{
+							label: "Add Product Item",
+							onClick: () => {
+								setProductItemOpen(true);
+								setSelectedProduct(row.original);
 							},
-							{
-								label: "View Details",
-								onClick: () => {
-									navigate(`/product/${row.original.uuid}`);
-								},
-							},
-							{
-								label: "Add Product Item",
-								onClick: () => {
-									setProductItemOpen(true);
-									setSelectedProduct(row.original);
-								},
-							},
-						]}
-					/>
-				),
-			});
-		}
+						},
+					]}
+				/>
+			),
+		});
+		// }
 
 		return baseColumns;
 	}, [user?.role, navigate]);
@@ -219,6 +228,7 @@ const Products = () => {
 	useEffect(() => {
 		getBrands({ variables: { pagination: { first: 100 } } });
 		getCategories({ variables: { pagination: { first: 100 } } });
+
 		getStores({ variables: { pagination: { first: 100 } } });
 	}, [getBrands, getCategories, getStores]);
 

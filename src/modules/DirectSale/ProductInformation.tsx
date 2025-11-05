@@ -65,6 +65,7 @@ const ProductInformation = ({
 											serialNumber: productItem.serialNumber,
 											// Store product name in a custom field for display
 											productName: productItem.product?.name,
+											sellingPrice: productItem.sellingPrice,
 										});
 									} else {
 										onUpdateProduct(item.id, {
@@ -73,6 +74,7 @@ const ProductInformation = ({
 											productItemUuid: "",
 											serialNumber: "",
 											productName: "",
+											sellingPrice: undefined,
 										});
 									}
 								}}
@@ -108,18 +110,38 @@ const ProductInformation = ({
 						<div className="w-full">
 							<Input
 								label="Unit Price"
-								type="number"
-								placeholder="Enter price per item"
-								value={item.unitPrice || ""}
-								onChange={(e) =>
+								type="text"
+								placeholder="₦0.00"
+								value={item.unitPrice ? formatNaira(item.unitPrice) : ""}
+								onChange={(e) => {
+									// Remove currency symbol and commas, keep only numbers and decimal
+									const numericValue = e.target.value
+										.replace(/₦|,/g, "")
+										.replace(/[^0-9.]/g, "");
+
+									// Parse the numeric value
+									const parsedValue = parseFloat(numericValue) || 0;
+
 									onUpdateProduct(item.id, {
-										unitPrice: parseFloat(e.target.value) || 0,
-									})
-								}
-								className="outline-none focus:outline-none text-[14px]"
-								min="0"
-								step="0.01"
+										unitPrice: parsedValue,
+									});
+								}}
+								className={cn(
+									"outline-none focus:outline-none text-[14px]",
+									item.sellingPrice &&
+										item.unitPrice &&
+										item.unitPrice < item.sellingPrice
+										? "border-red-500 focus:border-red-500"
+										: ""
+								)}
 							/>
+							{!!item.sellingPrice &&
+								!!item.unitPrice &&
+								item.unitPrice < item.sellingPrice && (
+									<p className="text-red-500 text-xs mt-1">
+										Unit price cannot be lower than selling price
+									</p>
+								)}
 						</div>
 
 						{item.productName && item.unitPrice > 0 && (
@@ -149,13 +171,22 @@ const ProductInformation = ({
 			<div className="bg-[#e7f6f57a] p-[16px] rounded-[8px] border border-blue-100">
 				<div className="space-y-[8px]">
 					<Input
-						label="Discount Amount (Optional)"
-						type="number"
-						placeholder="Enter discount amount"
-						value={discountAmount || ""}
-						onChange={(e) => onDiscountChange(parseFloat(e.target.value) || 0)}
+						label="Discount Amount - Optional"
+						type="text"
+						placeholder="₦0.00"
+						value={discountAmount ? formatNaira(discountAmount) : ""}
+						onChange={(e) => {
+							// Remove currency symbol and commas, keep only numbers and decimal
+							const numericValue = e.target.value
+								.replace(/₦|,/g, "")
+								.replace(/[^0-9.]/g, "");
+
+							// Parse the numeric value
+							const parsedValue = parseFloat(numericValue) || 0;
+
+							onDiscountChange(parsedValue);
+						}}
 						className="outline-none focus:outline-none text-[14px]"
-						min="0"
 					/>
 					<div className="flex justify-between items-center text-[16px] pt-[16px]">
 						<span className="font-semibold ">Total:</span>

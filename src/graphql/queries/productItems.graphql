@@ -1,15 +1,5 @@
-query ProductItems(
-	$productUuid: UUID
-	$status: ProductItemStatus
-	$pagination: PaginationInput
-	$serialNumber: String
-) {
-	productItems(
-		productUuid: $productUuid
-		status: $status
-		pagination: $pagination
-		serialNumber: $serialNumber
-	) {
+query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
+	productItems(filter: $filter, pagination: $pagination) {
 		edges {
 			node {
 				... on ProductItem {
@@ -17,6 +7,8 @@ query ProductItems(
 					serialNumber
 					condition
 					status
+					costPrice
+					sellingPrice
 					product {
 						availableItemsCount
 						createdAt

@@ -1,18 +1,125 @@
-import { useEffect } from "react";
-import { useProductLazyQuery } from "../generated/graphql";
+import { useEffect, useMemo, useState } from "react";
+import {
+	ProductItem,
+	useProductItemsLazyQuery,
+	useProductLazyQuery,
+} from "../generated/graphql";
 import { useParams } from "react-router-dom";
+import {
+	ColumnDef,
+	flexRender,
+	getCoreRowModel,
+	useReactTable,
+} from "@tanstack/react-table";
+import TableLoader from "../components/TableLoader";
+import TableEmptyState from "../components/TableEmptyState";
+import { Pagination } from "../modules/Pagination";
+import { formatCurrency } from "../utils/formatters";
 
 const ProductDetails = () => {
-	const [getProduct, { data, loading }] = useProductLazyQuery();
+	const [page, setPage] = useState(1);
+	const [getProduct, { data: products, loading }] = useProductLazyQuery();
+	const [getProductItems, { data: itemsData }] = useProductItemsLazyQuery();
+	const [data, setData] = useState<ProductItem[]>([]);
 	const { id } = useParams<{ id: string }>();
+
+	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
+		const baseColumns: ColumnDef<ProductItem>[] = [
+			{
+				accessorKey: "product.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Name</h4>,
+			},
+			{
+				accessorKey: "serialNumber",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Serial Number</h4>,
+			},
+			{
+				accessorKey: "sellingPrice",
+				cell: (info) => {
+					const value = info.getValue() as number | null | undefined;
+					return formatCurrency(value);
+				},
+				header: () => <h4>Selling Price</h4>,
+			},
+			{
+				accessorKey: "condition",
+				cell: (info) => {
+					const condition = info.getValue() as string;
+					return (
+						<span
+							className={`px-2 py-1 rounded text-xs font-medium uppercase ${
+								condition === "new"
+									? "bg-green-100 text-green-800"
+									: condition === "fairly_used"
+									? "bg-yellow-100 text-yellow-800"
+									: condition === "refurbished"
+									? "bg-blue-100 text-blue-800"
+									: "bg-gray-100 text-gray-800"
+							}`}
+						>
+							{condition.replace("_", " ")}
+						</span>
+					);
+				},
+				header: () => <h4>Condition</h4>,
+			},
+			{
+				accessorKey: "status",
+				cell: (info) => {
+					const status = info.getValue() as string;
+					return (
+						<span
+							className={`px-2 py-1 rounded text-xs font-medium uppercase ${
+								status === "available"
+									? "bg-green-100 text-green-800"
+									: status === "sold"
+									? "bg-red-100 text-red-800"
+									: status === "reserved"
+									? "bg-blue-100 text-blue-800"
+									: status === "returned"
+									? "bg-yellow-100 text-yellow-800"
+									: status === "damaged"
+									? "bg-gray-100 text-gray-800"
+									: "bg-gray-100 text-gray-800"
+							}`}
+						>
+							{status.replace("_", " ")}
+						</span>
+					);
+				},
+				header: () => <h4>Status</h4>,
+			},
+		];
+
+		return baseColumns;
+	}, []);
+
+	useEffect(() => {
+		if (itemsData?.productItems?.edges) {
+			setData(
+				itemsData?.productItems.edges
+					.map((edge) => edge.node)
+					.filter((node) => node.__typename === "ProductItem") as ProductItem[]
+			);
+		}
+	}, [itemsData]);
+
+	const table = useReactTable({
+		data,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+	});
 
 	useEffect(() => {
 		if (id) {
 			getProduct({ variables: { uuid: id } });
+			getProductItems({ variables: { filter: { productUuid: id } } });
 		}
-	}, [id, getProduct]);
+	}, [id, getProduct, getProductItems]);
 
-	const product = data?.product;
+	const product = products?.product;
 
 	if (loading) {
 		return (
@@ -37,11 +144,39 @@ const ProductDetails = () => {
 		);
 	}
 
+	const nextPage = () => {
+		if (itemsData?.productItems?.pageInfo?.hasNextPage) {
+			getProductItems({
+				variables: {
+					filter: { productUuid: id },
+					pagination: {
+						first: 10,
+						after: itemsData?.productItems?.pageInfo?.endCursor,
+					},
+				},
+			});
+			setPage(page + 1);
+		}
+	};
+
+	const prevPage = () => {
+		if (itemsData?.productItems?.pageInfo?.hasPreviousPage) {
+			getProductItems({
+				variables: {
+					filter: { productUuid: id },
+					pagination: {
+						last: 10,
+						before: itemsData?.productItems?.pageInfo?.startCursor,
+					},
+					// filter: buildCurrentFilters(),
+				},
+			});
+			setPage(page - 1);
+		}
+	};
+
 	// Get the first image if available
 	const primaryImage = product.images?.[0]?.imageUrl;
-
-	// Get the first item's condition for status display
-	const firstItem = product.items?.[0];
 
 	return (
 		<div className="max-w-7xl mx-auto px-4 py-8">
@@ -55,9 +190,9 @@ const ProductDetails = () => {
 			</div>
 
 			{/* Main Content Grid */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+			<div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
 				{/* Image Section */}
-				<div className="space-y-4">
+				<div className="lg:col-span-2 space-y-4">
 					<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
 						{primaryImage ? (
 							<img
@@ -107,7 +242,7 @@ const ProductDetails = () => {
 				</div>
 
 				{/* Product Details Section */}
-				<div className="space-y-6">
+				<div className="lg:col-span-3 space-y-6">
 					{/* Title and Brand */}
 					<div>
 						<h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -124,21 +259,6 @@ const ProductDetails = () => {
 							<span className="text-sm font-medium text-gray-600">
 								Available Items: {product.items.length}
 							</span>
-							{firstItem && (
-								<span
-									className={`px-3 py-1 rounded-full text-sm font-medium ${
-										firstItem.condition === "new"
-											? "bg-green-100 text-green-800"
-											: firstItem.condition === "fairly_used"
-											? "bg-yellow-100 text-yellow-800"
-											: firstItem.condition === "refurbished"
-											? "bg-blue-100 text-blue-800"
-											: "bg-gray-100 text-gray-800"
-									}`}
-								>
-									{firstItem.condition?.replace("_", " ")}
-								</span>
-							)}
 						</div>
 					)}
 
@@ -160,22 +280,10 @@ const ProductDetails = () => {
 							Product Information
 						</h3>
 						<div className="bg-gray-50 rounded-lg p-4 space-y-3">
-							{product.model && (
-								<div className="flex justify-between">
-									<span className="text-gray-600">Model:</span>
-									<span className="font-medium">{product.model}</span>
-								</div>
-							)}
 							{product.category && (
 								<div className="flex justify-between">
 									<span className="text-gray-600">Category:</span>
 									<span className="font-medium">{product.category.name}</span>
-								</div>
-							)}
-							{firstItem?.serialNumber && (
-								<div className="flex justify-between">
-									<span className="text-gray-600">Serial Number:</span>
-									<span className="font-medium">{firstItem.serialNumber}</span>
 								</div>
 							)}
 							<div className="flex justify-between">
@@ -187,62 +295,82 @@ const ProductDetails = () => {
 						</div>
 					</div>
 
-					{/* Items List */}
-					{product.items && product.items.length > 0 && (
-						<div className="space-y-4">
-							<h3 className="text-lg font-semibold text-gray-900">
-								Available Items
-							</h3>
-							<div className="space-y-2 max-h-48 overflow-y-auto">
-								{product.items.map((item, index) => (
-									<div
-										key={item.uuid}
-										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+					<div className="w-full mt-[48px] overflow-x-auto">
+						<h3 className="text-lg font-semibold text-gray-900 mb-4">
+							Available Items
+						</h3>
+						<table className="w-full">
+							<thead className="bg-[#D4E7E6] h-[41px]">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<tr
+										key={headerGroup.id}
+										className="text-[14px] font-semibold"
 									>
-										<div>
-											<span className="text-sm font-medium">
-												Item #{index + 1}
-											</span>
-											{item.serialNumber && (
-												<p className="text-xs text-gray-600">
-													S/N: {item.serialNumber}
-												</p>
-											)}
-										</div>
-										<div className="flex gap-2">
-											<span
-												className={`px-2 py-1 rounded text-xs font-medium ${
-													item.condition === "new"
-														? "bg-green-100 text-green-800"
-														: item.condition === "fairly_used"
-														? "bg-yellow-100 text-yellow-800"
-														: item.condition === "refurbished"
-														? "bg-blue-100 text-blue-800"
-														: "bg-gray-100 text-gray-800"
-												}`}
+										{headerGroup.headers.map((header) => (
+											<th
+												key={header.id}
+												className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
 											>
-												{item.condition?.replace("_", " ")}
-											</span>
-											<span
-												className={`px-2 py-1 rounded text-xs font-medium ${
-													item.status === "available"
-														? "bg-green-100 text-green-800"
-														: item.status === "sold"
-														? "bg-red-100 text-red-800"
-														: "bg-gray-100 text-gray-800"
-												}`}
-											>
-												{item.status}
-											</span>
-										</div>
-									</div>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext()
+													  )}
+											</th>
+										))}
+									</tr>
 								))}
-							</div>
-						</div>
-					)}
+							</thead>
+							{loading ? (
+								<TableLoader columns={columns.length} />
+							) : data.length === 0 ? (
+								<TableEmptyState
+									title="No Sales Found"
+									description="There are no sales records to display. Sales will appear here once they are created."
+									colSpan={columns.length}
+								/>
+							) : (
+								<tbody>
+									{table.getRowModel().rows.map((row) => (
+										<tr
+											key={row.id}
+											className="border-b-[1px] border-[#E3E3E3]"
+										>
+											{row.getVisibleCells().map((cell) => (
+												<td
+													key={cell.id}
+													className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext()
+													)}
+												</td>
+											))}
+										</tr>
+									))}
+								</tbody>
+							)}
+						</table>
 
+						<Pagination
+							page={page}
+							loading={loading}
+							totalCount={itemsData?.productItems.totalCount ?? 0}
+							dataLength={data.length}
+							hasNextPage={
+								itemsData?.productItems.pageInfo.hasNextPage ?? false
+							}
+							hasPreviousPage={
+								itemsData?.productItems.pageInfo.hasPreviousPage ?? false
+							}
+							onNextPage={nextPage}
+							onPrevPage={prevPage}
+						/>
+					</div>
 					{/* Store Information */}
-					{product.store && (
+					{/* {product.store && (
 						<div className="border-t pt-6">
 							<h3 className="text-lg font-semibold text-gray-900 mb-3">
 								Store Information
@@ -253,7 +381,7 @@ const ProductDetails = () => {
 								</p>
 							</div>
 						</div>
-					)}
+					)} */}
 				</div>
 			</div>
 		</div>
