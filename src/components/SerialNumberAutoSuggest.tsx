@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import Input from "./Input";
 import {
 	useProductItemsLazyQuery,
 	ProductItemStatus,
@@ -38,6 +37,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 	const [suggestions, setSuggestions] = useState<ProductItemResult[]>([]);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [loading, setLoading] = useState(false);
+	const [isItemSelected, setIsItemSelected] = useState(false);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -78,6 +78,11 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 				return;
 			}
 
+			// Don't search if an item was just selected
+			if (isItemSelected) {
+				return;
+			}
+
 			setLoading(true);
 			try {
 				const { data } = await getProductItems({
@@ -108,7 +113,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 		};
 
 		searchProductItems();
-	}, [debouncedInputValue, getProductItems]);
+	}, [debouncedInputValue, getProductItems, isItemSelected]);
 
 	// Handle keyboard navigation
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -145,6 +150,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 		const newValue = e.target.value;
 		setInputValue(newValue);
 		setSelectedIndex(-1);
+		setIsItemSelected(false); // Reset selection state when user types
 
 		if (!newValue.trim()) {
 			onSelect(null);
@@ -155,6 +161,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 		setInputValue(item.serialNumber);
 		setIsOpen(false);
 		setSelectedIndex(-1);
+		setIsItemSelected(true);
 		onSelect(item);
 	};
 
@@ -180,22 +187,28 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 
 	return (
 		<div ref={containerRef} className="relative w-full">
-			<Input
-				ref={inputRef}
-				label={label}
-				type="text"
-				placeholder={placeholder}
-				value={inputValue}
-				onChange={handleInputChange}
-				onKeyDown={handleKeyDown}
-				onFocus={() => {
-					if (suggestions.length > 0) {
-						setIsOpen(true);
-					}
-				}}
-				className={`outline-none focus:outline-none text-[14px] ${className}`}
-				autoComplete="off"
-			/>
+			{label && (
+				<label className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro">
+					{label}
+				</label>
+			)}
+			<div className="bg-[#F7F7F7] border border-[#E3E3E3] rounded-[10px] h-[44px] flex items-center transition-all duration-200 focus-within:border-[#3B82F6] hover:border-[#9CA3AF]">
+				<input
+					ref={inputRef}
+					type="text"
+					placeholder={placeholder}
+					value={inputValue}
+					onChange={handleInputChange}
+					onKeyDown={handleKeyDown}
+					onFocus={() => {
+						if (suggestions.length > 0) {
+							setIsOpen(true);
+						}
+					}}
+					className={`h-full rounded-[10px] w-full bg-transparent placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none transition-all duration-200 pl-[12px] ${className}`}
+					autoComplete="off"
+				/>
+			</div>
 
 			{loading && (
 				<div className="absolute right-3 top-[38px] text-gray-400">

@@ -47,6 +47,11 @@ const DirectSale = ({
 		saleType: SaleType;
 		paymentType: PaymentType;
 		createdAt: string;
+		invoices?: Array<{
+			uuid: string;
+			filePath?: string | null;
+			invoiceNumber: string;
+		}>;
 	} | null>(null);
 
 	const [getProduct, { data }] = useProductLazyQuery();
@@ -201,6 +206,7 @@ const DirectSale = ({
 						saleType: data.saleType,
 						paymentType: data.paymentType,
 						createdAt: sale.createdAt,
+						invoices: sale.invoices || [],
 					});
 					setSaleCompleted(true);
 				}

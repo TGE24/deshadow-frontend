@@ -10,6 +10,7 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 					invoices {
 						uuid
 						filePath
+						invoiceNumber
 					}
 					store {
 						name

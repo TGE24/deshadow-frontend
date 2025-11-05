@@ -13,6 +13,11 @@ interface SaleSuccessProps {
 		saleType: SaleType;
 		paymentType: PaymentType;
 		createdAt: string;
+		invoices?: Array<{
+			uuid: string;
+			filePath?: string | null;
+			invoiceNumber: string;
+		}>;
 	};
 	productItems: ProductItem[];
 	formData: CreateSaleForm;
@@ -201,6 +206,44 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 				>
 					Create New Sale
 				</Button>
+				{saleData?.invoices &&
+					saleData.invoices.length > 0 &&
+					saleData.invoices[0]?.filePath && (
+						<Button
+							type="button"
+							variant="secondary"
+							onClick={() => {
+								const invoiceFilePath = saleData.invoices?.[0]?.filePath;
+								if (invoiceFilePath) {
+									// Remove leading slash if present to avoid double slashes
+									const cleanPath = invoiceFilePath.startsWith("/")
+										? invoiceFilePath.slice(1)
+										: invoiceFilePath;
+									const fullUrl = `${
+										import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL
+									}/${cleanPath}`;
+									window.open(fullUrl, "_blank");
+								}
+							}}
+							className="flex-1 h-[48px] text-[14px] font-medium flex items-center justify-center gap-2"
+						>
+							<span>View Invoice</span>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+								<polyline points="15,3 21,3 21,9" />
+								<line x1="10" y1="14" x2="21" y2="3" />
+							</svg>
+						</Button>
+					)}
 				{onViewSale && (
 					<Button
 						type="button"

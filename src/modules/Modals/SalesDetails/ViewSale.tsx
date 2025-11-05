@@ -87,7 +87,9 @@ const ViewSale: React.FC<ViewSaleProps> = ({ open, setOpen, sale }) => {
 						</h2>
 						<p className="text-[14px] text-gray-500 mt-[4px]">
 							Invoice ID:{" "}
-							{sale?.invoices?.length > 0 ? sale?.invoices[0]?.uuid : "N/A"}
+							{sale?.invoices?.length > 0
+								? sale?.invoices[0]?.invoiceNumber
+								: "N/A"}
 						</p>
 					</div>
 					<div className="flex items-center gap-[8px]">
@@ -292,6 +294,42 @@ const ViewSale: React.FC<ViewSaleProps> = ({ open, setOpen, sale }) => {
 
 				{/* Action Buttons */}
 				<div className="flex justify-end gap-[12px] pt-[16px] border-t border-gray-200">
+					{sale?.invoices?.length > 0 && sale.invoices[0]?.filePath && (
+						<Button
+							type="button"
+							variant="primary"
+							onClick={() => {
+								const invoiceFilePath = sale.invoices[0]?.filePath;
+								if (invoiceFilePath) {
+									// Remove leading slash if present to avoid double slashes
+									const cleanPath = invoiceFilePath.startsWith("/")
+										? invoiceFilePath.slice(1)
+										: invoiceFilePath;
+									const fullUrl = `${
+										import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL
+									}/${cleanPath}`;
+									window.open(fullUrl, "_blank");
+								}
+							}}
+							className="flex items-center gap-2 p-2.5"
+						>
+							<span>View Invoice</span>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+								<polyline points="15,3 21,3 21,9" />
+								<line x1="10" y1="14" x2="21" y2="3" />
+							</svg>
+						</Button>
+					)}
 					<Button
 						type="button"
 						variant="secondary"

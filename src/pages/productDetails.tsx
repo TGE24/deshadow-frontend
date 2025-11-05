@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import Select from "react-select";
 import {
 	ProductItem,
+	ProductCondition,
 	useProductItemsLazyQuery,
 	useProductLazyQuery,
 } from "../generated/graphql";
@@ -18,10 +20,25 @@ import { formatCurrency } from "../utils/formatters";
 
 const ProductDetails = () => {
 	const [page, setPage] = useState(1);
+	const [selectedConditions, setSelectedConditions] = useState<
+		ProductCondition[]
+	>([]);
 	const [getProduct, { data: products, loading }] = useProductLazyQuery();
 	const [getProductItems, { data: itemsData }] = useProductItemsLazyQuery();
 	const [data, setData] = useState<ProductItem[]>([]);
 	const { id } = useParams<{ id: string }>();
+
+	// Create options for react-select
+	const conditionOptions = useMemo(
+		() =>
+			Object.values(ProductCondition).map((condition) => ({
+				value: condition,
+				label: condition
+					.replace("_", " ")
+					.replace(/\b\w/g, (char) => char.toUpperCase()),
+			})),
+		[]
+	);
 
 	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
 		const baseColumns: ColumnDef<ProductItem>[] = [
@@ -115,9 +132,16 @@ const ProductDetails = () => {
 	useEffect(() => {
 		if (id) {
 			getProduct({ variables: { uuid: id } });
-			getProductItems({ variables: { filter: { productUuid: id } } });
+			const filter = {
+				productUuid: id,
+				...(selectedConditions.length > 0 && {
+					conditions: selectedConditions,
+				}),
+			};
+			getProductItems({ variables: { filter } });
+			setPage(1); // Reset to page 1 when filters change
 		}
-	}, [id, getProduct, getProductItems]);
+	}, [id, selectedConditions, getProduct, getProductItems]);
 
 	const product = products?.product;
 
@@ -146,9 +170,15 @@ const ProductDetails = () => {
 
 	const nextPage = () => {
 		if (itemsData?.productItems?.pageInfo?.hasNextPage) {
+			const filter = {
+				productUuid: id,
+				...(selectedConditions.length > 0 && {
+					conditions: selectedConditions,
+				}),
+			};
 			getProductItems({
 				variables: {
-					filter: { productUuid: id },
+					filter,
 					pagination: {
 						first: 10,
 						after: itemsData?.productItems?.pageInfo?.endCursor,
@@ -161,14 +191,19 @@ const ProductDetails = () => {
 
 	const prevPage = () => {
 		if (itemsData?.productItems?.pageInfo?.hasPreviousPage) {
+			const filter = {
+				productUuid: id,
+				...(selectedConditions.length > 0 && {
+					conditions: selectedConditions,
+				}),
+			};
 			getProductItems({
 				variables: {
-					filter: { productUuid: id },
+					filter,
 					pagination: {
 						last: 10,
 						before: itemsData?.productItems?.pageInfo?.startCursor,
 					},
-					// filter: buildCurrentFilters(),
 				},
 			});
 			setPage(page - 1);
@@ -296,9 +331,61 @@ const ProductDetails = () => {
 					</div>
 
 					<div className="w-full mt-[48px] overflow-x-auto">
-						<h3 className="text-lg font-semibold text-gray-900 mb-4">
-							Available Items
-						</h3>
+						<div className="flex justify-between items-center mb-4">
+							<h3 className="text-lg font-semibold text-gray-900">
+								Available Items
+							</h3>
+							<div className="flex items-center gap-4">
+								<label className="text-sm font-medium text-gray-600">
+									Filter by condition:
+								</label>
+								<div className="min-w-[300px]">
+									<Select
+										isMulti
+										options={conditionOptions}
+										value={conditionOptions.filter((option) =>
+											selectedConditions.includes(option.value)
+										)}
+										onChange={(selectedOptions) => {
+											const values = selectedOptions
+												? selectedOptions.map((option) => option.value)
+												: [];
+											setSelectedConditions(values);
+										}}
+										placeholder="Select conditions..."
+										className="text-sm"
+										classNamePrefix="react-select"
+										isClearable
+										styles={{
+											control: (provided) => ({
+												...provided,
+												minHeight: "32px",
+												fontSize: "14px",
+												borderColor: "#d1d5db",
+												"&:hover": {
+													borderColor: "#9ca3af",
+												},
+											}),
+											valueContainer: (provided) => ({
+												...provided,
+												padding: "2px 8px",
+											}),
+											input: (provided) => ({
+												...provided,
+												margin: "0px",
+											}),
+											indicatorSeparator: () => ({
+												display: "none",
+											}),
+											indicatorsContainer: (provided) => ({
+												...provided,
+												height: "32px",
+											}),
+										}}
+									/>
+								</div>
+							</div>
+						</div>
 						<table className="w-full">
 							<thead className="bg-[#D4E7E6] h-[41px]">
 								{table.getHeaderGroups().map((headerGroup) => (
@@ -369,19 +456,6 @@ const ProductDetails = () => {
 							onPrevPage={prevPage}
 						/>
 					</div>
-					{/* Store Information */}
-					{/* {product.store && (
-						<div className="border-t pt-6">
-							<h3 className="text-lg font-semibold text-gray-900 mb-3">
-								Store Information
-							</h3>
-							<div className="bg-blue-50 rounded-lg p-4">
-								<p className="font-medium text-blue-900">
-									{product.store.name}
-								</p>
-							</div>
-						</div>
-					)} */}
 				</div>
 			</div>
 		</div>

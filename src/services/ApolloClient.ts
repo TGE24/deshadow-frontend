@@ -28,7 +28,7 @@ const authLink = setContext((_, { headers }) => {
 });
 
 const uploadLink = createUploadLink({
-	uri: import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL,
+	uri: `${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}/query`,
 	credentials: "include",
 });
 
