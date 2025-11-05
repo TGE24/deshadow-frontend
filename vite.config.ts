@@ -5,7 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
-	// server: {
-	// 	port: 8080, // Change 3000 to your desired port
-	// },
+	server: {
+		host: true, // Allow external connections
+	},
+	preview: {
+		host: true, // Allow external connections in preview mode
+		allowedHosts: ['staging.de-shadow.com', 'localhost'], // Allow staging domain
+	},
 });
