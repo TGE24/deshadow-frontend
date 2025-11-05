@@ -325,7 +325,7 @@ const Dashboard = () => {
 					icon={<Plus />}
 					onClick={() => setOpen(true)}
 				>
-					Add New Stock
+					Create Invoice
 				</Button>
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[20px] mt-[24px]">
