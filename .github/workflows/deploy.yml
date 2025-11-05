@@ -26,7 +26,7 @@ jobs:
           set -e
           
           # Define project path - adjust this to your actual deployment path
-          PROJECT_PATH="/var/www/deshadow-frontend"
+          PROJECT_PATH="/root/deshadow-frontend"
           
           # Navigate to your project directory
           echo "Navigating to project directory..."
@@ -41,13 +41,16 @@ jobs:
           git fetch origin
           git reset --hard origin/main
           
+          # Set up environment
+          export PATH=$PATH:/root/.bun/bin
+          
           # Install dependencies
           echo "Installing dependencies with Bun..."
-          bun install --frozen-lockfile
+          /root/.bun/bin/bun install --frozen-lockfile
           
           # Build the application
           echo "Building application..."
-          bun run build
+          /root/.bun/bin/bun run build
           
           # Create logs directory if it doesn't exist
           mkdir -p logs
@@ -59,7 +62,7 @@ jobs:
             pm2 restart web
           else
             echo "Starting new PM2 process..."
-            pm2 start ecosystem.config.js
+            pm2 start ecosystem.config.cjs
           fi
           
           # Save PM2 configuration

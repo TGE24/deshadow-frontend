@@ -10,6 +10,6 @@ export default defineConfig({
 	},
 	preview: {
 		host: true, // Allow external connections in preview mode
-		allowedHosts: ['staging.de-shadow.com', 'localhost'], // Allow staging domain
+		allowedHosts: ["staging.de-shadow.com", "localhost"], // Allow staging domain
 	},
 });
