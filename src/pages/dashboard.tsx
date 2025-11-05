@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Button from "../components/Button";
-import Plus from "../components/Icons/Plus";
+// import Button from "../components/Button";
+// import Plus from "../components/Icons/Plus";
 import StatCard from "../components/StatCard";
 import {
 	ColumnDef,
@@ -319,14 +319,14 @@ const Dashboard = () => {
 						View your analytic store performance from the reports
 					</p>
 				</div>
-				<Button
+				{/* <Button
 					variant="primary"
 					size="small"
 					icon={<Plus />}
 					onClick={() => setOpen(true)}
 				>
 					Create Invoice
-				</Button>
+				</Button> */}
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[20px] mt-[24px]">
 				<StatCard
