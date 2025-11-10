@@ -1,0 +1,3 @@
+mutation DeleteProductItem($uuid: UUID!) {
+	deleteProductItem(uuid: $uuid)
+}

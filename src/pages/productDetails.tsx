@@ -7,6 +7,7 @@ import {
 	useProductLazyQuery,
 	useDeleteProductMutation,
 	Product,
+	useDeleteProductItemMutation,
 } from "../generated/graphql";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -22,11 +23,14 @@ import TableEmptyState from "../components/TableEmptyState";
 import { Pagination } from "../modules/Pagination";
 import { formatCurrency } from "../utils/formatters";
 import Plus from "../components/Icons/Plus";
+import DropdownMenu from "../components/DropdownMenu";
+import MoreVertical from "../components/Icons/MoreVertical";
 
 // Modals
 import EditProduct from "../modules/Modals/Product/EditProduct";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
+import EditInventory from "../modules/Modals/Inventory/EditInventory";
 
 const ProductDetails = () => {
 	const [page, setPage] = useState(1);
@@ -34,7 +38,8 @@ const ProductDetails = () => {
 		ProductCondition[]
 	>([]);
 	const [getProduct, { data: products, loading }] = useProductLazyQuery();
-	const [getProductItems, { data: itemsData }] = useProductItemsLazyQuery();
+	const [getProductItems, { data: itemsData, refetch }] =
+		useProductItemsLazyQuery();
 	const [data, setData] = useState<ProductItem[]>([]);
 	const { id } = useParams<{ id: string }>();
 
@@ -43,10 +48,18 @@ const ProductDetails = () => {
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [productItemOpen, setProductItemOpen] = useState(false);
 
+	// Product Item Actions
+	const [selectedProductItem, setSelectedProductItem] =
+		useState<ProductItem | null>(null);
+	const [editProductItemOpen, setEditProductItemOpen] = useState(false);
+	const [deleteProductItemOpen, setDeleteProductItemOpen] = useState(false);
+
 	// Navigation and mutations
 	const navigate = useNavigate();
 	const [deleteProduct, { loading: deleteLoading }] =
 		useDeleteProductMutation();
+	const [deleteProductItem, { loading: deleteProductItemLoading }] =
+		useDeleteProductItemMutation();
 
 	// Create options for react-select
 	const conditionOptions = useMemo(
@@ -128,10 +141,65 @@ const ProductDetails = () => {
 				},
 				header: () => <h4>Status</h4>,
 			},
+			{
+				id: "actions",
+				cell: ({ row }) => {
+					const productItem = row.original;
+					return (
+						<DropdownMenu
+							trigger={
+								<button className="p-2 hover:bg-gray-100 rounded-full">
+									<MoreVertical />
+								</button>
+							}
+							items={[
+								{
+									label: "Edit Product Item",
+									onClick: () => {
+										setSelectedProductItem(productItem);
+										setEditProductItemOpen(true);
+									},
+								},
+								{
+									label: "Delete Product Item",
+									onClick: () => {
+										setSelectedProductItem(productItem);
+										setDeleteProductItemOpen(true);
+									},
+									className: "text-red-600 hover:text-red-700",
+								},
+							]}
+						/>
+					);
+				},
+				header: () => <h4>Actions</h4>,
+			},
 		];
 
 		return baseColumns;
 	}, []);
+
+	// Product Item Action Handlers
+	// const handleEditProductItem = () => {
+	// 	if (selectedProductItem) {
+	// 		// TODO: Implement product item editing
+	// 		console.log("Edit product item:", selectedProductItem);
+	// 		toast("Edit product item functionality coming soon", { type: "info" });
+	// 		setEditProductItemOpen(false);
+	// 	}
+	// };
+
+	const handleDeleteProductItem = () => {
+		if (selectedProductItem) {
+			deleteProductItem({
+				variables: { uuid: selectedProductItem.uuid },
+				onCompleted: () => {
+					toast("Product item deleted successfully", { type: "success" });
+					setDeleteProductItemOpen(false);
+				},
+			});
+		}
+	};
 
 	// Delete product handler
 	const handleDeleteProduct = () => {
@@ -251,7 +319,7 @@ const ProductDetails = () => {
 	const primaryImage = product.images?.[0]?.imageUrl;
 
 	return (
-		<div className="max-w-7xl mx-auto px-4 py-8">
+		<div className="px-4 py-8">
 			{/* Breadcrumb */}
 			<div className="mb-6">
 				<nav className="text-sm">
@@ -266,7 +334,7 @@ const ProductDetails = () => {
 			{/* Main Content Grid */}
 			<div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
 				{/* Image Section */}
-				<div className="lg:col-span-2 space-y-4">
+				<div className="lg:col-span-1 space-y-4">
 					<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
 						{primaryImage ? (
 							<img
@@ -558,6 +626,26 @@ const ProductDetails = () => {
 					});
 				}}
 				selectedProduct={product as Product}
+			/>
+
+			{/* Product Item Modals */}
+			<DeleteModal
+				open={deleteProductItemOpen}
+				setOpen={setDeleteProductItemOpen}
+				refetch={refetch}
+				title="Delete Product Item"
+				copy={`Are you sure you want to delete this product item with serial number ${selectedProductItem?.serialNumber}?`}
+				action={handleDeleteProductItem}
+				loading={deleteProductItemLoading}
+			/>
+
+			{/* Edit Product Item Modal - Placeholder */}
+			<EditInventory
+				open={editProductItemOpen}
+				setOpen={setEditProductItemOpen}
+				refetch={refetch}
+				selectedProduct={products.product as Product}
+				selectedProductItem={selectedProductItem as ProductItem}
 			/>
 		</div>
 	);

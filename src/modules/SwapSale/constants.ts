@@ -1,5 +1,5 @@
 import { Step, SwapSaleFormData } from "./types";
-import { PaymentType, ProductCondition } from "../../generated/graphql";
+import { ProductCondition } from "../../generated/graphql";
 
 export const SWAP_SALE_STEPS: Step[] = [
 	{
@@ -64,5 +64,5 @@ export const INITIAL_SWAP_SALE_FORM_DATA: SwapSaleFormData = {
 	totalAmount: 0,
 	swapDifference: 0,
 	discountAmount: 0,
-	paymentType: PaymentType.Cash,
+	paymentType: null,
 };

@@ -63,6 +63,8 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 		setCostPriceDisplay(
 			numericValue ? formatNaira(parseFloat(numericValue)) : ""
 		);
+		// Trigger validation for both fields
+		trigger(["costPrice", "sellingPrice"]);
 	};
 
 	// Handle selling price change
@@ -72,6 +74,8 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 		setSellingPriceDisplay(
 			numericValue ? formatNaira(parseFloat(numericValue)) : ""
 		);
+		// Trigger validation for both fields
+		trigger(["costPrice", "sellingPrice"]);
 	};
 
 	const {
@@ -80,6 +84,8 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 		formState: { errors },
 		reset,
 		setValue,
+		watch,
+		trigger,
 	} = useForm<CreateInventoryForm>({
 		defaultValues: {
 			productUuid: selectedProduct?.uuid,
@@ -247,6 +253,17 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 										message: "Please enter a valid price",
 									},
 									min: { value: 0.01, message: "Price must be greater than 0" },
+									validate: (value) => {
+										const sellingPrice = watch("sellingPrice");
+										if (sellingPrice && value) {
+											const costPriceNum = parseFloat(value);
+											const sellingPriceNum = parseFloat(sellingPrice);
+											if (costPriceNum > sellingPriceNum) {
+												return "Cost price cannot be higher than selling price";
+											}
+										}
+										return true;
+									},
 								})}
 							/>
 							{errors.costPrice && (
@@ -279,6 +296,17 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 										message: "Please enter a valid price",
 									},
 									min: { value: 0.01, message: "Price must be greater than 0" },
+									validate: (value) => {
+										const costPrice = watch("costPrice");
+										if (costPrice && value) {
+											const costPriceNum = parseFloat(costPrice);
+											const sellingPriceNum = parseFloat(value);
+											if (costPriceNum > sellingPriceNum) {
+												return "Selling price must be higher than cost price";
+											}
+										}
+										return true;
+									},
 								})}
 							/>
 							{errors.sellingPrice && (

@@ -15,6 +15,7 @@ export type SwapPhoneDetails = {
 	color: string;
 	storage: string;
 	condition: ProductCondition | string;
+	estimatedValue?: number;
 };
 
 // Product Item for Swap Sale (similar to DirectSale but simpler)
@@ -29,7 +30,7 @@ export type CreateSwapSaleForm = {
 	customerEmail: string;
 	customerPhone: string;
 	saleType: SaleType;
-	paymentType: PaymentType;
+	paymentType: PaymentType | null;
 	totalAmount: number;
 	discountAmount: number;
 	swapPhoneDetails: SwapPhoneDetails;
@@ -64,7 +65,7 @@ export type SwapSaleFormData = {
 	discountAmount: number;
 
 	// Payment
-	paymentType: PaymentType;
+	paymentType: PaymentType | null;
 };
 
 export interface SwapSaleProps {

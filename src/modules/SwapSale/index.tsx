@@ -8,6 +8,7 @@ import {
 	SaleType,
 	SaleInput,
 	ProductCondition,
+	PaymentType,
 } from "../../generated/graphql";
 import { calculateSwapSubtotal } from "../../utils/swapHelpers";
 import { canProceedToNextStep } from "./validation";
@@ -17,18 +18,28 @@ import StepNavigation from "./StepNavigation";
 import ProductInformation from "./ProductInformation";
 import CustomerDetails from "./CustomerDetails";
 import ReviewOrder from "./ReviewOrder";
+import SwapSaleSuccess from "./SwapSaleSuccess";
+import { toast } from "react-toastify";
 
 const SwapSale: React.FC = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 	const [createSale, { loading: isCreatingSale }] = useCreateSaleMutation();
 	const { data: meData } = useMeQuery();
+	const [saleCompleted, setSaleCompleted] = useState(false);
+	const [completedSaleData, setCompletedSaleData] = useState<{
+		saleId: string;
+		customerName: string;
+		totalAmount: number;
+		saleType: SaleType;
+		paymentType: PaymentType | null;
+		createdAt: string;
+	} | null>(null);
 	const [productItems, setProductItems] = useState<SwapProductItem[]>([
 		{
 			id: "1",
 			productName: "",
 			unitPrice: 0,
-			productItemUuid: "",
-			productUuid: "",
+			serialNumber: "",
 		},
 	]);
 
@@ -40,12 +51,37 @@ const SwapSale: React.FC = () => {
 	const { watch, setValue, handleSubmit } = form;
 	const formData = watch();
 
+	// Success screen handlers
+	const handleNewSale = useCallback(() => {
+		// Reset form and state for new sale
+		form.reset(INITIAL_SWAP_SALE_FORM_DATA);
+		setProductItems([
+			{
+				id: "1",
+				productName: "",
+				unitPrice: 0,
+				serialNumber: "",
+			},
+		]);
+		setCurrentStep(1);
+		setSaleCompleted(false);
+		setCompletedSaleData(null);
+	}, [form]);
+
+	const handleCloseSale = useCallback(() => {
+		// Close the entire swap sale modal/component
+		setSaleCompleted(false);
+		setCompletedSaleData(null);
+		// If this component is in a modal, you might want to call a close function here
+		// onClose?.();
+	}, []);
+
 	// Calculate totals whenever productItems change
 	React.useEffect(() => {
 		const subtotal = calculateSwapSubtotal(productItems);
 		const swapPhoneValue = formData.swapPhoneDetails.estimatedValue || 0;
 		const swapDifference = subtotal - swapPhoneValue;
-		const totalAmount = Math.max(0, swapDifference);
+		const totalAmount = Math.max(0, subtotal);
 
 		setValue("subtotal", subtotal);
 		setValue("totalAmount", totalAmount);
@@ -102,16 +138,16 @@ const SwapSale: React.FC = () => {
 				// Swap phone details (given product information)
 				givenProductUuid: data.swapPhoneDetails.selectedProduct?.uuid || null,
 				givenProductSerialNumber: data.swapPhoneDetails.serialNumber || null,
-				givenProductBrandUuid: data.swapPhoneDetails.brand || null,
+				// givenProductBrandUuid: data.swapPhoneDetails.brand || null,
 				givenProductCondition:
 					(data.swapPhoneDetails.condition as ProductCondition) || null,
 
 				// Sale items (products being sold to customer)
 				items: productItems
-					.filter((item) => item.productUuid && item.productItemUuid)
+					.filter((item) => item.serialNumber)
 					.map((item) => ({
-						productUuid: item.productUuid,
-						productItemUuid: item.productItemUuid,
+						// productUuid: item.productUuid,
+						serialNumber: item.serialNumber,
 						unitPrice: item.unitPrice,
 					})),
 
@@ -121,19 +157,44 @@ const SwapSale: React.FC = () => {
 
 			console.log("Creating sale with data:", saleInput);
 
-			const result = await createSale({
+			await createSale({
 				variables: { input: saleInput },
-			});
+				onCompleted: (response) => {
+					setCompletedSaleData({
+						saleId: response.createSale.uuid,
+						customerName: data.customerName,
+						totalAmount: data.totalAmount,
+						saleType: SaleType.Swap,
+						paymentType: data.paymentType,
+						createdAt: response.createSale.createdAt,
+					});
 
-			if (result.data?.createSale) {
-				console.log("Sale created successfully:", result.data.createSale);
-				// TODO: Handle success (redirect, show success message, etc.)
-			}
+					// Show success screen
+					setSaleCompleted(true);
+				},
+				onError(error) {
+					toast.error(error.message);
+				},
+			});
 		} catch (error) {
-			console.error("Error creating sale:", error);
-			// TODO: Handle error (show error message)
+			console.error("Error creating swap sale:", error);
 		}
 	};
+
+	// Product management functions
+	const handleAddProduct = useCallback(() => {
+		const newProduct: SwapProductItem = {
+			id: Date.now().toString(), // Simple ID generation
+			productName: "",
+			unitPrice: 0,
+			serialNumber: "",
+		};
+		setProductItems((prev) => [...prev, newProduct]);
+	}, []);
+
+	const handleRemoveProduct = useCallback((id: string) => {
+		setProductItems((prev) => prev.filter((item) => item.id !== id));
+	}, []);
 
 	const renderCurrentStep = () => {
 		switch (currentStep) {
@@ -141,6 +202,8 @@ const SwapSale: React.FC = () => {
 				return (
 					<ProductInformation
 						productItems={productItems}
+						onAddProduct={handleAddProduct}
+						onRemoveProduct={handleRemoveProduct}
 						onUpdateProduct={(id, updates) => {
 							setProductItems((prev) =>
 								prev.map((item) =>
@@ -199,6 +262,23 @@ const SwapSale: React.FC = () => {
 				return null;
 		}
 	};
+
+	// Show success screen if sale is completed
+	if (saleCompleted && completedSaleData) {
+		return (
+			<div className="py-[32px]">
+				<div className="bg-white rounded-[10px] w-full">
+					<SwapSaleSuccess
+						saleData={completedSaleData}
+						productItems={productItems}
+						formData={formData}
+						onNewSale={handleNewSale}
+						onClose={handleCloseSale}
+					/>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="py-[32px]">

@@ -76,6 +76,44 @@ const SalesManagement = () => {
 				},
 				header: () => <h4>Created At</h4>,
 			},
+			{
+				accessorKey: "saleType",
+				cell: (info) => {
+					const saleType = info.getValue() as SaleType;
+					const getSaleTypeStyles = (type: SaleType) => {
+						switch (type) {
+							case SaleType.Direct:
+								return "bg-blue-100 text-blue-800";
+							case SaleType.Swap:
+								return "bg-green-100 text-green-800";
+							default:
+								return "bg-gray-100 text-gray-800";
+						}
+					};
+
+					const getSaleTypeLabel = (type: SaleType) => {
+						switch (type) {
+							case SaleType.Direct:
+								return "Direct Sale";
+							case SaleType.Swap:
+								return "Swap Sale";
+							default:
+								return type;
+						}
+					};
+
+					return (
+						<span
+							className={`px-2 py-1 rounded text-xs font-medium ${getSaleTypeStyles(
+								saleType
+							)}`}
+						>
+							{getSaleTypeLabel(saleType)}
+						</span>
+					);
+				},
+				header: () => <h4>Sale Type</h4>,
+			},
 
 			{
 				accessorKey: "saleStatus",

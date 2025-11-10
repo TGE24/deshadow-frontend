@@ -6,13 +6,13 @@ import {
 	Store,
 	useCreateUserMutation,
 	UserRole,
-	useStoresQuery,
+	useStoresLazyQuery,
 } from "../../../generated/graphql";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useUserStore } from "../../../store/userStore";
 import { selectStyles } from "../../../utils/constants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ModalProps {
 	open: boolean;
@@ -31,9 +31,7 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 	});
 	const { user } = useUserStore();
 	const [createUser, { loading }] = useCreateUserMutation();
-	const { data: stores } = useStoresQuery({
-		variables: { pagination: { first: 100 } },
-	});
+	const [getStores, { data: stores }] = useStoresLazyQuery();
 	const {
 		register,
 		handleSubmit,
@@ -106,6 +104,12 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 			},
 		});
 	};
+
+	useEffect(() => {
+		getStores({
+			variables: { pagination: { first: 100 } },
+		});
+	}, [getStores]);
 	return (
 		<Modal
 			open={open}

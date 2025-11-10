@@ -14,6 +14,7 @@ import Input from "../components/Input";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import FilterDropdown from "../components/FilterDropdown";
+import Plus from "../components/Icons/Plus";
 
 // Modals
 
@@ -32,6 +33,8 @@ import {
 
 // Hooks
 import { useDebounce } from "../hooks/useDebounce";
+import AddProduct from "../modules/Modals/Product/AddProduct";
+import Button from "../components/Button";
 
 // Types
 interface SelectOption {
@@ -50,6 +53,7 @@ const Products = () => {
 	// State Management
 	const [page, setPage] = useState(1);
 	const [data, setData] = useState<Product[]>([]);
+	const [open, setOpen] = useState(false);
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
@@ -61,7 +65,8 @@ const Products = () => {
 	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
 
 	// GraphQL Queries
-	const [getProducts, { data: products, loading }] = useProductsLazyQuery();
+	const [getProducts, { data: products, loading, refetch }] =
+		useProductsLazyQuery();
 	// Filter Data Queries
 	const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
 	const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
@@ -228,12 +233,6 @@ const Products = () => {
 		setSelectedCategory("");
 	}, []);
 
-	// Apply filters (for the dropdown)
-	const handleApplyFilters = useCallback(() => {
-		// Filters are applied automatically through useEffect when state changes
-		// This is just a placeholder for the FilterDropdown component
-	}, []);
-
 	// Handle select changes
 	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
 		setSelectedStore(option?.value || "");
@@ -297,6 +296,14 @@ const Products = () => {
 						Manage Products
 					</h2>
 				</div>
+				<Button
+					size="small"
+					icon={<Plus color="#060606" />}
+					onClick={() => setOpen(true)}
+					className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+				>
+					Add Product
+				</Button>
 			</div>
 
 			{/* Search and Filters */}
@@ -324,7 +331,7 @@ const Products = () => {
 						onBrandChange={handleBrandChange}
 						onCategoryChange={handleCategoryChange}
 						onClearFilters={handleClearFilters}
-						onApplyFilters={handleApplyFilters}
+						onApplyFilters={() => {}}
 					/>
 				</div>
 			</div>
@@ -396,6 +403,7 @@ const Products = () => {
 					onPrevPage={handlePrevPage}
 				/>
 			</div>
+			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />
 		</>
 	);
 };

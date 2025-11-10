@@ -1,22 +1,17 @@
 import Input from "../../components/Input";
+import Button from "../../components/Button";
 import SerialNumberAutoSuggest from "../../components/SerialNumberAutoSuggest";
 import Select, { SingleValue } from "react-select";
 import { SwapProductItem, SwapPhoneDetails } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
-import {
-	phoneConditionOptions,
-	// storageOptions,
-} from "./constants";
-import {
-	useProductsQuery,
-	useBrandsQuery,
-	Product,
-	Brand,
-} from "../../generated/graphql";
+import { phoneConditionOptions } from "./constants";
+import { useProductsQuery, Product } from "../../generated/graphql";
 
 interface ProductInformationProps {
 	productItems: SwapProductItem[];
+	onAddProduct: () => void;
+	onRemoveProduct: (id: string) => void;
 	onUpdateProduct: (id: string, updates: Partial<SwapProductItem>) => void;
 	onViewProductDetails: (id: string) => void;
 	discountAmount: number;
@@ -27,6 +22,8 @@ interface ProductInformationProps {
 
 const ProductInformation = ({
 	productItems,
+	onAddProduct,
+	onRemoveProduct,
 	onUpdateProduct,
 	onViewProductDetails,
 	discountAmount,
@@ -36,11 +33,6 @@ const ProductInformation = ({
 }: ProductInformationProps) => {
 	// Fetch products for selection
 	const { data: products } = useProductsQuery({
-		variables: { pagination: { first: 100 } },
-	});
-
-	// Fetch brands for selection
-	const { data: brands } = useBrandsQuery({
 		variables: { pagination: { first: 100 } },
 	});
 
@@ -131,7 +123,42 @@ const ProductInformation = ({
 						className="outline-none focus:outline-none text-[14px]"
 					/>
 
-					<div className="w-full">
+					<Input
+						label="Estimated Value"
+						type="text"
+						placeholder="₦0.00"
+						value={
+							swapPhoneDetails.estimatedValue
+								? formatNaira(swapPhoneDetails.estimatedValue)
+								: ""
+						}
+						onChange={(e) => {
+							// Remove currency symbol and commas, keep only numbers and decimal
+							const numericValue = e.target.value
+								.replace(/₦|,/g, "")
+								.replace(/[^0-9.]/g, "");
+
+							// Parse the numeric value
+							const parsedValue = parseFloat(numericValue) || 0;
+
+							onSwapPhoneDetailsChange({
+								estimatedValue: parsedValue,
+							});
+						}}
+						className="outline-none focus:outline-none text-[14px]"
+					/>
+
+					{/* <div className="w-full">
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+								estimatedValue: parseFloat(e.target.value) || 0,
+							})
+						}
+						className="outline-none focus:outline-none text-[14px]"
+						min="0"
+						step="0.01"
+					/>
+
+					{/* <div className="w-full">
 						<label className="block text-sm font-medium text-gray-700 mb-2">
 							Phone Brand
 						</label>
@@ -182,7 +209,7 @@ const ProductInformation = ({
 								}),
 							}}
 						/>
-					</div>
+					</div> */}
 
 					{/* <Input
 						label="Phone Model"
@@ -301,9 +328,16 @@ const ProductInformation = ({
 						)}
 					>
 						<div className="flex justify-end">
-							{/* Remove button hidden for swap sales - only allow single product */}
-						</div>
-
+							{productItems.length > 1 && (
+								<button
+									type="button"
+									onClick={() => onRemoveProduct(item.id)}
+									className="text-red-500 hover:text-red-700 text-[12px] font-medium px-[8px] py-[4px] rounded-[4px] hover:bg-red-50 transition-colors cursor-pointer"
+								>
+									Remove
+								</button>
+							)}
+						</div>{" "}
 						<div className="flex flex-col gap-[16px]">
 							<div className="w-full">
 								<SerialNumberAutoSuggest
@@ -352,17 +386,23 @@ const ProductInformation = ({
 							<div className="w-full">
 								<Input
 									label="Price"
-									type="number"
-									placeholder="Enter price of item"
-									value={item.unitPrice || ""}
-									onChange={(e) =>
+									type="text"
+									placeholder="₦0.00"
+									value={item.unitPrice ? formatNaira(item.unitPrice) : ""}
+									onChange={(e) => {
+										// Remove currency symbol and commas, keep only numbers and decimal
+										const numericValue = e.target.value
+											.replace(/₦|,/g, "")
+											.replace(/[^0-9.]/g, "");
+
+										// Parse the numeric value
+										const parsedValue = parseFloat(numericValue) || 0;
+
 										onUpdateProduct(item.id, {
-											unitPrice: parseFloat(e.target.value) || 0,
-										})
-									}
+											unitPrice: parsedValue,
+										});
+									}}
 									className="outline-none focus:outline-none text-[14px]"
-									min="0"
-									step="0.01"
 								/>
 							</div>
 
@@ -380,7 +420,15 @@ const ProductInformation = ({
 					</div>
 				))}
 
-				{/* "Add Another Product" button hidden for swap sales - only allow single product */}
+				<Button
+					type="button"
+					variant="secondary"
+					onClick={onAddProduct}
+					className="self-start text-[14px] flex items-center gap-[8px] py-[16px]"
+				>
+					<span>+</span>
+					Add Another Product
+				</Button>
 
 				<div className="bg-[#e7f6f57a] p-[16px] rounded-[8px] border border-blue-100">
 					<div className="space-y-[8px]">

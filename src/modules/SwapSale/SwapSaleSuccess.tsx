@@ -11,7 +11,7 @@ interface SwapSaleSuccessProps {
 		customerName: string;
 		totalAmount: number;
 		saleType: SaleType;
-		paymentType: PaymentType;
+		paymentType: PaymentType | null;
 		createdAt: string;
 	};
 	productItems: SwapProductItem[];
@@ -30,7 +30,10 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 	onClose,
 }) => {
 	// Helper function to format payment type for display
-	const formatPaymentType = (paymentType: PaymentType) => {
+	const formatPaymentType = (paymentType: PaymentType | null) => {
+		if (paymentType === null) {
+			return "None";
+		}
 		switch (paymentType) {
 			case PaymentType.Cash:
 				return "Cash";

@@ -19,7 +19,10 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 	});
 
 	// Helper function to format payment type for display
-	const formatPaymentType = (paymentType: PaymentType) => {
+	const formatPaymentType = (paymentType: PaymentType | null) => {
+		if (paymentType === null) {
+			return "None";
+		}
 		switch (paymentType) {
 			case PaymentType.Cash:
 				return "Cash";
