@@ -2,8 +2,7 @@ import { SwapProductItem } from "../modules/SwapSale/types";
 
 export const createNewSwapProductItem = (): SwapProductItem => ({
 	id: Date.now().toString(),
-	productUuid: "",
-	productItemUuid: "",
+	serialNumber: "",
 	unitPrice: 0,
 	productName: "",
 });

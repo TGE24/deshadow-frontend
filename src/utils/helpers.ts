@@ -3,8 +3,6 @@ import { ProductItem } from "../modules/DirectSale/exports";
 export const createNewProductItem = (): ProductItem => ({
 	id: Date.now().toString(),
 	product: null,
-	productUuid: "",
-	productItemUuid: "",
 	unitPrice: 0,
 	serialNumber: "",
 	productName: "",
