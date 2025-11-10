@@ -4,6 +4,7 @@ import SerialNumberAutoSuggest from "../../components/SerialNumberAutoSuggest";
 import { ProductItem } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
+import { SaleType } from "../../generated/graphql";
 
 interface ProductInformationProps {
 	productItems: ProductItem[];
@@ -13,6 +14,7 @@ interface ProductInformationProps {
 	onViewProductDetails: (id: string) => void;
 	discountAmount: number;
 	onDiscountChange: (value: number) => void;
+	saleType?: SaleType;
 }
 
 const ProductInformation = ({
@@ -23,7 +25,9 @@ const ProductInformation = ({
 	onViewProductDetails,
 	discountAmount,
 	onDiscountChange,
+	saleType,
 }: ProductInformationProps) => {
+	const isCreditSale = saleType === SaleType.Credit;
 	return (
 		<div className="flex flex-col gap-[24px] border border-gray-200 rounded-[10px] p-[20px]">
 			<h3 className="text-[20px] font-semibold">Product Information</h3>
@@ -59,9 +63,9 @@ const ProductInformation = ({
 										// Store minimal product info for display purposes
 										// We need to get the actual product UUID, but for now use the productItem uuid
 										onUpdateProduct(item.id, {
-											product: productItem.product, // We'll handle display using productName
-											productUuid: productItem.product?.uuid, // Use the product item UUID for now
-											productItemUuid: productItem.uuid,
+											product: productItem.product,
+											// productUuid: productItem.product?.uuid,
+											// productItemUuid: productItem.uuid,
 											serialNumber: productItem.serialNumber,
 											// Store product name in a custom field for display
 											productName: productItem.product?.name,
@@ -70,8 +74,8 @@ const ProductInformation = ({
 									} else {
 										onUpdateProduct(item.id, {
 											product: null,
-											productUuid: "",
-											productItemUuid: "",
+											// productUuid: "",
+											// productItemUuid: "",
 											serialNumber: "",
 											productName: "",
 											sellingPrice: undefined,
@@ -95,7 +99,7 @@ const ProductInformation = ({
 										onClick={() => {
 											console.log(item);
 											// Use productItemUuid if available, or fallback to productUuid
-											const uuid = item.productItemUuid || item.productUuid;
+											const uuid = item.serialNumber;
 											if (uuid) {
 												onViewProductDetails(uuid);
 											}
@@ -109,7 +113,7 @@ const ProductInformation = ({
 
 						<div className="w-full">
 							<Input
-								label="Unit Price"
+								label={`Unit Price ${isCreditSale ? "(Optional)" : ""}`}
 								type="text"
 								placeholder="₦0.00"
 								value={item.unitPrice ? formatNaira(item.unitPrice) : ""}
@@ -134,6 +138,7 @@ const ProductInformation = ({
 										? "border-red-500 focus:border-red-500"
 										: ""
 								)}
+								required={!isCreditSale}
 							/>
 							{!!item.sellingPrice &&
 								!!item.unitPrice &&
@@ -142,6 +147,11 @@ const ProductInformation = ({
 										Unit price cannot be lower than selling price
 									</p>
 								)}
+							{isCreditSale && (
+								<p className="text-gray-500 text-xs mt-1">
+									Unit price is optional for credit sales
+								</p>
+							)}
 						</div>
 
 						{item.productName && item.unitPrice > 0 && (
@@ -193,7 +203,7 @@ const ProductInformation = ({
 						<span className="font-bold">
 							{formatNaira(
 								productItems.reduce(
-									(total, item) => total + item.unitPrice,
+									(total, item) => total + (item.unitPrice || 0),
 									0
 								) - (discountAmount || 0)
 							)}

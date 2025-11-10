@@ -1,5 +1,15 @@
-mutation UpdateSaleStatus($uuid: UUID!, $status: SaleStatus!) {
-	updateSaleStatus(uuid: $uuid, status: $status) {
+mutation UpdateSaleStatus(
+	$uuid: UUID!
+	$status: SaleStatus!
+	$totalAmount: Float
+	$paymentType: PaymentType
+) {
+	updateSaleStatus(
+		uuid: $uuid
+		status: $status
+		totalAmount: $totalAmount
+		paymentType: $paymentType
+	) {
 		uuid
 	}
 }

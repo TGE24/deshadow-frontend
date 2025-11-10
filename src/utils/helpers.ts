@@ -11,7 +11,7 @@ export const createNewProductItem = (): ProductItem => ({
 });
 
 export const calculateSubtotal = (productItems: ProductItem[]): number => {
-	return productItems.reduce((total, item) => total + item.unitPrice, 0);
+	return productItems.reduce((total, item) => total + (item.unitPrice || 0), 0);
 };
 
 export const calculateFinalTotal = (

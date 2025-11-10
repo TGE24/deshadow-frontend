@@ -192,7 +192,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 					{label}
 				</label>
 			)}
-			<div className="bg-[#F7F7F7] border border-[#E3E3E3] rounded-[10px] h-[44px] flex items-center transition-all duration-200 focus-within:border-[#3B82F6] hover:border-[#9CA3AF]">
+			<div className="border border-[#E3E3E3] rounded-[10px] h-[44px] flex items-center transition-all duration-200 focus-within:border-[#3B82F6] hover:border-[#9CA3AF]">
 				<input
 					ref={inputRef}
 					type="text"

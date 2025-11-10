@@ -1,4 +1,5 @@
 import { ProductItem, CreateSaleForm } from "./types";
+import { SaleType } from "../../generated/graphql";
 
 export const canProceedToNextStep = (
 	currentStep: number,
@@ -7,12 +8,26 @@ export const canProceedToNextStep = (
 ): boolean => {
 	switch (currentStep) {
 		case 1: // Product Information
-			return productItems.every(
-				(item) =>
-					item.productName &&
+			return productItems.every((item) => {
+				// Product name is always required
+				if (!item.productName) return false;
+
+				// For credit sales, unit price is optional
+				if (formData.saleType === SaleType.Credit) {
+					// If unit price is provided, it must be valid and >= selling price
+					if (item.unitPrice && item.unitPrice > 0) {
+						return !item.sellingPrice || item.unitPrice >= item.sellingPrice;
+					}
+					// If no unit price provided for credit sale, that's okay
+					return true;
+				}
+
+				// For non-credit sales, unit price is required
+				return (
 					item.unitPrice > 0 &&
 					(!item.sellingPrice || item.unitPrice >= item.sellingPrice)
-			);
+				);
+			});
 		case 2: // Customer Details
 			return Boolean(
 				formData.customerName &&

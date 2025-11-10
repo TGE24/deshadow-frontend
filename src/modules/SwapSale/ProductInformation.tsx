@@ -311,15 +311,17 @@ const ProductInformation = ({
 									onSelect={(productItem) => {
 										if (productItem) {
 											onUpdateProduct(item.id, {
-												productUuid: productItem.uuid,
-												productItemUuid: productItem.uuid,
+												// productUuid: productItem.uuid,
+												// productItemUuid: productItem.uuid,
 												productName: productItem.product?.name,
+												serialNumber: productItem.serialNumber,
 											});
 										} else {
 											onUpdateProduct(item.id, {
-												productUuid: "",
-												productItemUuid: "",
+												// productUuid: "",
+												// productItemUuid: "",
 												productName: "",
+												serialNumber: "",
 											});
 										}
 									}}
@@ -335,7 +337,7 @@ const ProductInformation = ({
 										<p
 											className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
 											onClick={() => {
-												const uuid = item.productItemUuid || item.productUuid;
+												const uuid = item.serialNumber;
 												if (uuid) {
 													onViewProductDetails(uuid);
 												}

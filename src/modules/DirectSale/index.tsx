@@ -9,6 +9,7 @@ import {
 	useProductLazyQuery,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
+import { toast } from "react-toastify";
 
 // Import types and constants
 import { DirectSaleProps, CreateSaleForm, ProductItem } from "./types";
@@ -118,17 +119,20 @@ const DirectSale = ({
 			setCurrentStep(currentStep + 1);
 		} else if (currentStep === 1) {
 			// Check for specific validation issues on step 1
-			const hasInvalidPrice = productItems.some(
-				(item) =>
-					item.sellingPrice &&
-					item.unitPrice &&
-					item.unitPrice < item.sellingPrice
-			);
-
-			if (hasInvalidPrice) {
-				alert(
-					"Please ensure all unit prices meet or exceed the minimum selling price before proceeding."
+			// Skip price validation for credit sales
+			if (formData.saleType !== SaleType.Credit) {
+				const hasInvalidPrice = productItems.some(
+					(item) =>
+						item.sellingPrice &&
+						item.unitPrice &&
+						item.unitPrice < item.sellingPrice
 				);
+
+				if (hasInvalidPrice) {
+					toast.error(
+						"Please ensure all unit prices meet or exceed the minimum selling price before proceeding."
+					);
+				}
 			}
 		}
 	};
@@ -162,15 +166,21 @@ const DirectSale = ({
 
 	const onSubmit = async (data: CreateSaleForm) => {
 		// Validate that no product has a unit price lower than selling price
-		const hasInvalidPrice = productItems.some(
-			(item) => item.sellingPrice && item.unitPrice < item.sellingPrice
-		);
-
-		if (hasInvalidPrice) {
-			alert(
-				"Cannot complete sale: Some products have unit prices lower than their selling prices."
+		// Skip this validation for credit sales
+		if (data.saleType !== SaleType.Credit) {
+			const hasInvalidPrice = productItems.some(
+				(item) =>
+					item.sellingPrice &&
+					item.unitPrice &&
+					item.unitPrice < item.sellingPrice
 			);
-			return;
+
+			if (hasInvalidPrice) {
+				toast.error(
+					"Cannot complete sale: Some products have unit prices lower than their selling prices."
+				);
+				return;
+			}
 		}
 
 		const assignedStoreUuid = user?.assignedStore?.uuid ?? "";
@@ -189,8 +199,7 @@ const DirectSale = ({
 					...data,
 					totalAmount: totalAmountAfterDiscount,
 					items: productItems.map((item) => ({
-						productUuid: item.productUuid || "",
-						productItemUuid: item.productItemUuid || "",
+						serialNumber: item.serialNumber || "",
 						unitPrice: item.unitPrice,
 					})),
 					storeUuid,
@@ -229,6 +238,7 @@ const DirectSale = ({
 						}}
 						discountAmount={formData.discountAmount}
 						onDiscountChange={(value) => setValue("discountAmount", value)}
+						saleType={saleType}
 					/>
 				);
 			case 2:
@@ -258,6 +268,7 @@ const DirectSale = ({
 						}}
 						discountAmount={formData.discountAmount}
 						onDiscountChange={(value) => setValue("discountAmount", value)}
+						saleType={saleType}
 					/>
 				);
 		}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+
 import {
 	ColumnDef,
 	flexRender,
@@ -10,20 +10,12 @@ import {
 import { SingleValue } from "react-select";
 
 // Components
-import Button from "../components/Button";
 import Input from "../components/Input";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import DropdownMenu from "../components/DropdownMenu";
 import FilterDropdown from "../components/FilterDropdown";
-import Plus from "../components/Icons/Plus";
-import MoreVertical from "../components/Icons/MoreVertical";
 
 // Modals
-import AddProduct from "../modules/Modals/Product/AddProduct";
-import EditProduct from "../modules/Modals/Product/EditProduct";
-import DeleteModal from "../modules/Modals/DeleteModal";
-import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
 
 // Modules
 import { Pagination } from "../modules/Pagination";
@@ -32,14 +24,11 @@ import { Pagination } from "../modules/Pagination";
 import {
 	Product,
 	ProductItem,
-	UserRole,
-	useDeleteProductMutation,
 	useProductsLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
 	useStoresLazyQuery,
 } from "../generated/graphql";
-import { useUserStore } from "../store/userStore";
 
 // Hooks
 import { useDebounce } from "../hooks/useDebounce";
@@ -57,18 +46,10 @@ const SEARCH_DEBOUNCE_DELAY = 500;
 const Products = () => {
 	// Hooks
 	const navigate = useNavigate();
-	const { user } = useUserStore();
 
 	// State Management
-	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [page, setPage] = useState(1);
 	const [data, setData] = useState<Product[]>([]);
-
-	// Modal States
-	const [open, setOpen] = useState(false);
-	const [productItemOpen, setProductItemOpen] = useState(false);
-	const [editOpen, setEditOpen] = useState(false);
-	const [deleteOpen, setDeleteOpen] = useState(false);
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
@@ -80,13 +61,7 @@ const Products = () => {
 	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
 
 	// GraphQL Queries
-	const [getProducts, { data: products, loading, refetch }] =
-		useProductsLazyQuery({
-			fetchPolicy: "network-only",
-		});
-	const [deleteProduct, { loading: deleteLoading }] =
-		useDeleteProductMutation();
-
+	const [getProducts, { data: products, loading }] = useProductsLazyQuery();
 	// Filter Data Queries
 	const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
 	const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
@@ -169,58 +144,10 @@ const Products = () => {
 			},
 		];
 
-		// Only add Actions column if user is not a reseller
-		// if (user?.role !== UserRole.Reseller) {
-		baseColumns.push({
-			header: "Actions",
-			cell: ({ row }) => (
-				<DropdownMenu
-					trigger={
-						<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-							<MoreVertical className="w-4 h-4" color="black" />
-						</div>
-					}
-					items={[
-						...(user?.role !== UserRole.Reseller
-							? [
-									{
-										label: "Edit",
-										onClick: () => {
-											setSelectedProduct(row.original);
-											setEditOpen(true);
-										},
-									},
-									{
-										label: "Delete",
-										onClick: () => {
-											setDeleteOpen(true);
-											setSelectedProduct(row.original);
-										},
-										className: "text-red-600 hover:bg-red-50",
-									},
-							  ]
-							: []),
-						{
-							label: "View Details",
-							onClick: () => {
-								navigate(`/product/${row.original.uuid}`);
-							},
-						},
-						{
-							label: "Add Product Item",
-							onClick: () => {
-								setProductItemOpen(true);
-								setSelectedProduct(row.original);
-							},
-						},
-					]}
-				/>
-			),
-		});
-		// }
+		// Actions column removed - moved to product details page
 
 		return baseColumns;
-	}, [user?.role, navigate]);
+	}, []);
 
 	// Effects Section
 
@@ -362,20 +289,6 @@ const Products = () => {
 		page,
 	]);
 
-	// Delete product handler
-	const handleDeleteProduct = useCallback(() => {
-		if (selectedProduct) {
-			deleteProduct({
-				variables: { uuid: selectedProduct.uuid },
-				onCompleted: () => {
-					setDeleteOpen(false);
-					refetch();
-					toast("Product deleted successfully", { type: "success" });
-				},
-			});
-		}
-	}, [selectedProduct, deleteProduct, refetch]);
-
 	return (
 		<>
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-[10px]">
@@ -384,16 +297,6 @@ const Products = () => {
 						Manage Products
 					</h2>
 				</div>
-				{user?.role !== UserRole.Reseller && (
-					<Button
-						size="small"
-						icon={<Plus color="#060606" />}
-						onClick={() => setOpen(true)}
-						className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
-					>
-						Add Product
-					</Button>
-				)}
 			</div>
 
 			{/* Search and Filters */}
@@ -452,18 +355,16 @@ const Products = () => {
 					) : data.length === 0 ? (
 						<TableEmptyState
 							title="No products found"
-							description="You haven't added any products yet. Create your first product to get started."
+							description="No products match your current filters."
 							colSpan={columns.length}
-							action={() => setOpen(true)}
-							buttonCopy="Add Product"
 						/>
 					) : (
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
 								<tr
 									key={row.id}
-									className="border-b-[1px] border-[#E3E3E3] cursor-pointer"
-									// onClick={() => navigate(`/product/${row.original.uuid}`)}
+									className="border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-gray-50"
+									onClick={() => navigate(`/product/${row.original.uuid}`)}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<td
@@ -495,30 +396,6 @@ const Products = () => {
 					onPrevPage={handlePrevPage}
 				/>
 			</div>
-
-			<AddProduct open={open} setOpen={setOpen} refetch={refetch} />
-			<EditProduct
-				open={editOpen}
-				setOpen={setEditOpen}
-				refetch={refetch}
-				selectedProduct={selectedProduct}
-			/>
-			<DeleteModal
-				open={deleteOpen}
-				setOpen={setDeleteOpen}
-				refetch={refetch}
-				title="Delete Product"
-				copy={`Are you sure you want to delete ${selectedProduct?.name}?`}
-				action={handleDeleteProduct}
-				loading={deleteLoading}
-			/>
-
-			<CreateInventory
-				open={productItemOpen}
-				setOpen={setProductItemOpen}
-				refetch={refetch}
-				selectedProduct={selectedProduct}
-			/>
 		</>
 	);
 };

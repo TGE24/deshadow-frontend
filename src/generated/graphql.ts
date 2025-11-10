@@ -349,7 +349,9 @@ export type MutationUpdateProductItemArgs = {
 
 
 export type MutationUpdateSaleStatusArgs = {
+  paymentType?: InputMaybe<PaymentType>;
   status: SaleStatus;
+  totalAmount?: InputMaybe<Scalars['Float']['input']>;
   uuid: Scalars['UUID']['input'];
 };
 
@@ -528,17 +530,18 @@ export type ProductItemInput = {
 export enum ProductItemStatus {
   Available = 'available',
   Damaged = 'damaged',
+  Pending = 'pending',
   Reserved = 'reserved',
   Returned = 'returned',
   Sold = 'sold'
 }
 
 export type ProductItemUpdateInput = {
-  condition: ProductCondition;
+  condition?: InputMaybe<ProductCondition>;
   costPrice?: InputMaybe<Scalars['Float']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   sellingPrice?: InputMaybe<Scalars['Float']['input']>;
-  serialNumber: Scalars['String']['input'];
+  serialNumber?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ProductUpdateInput = {
@@ -836,17 +839,15 @@ export type SaleInput = {
   customerName: Scalars['String']['input'];
   customerPhone?: InputMaybe<Scalars['String']['input']>;
   discountAmount?: InputMaybe<Scalars['Float']['input']>;
-  givenProductBrandUuid?: InputMaybe<Scalars['UUID']['input']>;
-  givenProductCategoryUuid?: InputMaybe<Scalars['UUID']['input']>;
   givenProductCondition?: InputMaybe<ProductCondition>;
   givenProductSerialNumber?: InputMaybe<Scalars['String']['input']>;
   givenProductUuid?: InputMaybe<Scalars['UUID']['input']>;
   items: Array<SaleItemInput>;
   notes?: InputMaybe<Scalars['String']['input']>;
-  paymentType: PaymentType;
+  paymentType?: InputMaybe<PaymentType>;
   saleType: SaleType;
   storeUuid: Scalars['UUID']['input'];
-  totalAmount: Scalars['Float']['input'];
+  totalAmount?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type SaleItem = {
@@ -863,8 +864,7 @@ export type SaleItem = {
 };
 
 export type SaleItemInput = {
-  productItemUuid: Scalars['UUID']['input'];
-  productUuid: Scalars['UUID']['input'];
+  serialNumber: Scalars['String']['input'];
   unitPrice: Scalars['Float']['input'];
 };
 
@@ -1111,6 +1111,8 @@ export type UpdateProductMutation = { __typename?: 'Mutation', updateProduct: { 
 export type UpdateSaleStatusMutationVariables = Exact<{
   uuid: Scalars['UUID']['input'];
   status: SaleStatus;
+  totalAmount?: InputMaybe<Scalars['Float']['input']>;
+  paymentType?: InputMaybe<PaymentType>;
 }>;
 
 
@@ -1950,8 +1952,13 @@ export type UpdateProductMutationHookResult = ReturnType<typeof useUpdateProduct
 export type UpdateProductMutationResult = Apollo.MutationResult<UpdateProductMutation>;
 export type UpdateProductMutationOptions = Apollo.BaseMutationOptions<UpdateProductMutation, UpdateProductMutationVariables>;
 export const UpdateSaleStatusDocument = gql`
-    mutation UpdateSaleStatus($uuid: UUID!, $status: SaleStatus!) {
-  updateSaleStatus(uuid: $uuid, status: $status) {
+    mutation UpdateSaleStatus($uuid: UUID!, $status: SaleStatus!, $totalAmount: Float, $paymentType: PaymentType) {
+  updateSaleStatus(
+    uuid: $uuid
+    status: $status
+    totalAmount: $totalAmount
+    paymentType: $paymentType
+  ) {
     uuid
   }
 }
@@ -1973,6 +1980,8 @@ export type UpdateSaleStatusMutationFn = Apollo.MutationFunction<UpdateSaleStatu
  *   variables: {
  *      uuid: // value for 'uuid'
  *      status: // value for 'status'
+ *      totalAmount: // value for 'totalAmount'
+ *      paymentType: // value for 'paymentType'
  *   },
  * });
  */

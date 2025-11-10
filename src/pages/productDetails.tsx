@@ -5,18 +5,28 @@ import {
 	ProductCondition,
 	useProductItemsLazyQuery,
 	useProductLazyQuery,
+	useDeleteProductMutation,
+	Product,
 } from "../generated/graphql";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
 	ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { toast } from "react-toastify";
+import Button from "../components/Button";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import { Pagination } from "../modules/Pagination";
 import { formatCurrency } from "../utils/formatters";
+import Plus from "../components/Icons/Plus";
+
+// Modals
+import EditProduct from "../modules/Modals/Product/EditProduct";
+import DeleteModal from "../modules/Modals/DeleteModal";
+import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
 
 const ProductDetails = () => {
 	const [page, setPage] = useState(1);
@@ -27,6 +37,16 @@ const ProductDetails = () => {
 	const [getProductItems, { data: itemsData }] = useProductItemsLazyQuery();
 	const [data, setData] = useState<ProductItem[]>([]);
 	const { id } = useParams<{ id: string }>();
+
+	// Modal States
+	const [editOpen, setEditOpen] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [productItemOpen, setProductItemOpen] = useState(false);
+
+	// Navigation and mutations
+	const navigate = useNavigate();
+	const [deleteProduct, { loading: deleteLoading }] =
+		useDeleteProductMutation();
 
 	// Create options for react-select
 	const conditionOptions = useMemo(
@@ -112,6 +132,23 @@ const ProductDetails = () => {
 
 		return baseColumns;
 	}, []);
+
+	// Delete product handler
+	const handleDeleteProduct = () => {
+		if (product) {
+			deleteProduct({
+				variables: { uuid: product.uuid },
+				onCompleted: () => {
+					setDeleteOpen(false);
+					toast("Product deleted successfully", { type: "success" });
+					navigate("/products"); // Navigate back to products list
+				},
+				onError: (error) => {
+					toast(`Error deleting product: ${error.message}`, { type: "error" });
+				},
+			});
+		}
+	};
 
 	useEffect(() => {
 		if (itemsData?.productItems?.edges) {
@@ -218,7 +255,9 @@ const ProductDetails = () => {
 			{/* Breadcrumb */}
 			<div className="mb-6">
 				<nav className="text-sm">
-					<span className="text-gray-500">Products</span>
+					<Link to="/products" className="text-gray-500">
+						Products
+					</Link>
 					<span className="text-gray-400 mx-2">/</span>
 					<span className="text-gray-900 font-medium">{product.name}</span>
 				</nav>
@@ -327,6 +366,37 @@ const ProductDetails = () => {
 									{product.items?.length || 0}
 								</span>
 							</div>
+						</div>
+					</div>
+
+					{/* Product Actions */}
+					<div className="space-y-4">
+						<h3 className="text-lg font-semibold text-gray-900">
+							Product Actions
+						</h3>
+						<div className="flex flex-wrap gap-3">
+							<Button
+								size="small"
+								onClick={() => setEditOpen(true)}
+								className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+							>
+								Edit Product
+							</Button>
+							<Button
+								size="small"
+								onClick={() => setProductItemOpen(true)}
+								icon={<Plus color="#059669" />}
+								className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+							>
+								Add Product Item
+							</Button>
+							<Button
+								size="small"
+								onClick={() => setDeleteOpen(true)}
+								className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+							>
+								Delete Product
+							</Button>
 						</div>
 					</div>
 
@@ -458,6 +528,37 @@ const ProductDetails = () => {
 					</div>
 				</div>
 			</div>
+
+			{/* Modals */}
+			<EditProduct
+				open={editOpen}
+				setOpen={setEditOpen}
+				refetch={() => getProduct({ variables: { uuid: id! } })}
+				selectedProduct={product as Product}
+			/>
+			<DeleteModal
+				open={deleteOpen}
+				setOpen={setDeleteOpen}
+				refetch={() => getProduct({ variables: { uuid: id! } })}
+				title="Delete Product"
+				copy={`Are you sure you want to delete ${product?.name}?`}
+				action={handleDeleteProduct}
+				loading={deleteLoading}
+			/>
+			<CreateInventory
+				open={productItemOpen}
+				setOpen={setProductItemOpen}
+				refetch={() => {
+					getProduct({ variables: { uuid: id! } });
+					getProductItems({
+						variables: {
+							filter: { productUuid: id },
+							pagination: { first: 15, after: null },
+						},
+					});
+				}}
+				selectedProduct={product as Product}
+			/>
 		</div>
 	);
 };
