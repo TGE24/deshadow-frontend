@@ -219,6 +219,7 @@ const Dashboard = () => {
 			{ value: "", label: "All Sale Types" },
 			{ value: SaleType.Direct, label: "Direct Sale" },
 			{ value: SaleType.Swap, label: "Swap Sale" },
+			{ value: SaleType.Credit, label: "Credit Sale" },
 		],
 		[]
 	);

@@ -29,7 +29,18 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 						quantity
 						unitPrice
 						lineTotal
+						productItem {
+							serialNumber
+						}
 						product {
+							name
+						}
+					}
+					createdBy {
+						role
+						firstName
+						lastName
+						assignedStore {
 							name
 						}
 					}

@@ -42,6 +42,15 @@ const SalesManagement = () => {
 				header: () => <h4>Total Amount</h4>,
 			},
 			{
+				header: "Created By",
+				cell: ({ row }) => {
+					const value = row.original.createdBy;
+					return `${value?.firstName} ${value?.lastName} (${
+						value?.role.replace("_", " ") ?? ""
+					})`;
+				},
+			},
+			{
 				accessorKey: "createdAt",
 				cell: (info) => {
 					const value = info.getValue() as string;

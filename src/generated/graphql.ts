@@ -501,6 +501,9 @@ export type ProductItem = {
   condition: ProductCondition;
   costPrice?: Maybe<Scalars['Float']['output']>;
   createdAt: Scalars['Time']['output'];
+  externalStoreAddress?: Maybe<Scalars['String']['output']>;
+  externalStoreContact?: Maybe<Scalars['String']['output']>;
+  externalStoreName?: Maybe<Scalars['String']['output']>;
   notes?: Maybe<Scalars['String']['output']>;
   product: Product;
   sellingPrice?: Maybe<Scalars['Float']['output']>;
@@ -521,6 +524,9 @@ export type ProductItemFilter = {
 export type ProductItemInput = {
   condition: ProductCondition;
   costPrice?: InputMaybe<Scalars['Float']['input']>;
+  externalStoreAddress?: InputMaybe<Scalars['String']['input']>;
+  externalStoreContact?: InputMaybe<Scalars['String']['input']>;
+  externalStoreName?: InputMaybe<Scalars['String']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   productUuid: Scalars['UUID']['input'];
   sellingPrice?: InputMaybe<Scalars['Float']['input']>;
@@ -539,6 +545,9 @@ export enum ProductItemStatus {
 export type ProductItemUpdateInput = {
   condition?: InputMaybe<ProductCondition>;
   costPrice?: InputMaybe<Scalars['Float']['input']>;
+  externalStoreAddress?: InputMaybe<Scalars['String']['input']>;
+  externalStoreContact?: InputMaybe<Scalars['String']['input']>;
+  externalStoreName?: InputMaybe<Scalars['String']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   sellingPrice?: InputMaybe<Scalars['Float']['input']>;
   serialNumber?: InputMaybe<Scalars['String']['input']>;
@@ -804,6 +813,7 @@ export enum ReturnStatus {
 export type Sale = {
   __typename?: 'Sale';
   createdAt: Scalars['Time']['output'];
+  createdBy?: Maybe<User>;
   customerEmail?: Maybe<Scalars['String']['output']>;
   customerName: Scalars['String']['output'];
   customerPhone?: Maybe<Scalars['String']['output']>;
@@ -842,6 +852,7 @@ export type SaleInput = {
   givenProductCondition?: InputMaybe<ProductCondition>;
   givenProductSerialNumber?: InputMaybe<Scalars['String']['input']>;
   givenProductUuid?: InputMaybe<Scalars['UUID']['input']>;
+  givenProductValue?: InputMaybe<Scalars['Float']['input']>;
   items: Array<SaleItemInput>;
   notes?: InputMaybe<Scalars['String']['input']>;
   paymentType?: InputMaybe<PaymentType>;
@@ -1203,7 +1214,7 @@ export type ProductItemsQueryVariables = Exact<{
 }>;
 
 
-export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, externalStoreName?: string | null, sellingPrice?: number | null, store: { __typename?: 'Store', name: string }, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1219,7 +1230,7 @@ export type SalesQueryVariables = Exact<{
 }>;
 
 
-export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, product: { __typename?: 'Product', name: string } }> } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, productItem?: { __typename?: 'ProductItem', serialNumber: string } | null, product: { __typename?: 'Product', name: string } }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -2558,6 +2569,10 @@ export const ProductItemsDocument = gql`
           condition
           status
           costPrice
+          externalStoreName
+          store {
+            name
+          }
           sellingPrice
           product {
             availableItemsCount
@@ -2726,7 +2741,18 @@ export const SalesDocument = gql`
             quantity
             unitPrice
             lineTotal
+            productItem {
+              serialNumber
+            }
             product {
+              name
+            }
+          }
+          createdBy {
+            role
+            firstName
+            lastName
+            assignedStore {
               name
             }
           }

@@ -94,6 +94,14 @@ const ProductDetails = () => {
 				header: () => <h4>Selling Price</h4>,
 			},
 			{
+				accessorKey: "store.name",
+				cell: (info) => {
+					const value = info.getValue() as string | null | undefined;
+					return value ?? "N/A";
+				},
+				header: () => <h4>Store Name</h4>,
+			},
+			{
 				accessorKey: "condition",
 				cell: (info) => {
 					const condition = info.getValue() as string;

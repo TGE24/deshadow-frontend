@@ -220,6 +220,11 @@ const DirectSale = ({
 					setSaleCompleted(true);
 				}
 			},
+			onError(error) {
+				toast.error(
+					error.message || "Failed to complete sale. Please try again."
+				);
+			},
 		});
 	};
 

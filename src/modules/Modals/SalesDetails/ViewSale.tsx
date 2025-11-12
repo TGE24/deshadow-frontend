@@ -150,6 +150,22 @@ const ViewSale: React.FC<ViewSaleProps> = ({ open, setOpen, sale }) => {
 								{sale.store?.name || "N/A"}
 							</span>
 						</div>
+						<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px] col-span-2">
+							<span className="text-[14px] font-medium text-gray-700">
+								Created By:
+							</span>
+							<span className="text-[14px] text-gray-800">
+								{sale.createdBy
+									? `${sale.createdBy.firstName} ${sale.createdBy.lastName}${
+											sale.createdBy.role
+												? ` (${sale.createdBy.role
+														.replace("_", " ")
+														.toLocaleUpperCase()})`
+												: ""
+									  }`
+									: "N/A"}
+							</span>
+						</div>
 					</div>
 				</div>
 

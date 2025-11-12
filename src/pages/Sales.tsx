@@ -3,6 +3,7 @@ import { SingleValue } from "react-select";
 import {
 	Sale,
 	SaleType,
+	SaleStatus,
 	useSalesLazyQuery,
 	useStoresLazyQuery,
 } from "../generated/graphql";
@@ -16,11 +17,10 @@ import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import { formatDateTime, formatNaira } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
-import DropdownMenu from "../components/DropdownMenu";
-import MoreVertical from "../components/Icons/MoreVertical";
 import SalesFilterDropdown from "../components/SalesFilterDropdown";
 import { formatToISODateTime } from "../utils/helpers";
 import { Pagination } from "../modules/Pagination";
+import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 
 // Types
 export interface SelectOption {
@@ -30,18 +30,16 @@ export interface SelectOption {
 
 const SalesManagement = () => {
 	const [open, setOpen] = useState(false);
+	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [page, setPage] = useState(1);
-	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
+	const [getSales, { data: sales, loading, refetch }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 	const [data, setData] = useState<Sale[]>([]);
 
 	// Filter States
-	const [selectedSaleTypes, setSelectedSaleTypes] = useState([
-		SaleType.Direct,
-		SaleType.Swap,
-	]);
+	const [selectedSaleTypes, setSelectedSaleTypes] = useState<SaleType[]>([]);
 	const [selectedStore, setSelectedStore] = useState("");
 	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
 
@@ -69,6 +67,15 @@ const SalesManagement = () => {
 				header: () => <h4>Total Amount</h4>,
 			},
 			{
+				header: "Created By",
+				cell: ({ row }) => {
+					const value = row.original.createdBy;
+					return `${value?.firstName} ${value?.lastName} (${
+						value?.role ?? ""
+					})`;
+				},
+			},
+			{
 				accessorKey: "createdAt",
 				cell: (info) => {
 					const value = info.getValue() as string;
@@ -86,6 +93,8 @@ const SalesManagement = () => {
 								return "bg-blue-100 text-blue-800";
 							case SaleType.Swap:
 								return "bg-green-100 text-green-800";
+							case SaleType.Credit:
+								return "bg-orange-100 text-orange-800";
 							default:
 								return "bg-gray-100 text-gray-800";
 						}
@@ -97,6 +106,8 @@ const SalesManagement = () => {
 								return "Direct Sale";
 							case SaleType.Swap:
 								return "Swap Sale";
+							case SaleType.Credit:
+								return "Credit Sale";
 							default:
 								return type;
 						}
@@ -148,36 +159,6 @@ const SalesManagement = () => {
 			},
 		];
 
-		{
-			baseColumns.push({
-				header: "Actions",
-				cell: ({ row }) => (
-					<DropdownMenu
-						trigger={
-							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-								<MoreVertical className="w-4 h-4" color="black" />
-							</div>
-						}
-						items={[
-							{
-								label: "View Sale",
-								onClick: () => {
-									setSelectedSale(row.original);
-									setOpen(true);
-								},
-							},
-							{
-								label: "Update Status",
-								onClick: () => {
-									setSelectedSale(row.original);
-								},
-							},
-						]}
-					/>
-				),
-			});
-		}
-
 		return baseColumns;
 	}, []);
 
@@ -187,6 +168,7 @@ const SalesManagement = () => {
 			{ value: "", label: "All Sale Types" },
 			{ value: SaleType.Direct, label: "Direct Sale" },
 			{ value: SaleType.Swap, label: "Swap Sale" },
+			{ value: SaleType.Credit, label: "Credit Sale" },
 		],
 		[]
 	);
@@ -231,7 +213,7 @@ const SalesManagement = () => {
 	);
 
 	const handleClearFilters = useCallback(() => {
-		setSelectedSaleTypes([SaleType.Direct, SaleType.Swap]);
+		setSelectedSaleTypes([]);
 		setSelectedStore("");
 		setDateRange({ fromDate: "", toDate: "" });
 	}, []);
@@ -398,21 +380,43 @@ const SalesManagement = () => {
 						/>
 					) : (
 						<tbody>
-							{table.getRowModel().rows.map((row) => (
-								<tr key={row.id} className="border-b-[1px] border-[#E3E3E3]">
-									{row.getVisibleCells().map((cell) => (
-										<td
-											key={cell.id}
-											className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</td>
-									))}
-								</tr>
-							))}
+							{table.getRowModel().rows.map((row) => {
+								const sale = row.original;
+								const isCreditPending =
+									sale.saleType === SaleType.Credit &&
+									sale.saleStatus === SaleStatus.Pending;
+
+								return (
+									<tr
+										key={row.id}
+										className={`border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-[#F9F9F9] ${
+											isCreditPending
+												? "bg-orange-50 hover:bg-orange-100 border-orange-200"
+												: ""
+										}`}
+										onClick={() => {
+											setSelectedSale(sale);
+											if (isCreditPending) {
+												setUpdateStatusOpen(true);
+											} else {
+												setOpen(true);
+											}
+										}}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<td
+												key={cell.id}
+												className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+											>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext()
+												)}
+											</td>
+										))}
+									</tr>
+								);
+							})}
 						</tbody>
 					)}
 				</table>
@@ -429,6 +433,12 @@ const SalesManagement = () => {
 				/>
 			</div>
 			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
+			<UpdateStatus
+				open={updateStatusOpen}
+				setOpen={setUpdateStatusOpen}
+				sale={selectedSale}
+				refetch={refetch}
+			/>
 		</>
 	);
 };

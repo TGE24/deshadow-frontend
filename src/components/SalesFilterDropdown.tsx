@@ -51,6 +51,10 @@ const selectStyles = {
 			? "#f3f4f6"
 			: "white",
 	}),
+	menuPortal: (base: Record<string, unknown>) => ({
+		...base,
+		zIndex: 60, // Higher than the dropdown z-index (50)
+	}),
 };
 
 // Helper functions to convert between Date objects and string format
@@ -105,12 +109,20 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 	// Handle clicks outside the dropdown
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node) &&
-				triggerRef.current &&
-				!triggerRef.current.contains(event.target as Node)
-			) {
+			const target = event.target as Node;
+
+			// Check if click is outside the dropdown
+			const isOutsideDropdown =
+				dropdownRef.current && !dropdownRef.current.contains(target);
+			const isOutsideTrigger =
+				triggerRef.current && !triggerRef.current.contains(target);
+
+			// Check if click is on react-select elements (they render in portals)
+			const isReactSelectElement = (target as Element)?.closest?.(
+				'.css-1s2u09g-control, .css-1pahdxg-control, .css-1hwfws3, .css-26l3qy-menu, [class*="react-select"]'
+			);
+
+			if (isOutsideDropdown && isOutsideTrigger && !isReactSelectElement) {
 				setIsOpen(false);
 			}
 		};
@@ -254,15 +266,21 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 										tempSaleTypes.includes(option.value)
 									)}
 									onChange={(selectedOptions) => {
+										// Prevent the clear action from closing the modal
 										const values = selectedOptions
 											? selectedOptions.map((option) => option.value)
 											: [];
 										setTempSaleTypes(values);
 									}}
+									onMenuClose={() => {
+										// Prevent menu close from closing the entire dropdown
+									}}
 									placeholder="Select Sale Types"
 									isClearable
 									isSearchable
 									styles={selectStyles}
+									menuPortalTarget={document.body}
+									menuPosition="fixed"
 								/>
 							</div>
 
@@ -282,6 +300,8 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 										isClearable
 										isSearchable
 										styles={selectStyles}
+										menuPortalTarget={document.body}
+										menuPosition="fixed"
 									/>
 								</div>
 							)}

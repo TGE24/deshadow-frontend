@@ -3,6 +3,8 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
 import { cn } from "../utils/cn";
 import Search from "./Icons/Search";
+import { EyeOffIcon } from "./Icons/EyeCloseIcon";
+import { EyeIcon } from "./Icons/EyeIcon";
 
 interface InputProps
 	extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "placeholder"> {
@@ -43,8 +45,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 		ref
 	) => {
 		const [isFocused, setIsFocused] = useState(false);
+		const [showPassword, setShowPassword] = useState(false);
 		const inputId =
 			id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
+
+		const isPasswordField = type === "password";
+		const inputType = isPasswordField && showPassword ? "text" : type;
+
+		const togglePasswordVisibility = () => {
+			setShowPassword(!showPassword);
+		};
 
 		const getContainerStyles = () => {
 			const baseStyles =
@@ -89,7 +99,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 						)}
 					</label>
 				)}
-				<div className={getContainerStyles()}>
+				<div className={cn(getContainerStyles(), "relative")}>
 					{variant === "search" && !isFocused && (
 						<div className="ml-4 mr-2 text-[#A2A2A2]">
 							<Search />
@@ -99,12 +109,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 						ref={ref}
 						className={cn(
 							"h-full rounded-[10px] w-full bg-transparent placeholder:text-[#A2A2A2] placeholder:text-[14px] font-sfpro outline-none transition-all duration-200",
-							variant === "search" ? "pl-[8px]" : "pl-[12px]"
+							variant === "search" ? "pl-[8px]" : "pl-[12px]",
+							isPasswordField ? "pr-[44px]" : ""
 						)}
 						placeholder={placeholder}
 						name={name}
 						id={inputId}
-						type={type}
+						type={inputType}
 						onFocus={() => setIsFocused(true)}
 						onBlur={() => setIsFocused(false)}
 						aria-invalid={errors ? "true" : "false"}
@@ -112,6 +123,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 						{...register}
 						{...props}
 					/>
+					{isPasswordField && (
+						<button
+							type="button"
+							onClick={togglePasswordVisibility}
+							className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+							aria-label={showPassword ? "Hide password" : "Show password"}
+						>
+							{showPassword ? <EyeOffIcon /> : <EyeIcon />}
+						</button>
+					)}
 				</div>
 				{errors && (
 					<p
