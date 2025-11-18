@@ -880,7 +880,6 @@ export type SaleItemInput = {
 };
 
 export enum SaleStatus {
-  Cancelled = 'cancelled',
   Completed = 'completed',
   Pending = 'pending',
   Returned = 'returned'
