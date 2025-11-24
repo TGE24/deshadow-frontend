@@ -7,9 +7,6 @@ query Product($uuid: UUID!) {
 			uuid
 		}
 		model
-		images {
-			imageUrl
-		}
 		category {
 			name
 			uuid
@@ -17,12 +14,6 @@ query Product($uuid: UUID!) {
 		store {
 			name
 			uuid
-		}
-		images {
-			uuid
-			imageUrl
-			altText
-			isPrimary
 		}
 		description
 		items {

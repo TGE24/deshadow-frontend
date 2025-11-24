@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Sale, SaleType, useSalesLazyQuery } from "../generated/graphql";
+import { ProductItem, useProductItemsLazyQuery } from "../generated/graphql";
 import {
 	ColumnDef,
 	flexRender,
@@ -8,147 +8,135 @@ import {
 } from "@tanstack/react-table";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import { formatNaira, formatDateTime } from "../utils/formatters";
-import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
-import DropdownMenu from "../components/DropdownMenu";
-import MoreVertical from "../components/Icons/MoreVertical";
-import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
+// import { formatNaira, formatDateTime } from "../utils/formatters";
+// import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
+// import DropdownMenu from "../components/DropdownMenu";
+// import MoreVertical from "../components/Icons/MoreVertical";
+// import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 import { Pagination } from "../modules/Pagination";
+import Button from "../components/Button";
+import Plus from "../components/Icons/Plus";
+import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
 
 const SalesManagement = () => {
 	const [open, setOpen] = useState(false);
-	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
-	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
+	// const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
+	// const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [page, setPage] = useState(1);
-	const [getSales, { data: sales, loading, refetch }] = useSalesLazyQuery({
-		fetchPolicy: "network-only",
-	});
+	const [getProductItems, { data: productItems, loading }] =
+		useProductItemsLazyQuery({
+			fetchPolicy: "network-only",
+		});
 
-	const [data, setData] = useState<Sale[]>([]);
+	const [data, setData] = useState<ProductItem[]>([]);
 
-	const columns = useMemo<ColumnDef<Sale>[]>(() => {
-		const baseColumns: ColumnDef<Sale>[] = [
+	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
+		const baseColumns: ColumnDef<ProductItem>[] = [
 			{
-				accessorKey: "customerName",
+				accessorKey: "product.name",
 				cell: (info) => info.getValue(),
-				header: () => <h4>Customer Name</h4>,
+				header: () => <h4>Product Name</h4>,
 			},
 			{
-				accessorKey: "totalAmount",
-				cell: (info) => {
-					const value = info.getValue() as number;
-					return formatNaira(value);
-				},
-				header: () => <h4>Total Amount</h4>,
+				accessorKey: "product.brand.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Brand Name</h4>,
 			},
 			{
-				header: "Created By",
-				cell: ({ row }) => {
-					const value = row.original.createdBy;
-					return `${value?.firstName} ${value?.lastName} (${
-						value?.role.replace("_", " ") ?? ""
-					})`;
-				},
+				accessorKey: "serialNumber",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Serial Number</h4>,
 			},
 			{
-				accessorKey: "createdAt",
-				cell: (info) => {
-					const value = info.getValue() as string;
-					return formatDateTime(value);
-				},
-				header: () => <h4>Created At</h4>,
+				accessorKey: "externalStoreName",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Customer Number</h4>,
 			},
-
 			{
-				accessorKey: "saleStatus",
+				accessorKey: "status",
 				cell: (info) => {
 					const status = info.getValue() as string;
-					const getStatusStyles = (status: string) => {
-						switch (status?.toLowerCase()) {
-							case "completed":
-								return "bg-green-100 text-green-800 border-green-200";
-							case "pending":
-								return "bg-yellow-100 text-yellow-800 border-yellow-200";
-							case "cancelled":
-								return "bg-red-100 text-red-800 border-red-200";
-							case "returned":
-								return "bg-gray-100 text-gray-800 border-gray-200";
-							default:
-								return "bg-gray-100 text-gray-800 border-gray-200";
-						}
-					};
-
 					return (
 						<span
-							className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
-								status
-							)}`}
+							className={`px-2 py-1 rounded text-xs font-medium uppercase ${
+								status === "available"
+									? "bg-green-100 text-green-800"
+									: status === "sold"
+									? "bg-red-100 text-red-800"
+									: status === "reserved"
+									? "bg-blue-100 text-blue-800"
+									: status === "returned"
+									? "bg-yellow-100 text-yellow-800"
+									: status === "damaged"
+									? "bg-gray-100 text-gray-800"
+									: "bg-gray-100 text-gray-800"
+							}`}
 						>
-							{status}
+							{status.replace("_", " ")}
 						</span>
 					);
 				},
-				header: () => <h4>Sale Status</h4>,
+				header: () => <h4>Status</h4>,
 			},
 		];
-		{
-			baseColumns.push({
-				header: "Actions",
-				cell: ({ row }) => (
-					<DropdownMenu
-						trigger={
-							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-								<MoreVertical className="w-4 h-4" color="black" />
-							</div>
-						}
-						items={[
-							{
-								label: "View Sale",
-								onClick: () => {
-									setSelectedSale(row.original);
-									setOpen(true);
-								},
-							},
-							...(row.original.saleStatus?.toLowerCase() !== "completed"
-								? [
-										{
-											label: "Update Status",
-											onClick: () => {
-												setSelectedSale(row.original);
-												setUpdateStatusOpen(true);
-											},
-										},
-								  ]
-								: []),
-						]}
-					/>
-				),
-			});
-		}
+		// {
+		// 	baseColumns.push({
+		// 		header: "Actions",
+		// 		cell: ({ row }) => (
+		// 			<DropdownMenu
+		// 				trigger={
+		// 					<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+		// 						<MoreVertical className="w-4 h-4" color="black" />
+		// 					</div>
+		// 				}
+		// 				items={[
+		// 					{
+		// 						label: "View Sale",
+		// 						onClick: () => {
+		// 							setSelectedSale(row.original);
+		// 							setOpen(true);
+		// 						},
+		// 					},
+		// 					...(row.original.saleStatus?.toLowerCase() !== "completed"
+		// 						? [
+		// 								{
+		// 									label: "Update Status",
+		// 									onClick: () => {
+		// 										setSelectedSale(row.original);
+		// 										setUpdateStatusOpen(true);
+		// 									},
+		// 								},
+		// 						  ]
+		// 						: []),
+		// 				]}
+		// 			/>
+		// 		),
+		// 	});
+		// }
 
 		return baseColumns;
 	}, []);
 
 	useEffect(() => {
-		getSales({
+		getProductItems({
 			variables: {
 				pagination: { first: 10 },
 				filter: {
-					saleTypes: [SaleType.Credit],
+					externalStoreOnly: true,
 				},
 			},
 		});
-	}, [getSales]);
+	}, [getProductItems]);
 
 	useEffect(() => {
-		if (sales?.sales?.edges) {
+		if (productItems?.productItems?.edges) {
 			setData(
-				sales.sales.edges
+				productItems.productItems.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "Sale") as Sale[]
+					.filter((node) => node.__typename === "ProductItem") as ProductItem[]
 			);
 		}
-	}, [sales]);
+	}, [productItems]);
 
 	const table = useReactTable({
 		data,
@@ -157,15 +145,15 @@ const SalesManagement = () => {
 	});
 
 	const nextPage = () => {
-		if (sales?.sales?.pageInfo?.hasNextPage) {
-			getSales({
+		if (productItems?.productItems?.pageInfo?.hasNextPage) {
+			getProductItems({
 				variables: {
 					pagination: {
 						first: 10,
-						after: sales?.sales?.pageInfo?.endCursor,
+						after: productItems?.productItems?.pageInfo?.endCursor,
 					},
 					filter: {
-						saleTypes: [SaleType.Credit],
+						externalStoreOnly: true,
 					},
 				},
 			});
@@ -174,15 +162,15 @@ const SalesManagement = () => {
 	};
 
 	const prevPage = () => {
-		if (sales?.sales?.pageInfo?.hasPreviousPage) {
-			getSales({
+		if (productItems?.productItems?.pageInfo?.hasPreviousPage) {
+			getProductItems({
 				variables: {
 					pagination: {
 						last: 10,
-						before: sales?.sales?.pageInfo?.startCursor,
+						before: productItems?.productItems?.pageInfo?.startCursor,
 					},
 					filter: {
-						saleTypes: [SaleType.Credit],
+						externalStoreOnly: true,
 					},
 				},
 			});
@@ -198,6 +186,14 @@ const SalesManagement = () => {
 						Manage Resellers Record
 					</h2>
 				</div>
+				<Button
+					size="small"
+					icon={<Plus color="#060606" />}
+					onClick={() => setOpen(true)}
+					className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+				>
+					Add Product
+				</Button>
 			</div>
 			<div className="w-full mt-[48px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
@@ -224,8 +220,8 @@ const SalesManagement = () => {
 						<TableLoader columns={columns.length} />
 					) : data.length === 0 ? (
 						<TableEmptyState
-							title="No Sales Found"
-							description="There are no sales records to display. Sales will appear here once they are created."
+							title="No Product Items Found"
+							description="There are no product items to display. Product items will appear here once they are created."
 							colSpan={columns.length}
 						/>
 					) : (
@@ -252,21 +248,41 @@ const SalesManagement = () => {
 				<Pagination
 					page={page}
 					loading={loading}
-					totalCount={sales?.sales.totalCount ?? 0}
+					totalCount={productItems?.productItems.totalCount ?? 0}
 					dataLength={data.length}
-					hasNextPage={sales?.sales?.pageInfo?.hasNextPage ?? false}
-					hasPreviousPage={sales?.sales?.pageInfo?.hasPreviousPage ?? false}
+					hasNextPage={
+						productItems?.productItems?.pageInfo?.hasNextPage ?? false
+					}
+					hasPreviousPage={
+						productItems?.productItems?.pageInfo?.hasPreviousPage ?? false
+					}
 					onNextPage={nextPage}
 					onPrevPage={prevPage}
 				/>
 			</div>
-			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
+
+			<CreateInventory
+				open={open}
+				setOpen={setOpen}
+				refetch={() => {
+					// getProduct({ variables: { uuid: id! } });
+					// getProductItems({
+					// 	variables: {
+					// 		filter: { productUuid: id },
+					// 		pagination: { first: 15, after: null },
+					// 	},
+					// });
+				}}
+				externalProduct={true}
+				// selectedProduct={product as Product}
+			/>
+			{/* <ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
 			<UpdateStatus
 				open={updateStatusOpen}
 				setOpen={setUpdateStatusOpen}
 				sale={selectedSale}
 				refetch={refetch}
-			/>
+			/> */}
 		</>
 	);
 };

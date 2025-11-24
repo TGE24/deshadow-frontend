@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import Modal from "react-responsive-modal";
 import Select from "react-select";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
@@ -18,7 +18,8 @@ interface CreateInventoryModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	refetch: () => void;
-	selectedProduct: Product | null;
+	selectedProduct?: Product | null;
+	externalProduct?: boolean;
 }
 
 interface CreateInventoryForm {
@@ -28,6 +29,10 @@ interface CreateInventoryForm {
 	notes: string;
 	costPrice?: string;
 	sellingPrice?: string;
+	externalStoreName?: string;
+	externalStoreAddress?: string;
+	externalStoreContact?: string;
+	images?: FileList;
 }
 
 const selectStyles = {
@@ -42,6 +47,7 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	setOpen,
 	refetch,
 	selectedProduct,
+	externalProduct = false,
 }) => {
 	const { data: products } = useProductsQuery({
 		variables: { pagination: { first: 100 } },
@@ -50,6 +56,21 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	const [createProductItem, { loading }] = useCreateProductItemMutation();
 	const [costPriceDisplay, setCostPriceDisplay] = useState("");
 	const [sellingPriceDisplay, setSellingPriceDisplay] = useState("");
+	const [currentSelectedProduct, setCurrentSelectedProduct] =
+		useState<Product | null>(selectedProduct || null);
+	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+	const [selectedImages, setSelectedImages] = useState<File[]>([]);
+
+	// Memoized product options
+	const productOptions = useMemo(
+		() =>
+			products?.products.edges.map((product) => ({
+				value: (product.node as Product).uuid,
+				label: (product.node as Product).name,
+				product: product.node as Product,
+			})) || [],
+		[products?.products.edges]
+	);
 
 	// Helper function to extract numeric value from formatted currency
 	const extractNumericValue = (formattedValue: string) => {
@@ -78,6 +99,68 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 		trigger(["costPrice", "sellingPrice"]);
 	};
 
+	// Handle multiple image upload
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = Array.from(e.target.files || []);
+		if (files.length > 0) {
+			// Add new files to existing ones
+			setSelectedImages((prev) => [...prev, ...files]);
+
+			// Create previews for new files
+			files.forEach((file) => {
+				const reader = new FileReader();
+				reader.onloadend = () => {
+					setImagePreviews((prev) => [...prev, reader.result as string]);
+				};
+				reader.readAsDataURL(file);
+			});
+		}
+	};
+
+	// Remove image from selection
+	const removeImage = (index: number) => {
+		setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	// Upload images to the API
+	const uploadImages = async (productItemUuid: string, images: File[]) => {
+		if (images.length === 0) return [];
+
+		const formData = new FormData();
+
+		// Append all images to the same FormData
+		images.forEach((image) => {
+			formData.append("file", image); // Use 'files' for multiple file upload
+		});
+
+		formData.append("product_item_uuid", productItemUuid);
+
+		try {
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL
+				}/api/v1/product-item-images`,
+				{
+					method: "POST",
+					headers: {
+						"X-API-Key": `${import.meta.env.VITE_ENV_UPLOAD_API_KEY}`,
+					},
+					body: formData,
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error(`Failed to upload images: ${response.statusText}`);
+			}
+
+			return await response.json();
+		} catch (error) {
+			console.error("Error uploading images:", error);
+			throw error;
+		}
+	};
+
 	const {
 		register,
 		handleSubmit,
@@ -100,24 +183,59 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 
 	const handleSubmitForm = async (data: CreateInventoryForm) => {
 		try {
+			// Build the base input object
+			const baseInput = {
+				productUuid: selectedProduct?.uuid || data.productUuid,
+				serialNumber: data.serialNumber,
+				condition: data.condition as ProductCondition,
+				notes: data.notes,
+				costPrice: data.costPrice ? parseFloat(data.costPrice) : undefined,
+				sellingPrice: data.sellingPrice
+					? parseFloat(data.sellingPrice)
+					: undefined,
+				// TODO: Add image upload when backend supports it
+				// image: data.image?.[0] || null,
+			};
+
+			// Add external store fields if needed
+			const input = externalProduct
+				? {
+						...baseInput,
+						externalStoreName: data.externalStoreName,
+						externalStoreAddress: data.externalStoreAddress,
+						externalStoreContact: data.externalStoreContact,
+				  }
+				: baseInput;
+
 			await createProductItem({
-				variables: {
-					input: {
-						productUuid: selectedProduct?.uuid,
-						serialNumber: data.serialNumber,
-						condition: data.condition as ProductCondition,
-						notes: data.notes,
-						costPrice: data.costPrice ? parseFloat(data.costPrice) : undefined,
-						sellingPrice: data.sellingPrice
-							? parseFloat(data.sellingPrice)
-							: undefined,
-					},
-				},
-				async onCompleted() {
+				variables: { input },
+				async onCompleted(response) {
+					try {
+						// Upload images if any are selected
+						if (selectedImages.length > 0) {
+							await uploadImages(
+								response.createProductItem.uuid,
+								selectedImages
+							);
+							toast.success(
+								`Product created successfully with ${selectedImages.length} images uploaded`
+							);
+						} else {
+							toast.success("Product created successfully");
+						}
+					} catch (error) {
+						console.error("Error uploading images:", error);
+						toast.warning("Product created but some images failed to upload");
+					}
+
 					setOpen(false);
 					reset();
+					setCurrentSelectedProduct(selectedProduct || null);
+					setCostPriceDisplay("");
+					setSellingPriceDisplay("");
+					setImagePreviews([]);
+					setSelectedImages([]);
 					refetch();
-					toast.success("Product created successfully");
 				},
 				onError(error) {
 					toast.error(error.message);
@@ -132,7 +250,15 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	return (
 		<Modal
 			open={open}
-			onClose={() => setOpen(false)}
+			onClose={() => {
+				setOpen(false);
+				reset();
+				setCurrentSelectedProduct(selectedProduct || null);
+				setCostPriceDisplay("");
+				setSellingPriceDisplay("");
+				setImagePreviews([]);
+				setSelectedImages([]);
+			}}
 			center
 			classNames={{
 				modal:
@@ -153,22 +279,21 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 							Product
 						</label>
 						<Select
-							options={products?.products.edges.map((product) => ({
-								value: (product.node as Product).uuid,
-								label: (product.node as Product).name,
-							}))}
+							options={productOptions}
 							placeholder="Select Product"
 							classNames={selectStyles}
 							onChange={(option) => {
 								setValue("productUuid", option?.value || "", {
 									shouldValidate: true,
 								});
+								setCurrentSelectedProduct(option?.product || null);
 							}}
 							value={
-								selectedProduct
+								currentSelectedProduct
 									? {
-											value: selectedProduct.uuid,
-											label: selectedProduct.name,
+											value: currentSelectedProduct.uuid,
+											label: currentSelectedProduct.name,
+											product: currentSelectedProduct,
 									  }
 									: null
 							}
@@ -315,6 +440,92 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 								</span>
 							)}
 						</div>
+					</div>
+					{externalProduct && (
+						<>
+							<div>
+								<div className="flex flex-col md:flex-row gap-[16px]">
+									<Input
+										placeholder={"Enter Store name"}
+										register={register("externalStoreName")}
+										id="externalStoreName"
+										variant="secondary"
+										label="External Store Name"
+									/>
+									<Input
+										placeholder={"Enter Store Phone Number"}
+										register={register("externalStoreContact")}
+										id="externalStoreContact"
+										variant="secondary"
+										label="External Store Contact"
+									/>
+								</div>
+							</div>
+							<Input
+								placeholder={"Enter Store Address"}
+								register={register("externalStoreAddress")}
+								id="externalStoreAddress"
+								variant="secondary"
+								label="External Store Address"
+							/>
+						</>
+					)}
+
+					{/* Multiple Images Upload Field */}
+					<div className="w-full">
+						<label
+							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+							htmlFor="images"
+						>
+							Product Images (Optional)
+						</label>
+						<div className="w-full">
+							<input
+								id="images"
+								type="file"
+								accept="image/*"
+								multiple
+								{...register("images")}
+								onChange={handleImageChange}
+								className="w-full h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[12px] outline-none focus:outline-none text-[14px] flex items-center file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+							/>
+							{imagePreviews.length > 0 && (
+								<div className="mt-[12px] grid grid-cols-3 gap-[8px]">
+									{imagePreviews.map((preview, index) => (
+										<div key={index} className="relative">
+											<img
+												src={preview}
+												alt={`Preview ${index + 1}`}
+												className="w-full h-[80px] object-cover rounded-[6px] border border-gray-200"
+											/>
+											<button
+												type="button"
+												onClick={() => removeImage(index)}
+												className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+											>
+												×
+											</button>
+											{index === 0 && (
+												<div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
+													Primary
+												</div>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+							{imagePreviews.length > 0 && (
+								<p className="text-xs text-gray-500 mt-2">
+									{imagePreviews.length} image(s) selected. First image will be
+									set as primary.
+								</p>
+							)}
+						</div>
+						{errors.images && (
+							<span className="text-red-500 text-sm">
+								{errors.images.message}
+							</span>
+						)}
 					</div>
 
 					<Input

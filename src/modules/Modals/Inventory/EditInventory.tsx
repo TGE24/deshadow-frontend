@@ -30,6 +30,7 @@ interface CreateInventoryForm {
 	notes: string;
 	costPrice?: string;
 	sellingPrice?: string;
+	images?: FileList;
 }
 
 const selectStyles = {
@@ -57,6 +58,8 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		value: ProductCondition;
 		label: string;
 	} | null>(null);
+	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+	const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
 	// Initialize display values with default data
 	useEffect(() => {
@@ -122,6 +125,68 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		trigger(["costPrice", "sellingPrice"]);
 	};
 
+	// Handle multiple image upload
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = Array.from(e.target.files || []);
+		if (files.length > 0) {
+			// Add new files to existing ones
+			setSelectedImages((prev) => [...prev, ...files]);
+
+			// Create previews for new files
+			files.forEach((file) => {
+				const reader = new FileReader();
+				reader.onloadend = () => {
+					setImagePreviews((prev) => [...prev, reader.result as string]);
+				};
+				reader.readAsDataURL(file);
+			});
+		}
+	};
+
+	// Remove image from selection
+	const removeImage = (index: number) => {
+		setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+	};
+
+	// Upload images to the API
+	const uploadImages = async (productItemUuid: string, images: File[]) => {
+		if (images.length === 0) return [];
+
+		const formData = new FormData();
+
+		// Append all images to the same FormData
+		images.forEach((image) => {
+			formData.append("file", image); // Use 'files' for multiple file upload
+		});
+
+		formData.append("product_item_uuid", productItemUuid);
+
+		try {
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL
+				}/api/v1/product-item-images`,
+				{
+					method: "POST",
+					headers: {
+						"X-API-Key": `${import.meta.env.VITE_ENV_UPLOAD_API_KEY}`,
+					},
+					body: formData,
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error(`Failed to upload images: ${response.statusText}`);
+			}
+
+			return await response.json();
+		} catch (error) {
+			console.error("Error uploading images:", error);
+			throw error;
+		}
+	};
+
 	const {
 		register,
 		handleSubmit,
@@ -165,6 +230,9 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 						? String(selectedProductItem.sellingPrice)
 						: "",
 			});
+			// Reset image states when switching product items
+			setImagePreviews([]);
+			setSelectedImages([]);
 		}
 	}, [selectedProductItem, selectedProduct, reset]);
 
@@ -183,6 +251,8 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		setCostPriceDisplay("");
 		setSellingPriceDisplay("");
 		setSelectedCondition(null);
+		setImagePreviews([]);
+		setSelectedImages([]);
 	};
 
 	const handleSubmitForm = async (data: CreateInventoryForm) => {
@@ -201,10 +271,24 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 					},
 				},
 				async onCompleted() {
+					// Upload images if any are selected
+					if (selectedImages.length > 0 && selectedProductItem?.uuid) {
+						try {
+							await uploadImages(selectedProductItem.uuid, selectedImages);
+							toast.success("Product and images updated successfully");
+						} catch (error) {
+							console.error("Error uploading images:", error);
+							toast.success(
+								"Product updated successfully, but some images failed to upload"
+							);
+						}
+					} else {
+						toast.success("Product updated successfully");
+					}
+
 					handleClose();
 					reset();
 					refetch();
-					toast.success("Product updated successfully");
 				},
 				onError(error) {
 					toast.error(error.message);
@@ -415,6 +499,63 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 						register={register("notes")}
 						errors={errors.notes}
 					/>
+
+					{/* Multiple Images Upload Field */}
+					<div className="w-full">
+						<label
+							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+							htmlFor="images"
+						>
+							Product Images (Optional)
+						</label>
+						<div className="w-full">
+							<input
+								id="images"
+								type="file"
+								accept="image/*"
+								multiple
+								{...register("images")}
+								onChange={handleImageChange}
+								className="w-full h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[12px] outline-none focus:outline-none text-[14px] flex items-center file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+							/>
+							{imagePreviews.length > 0 && (
+								<div className="mt-[12px] grid grid-cols-3 gap-[8px]">
+									{imagePreviews.map((preview, index) => (
+										<div key={index} className="relative">
+											<img
+												src={preview}
+												alt={`Preview ${index + 1}`}
+												className="w-full h-[80px] object-cover rounded-[6px] border border-gray-200"
+											/>
+											<button
+												type="button"
+												onClick={() => removeImage(index)}
+												className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+											>
+												×
+											</button>
+											{index === 0 && (
+												<div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-1 rounded">
+													Primary
+												</div>
+											)}
+										</div>
+									))}
+								</div>
+							)}
+							{imagePreviews.length > 0 && (
+								<p className="text-xs text-gray-500 mt-2">
+									{imagePreviews.length} image(s) selected. First image will be
+									set as primary.
+								</p>
+							)}
+						</div>
+						{errors.images && (
+							<span className="text-red-500 text-sm">
+								{errors.images.message}
+							</span>
+						)}
+					</div>
 				</div>
 				<Button
 					size="large"

@@ -3,6 +3,7 @@ import Select from "react-select";
 import {
 	ProductItem,
 	ProductCondition,
+	ProductItemStatus,
 	useProductItemsLazyQuery,
 	useProductLazyQuery,
 	useDeleteProductMutation,
@@ -75,6 +76,44 @@ const ProductDetails = () => {
 
 	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
 		const baseColumns: ColumnDef<ProductItem>[] = [
+			{
+				id: "image",
+				cell: ({ row }) => {
+					const productItem = row.original;
+					const primaryImage =
+						productItem.images?.find((img) => img.isPrimary) ||
+						productItem.images?.[0];
+
+					return (
+						<div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border">
+							{primaryImage ? (
+								<img
+									src={`${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}${
+										primaryImage.imageUrl
+									}`}
+									alt={primaryImage.altText || "Product image"}
+									className="w-full h-full object-cover"
+								/>
+							) : (
+								<svg
+									className="w-6 h-6 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={1}
+										d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+									/>
+								</svg>
+							)}
+						</div>
+					);
+				},
+				header: () => <h4>Image</h4>,
+			},
 			{
 				accessorKey: "product.name",
 				cell: (info) => info.getValue(),
@@ -324,7 +363,7 @@ const ProductDetails = () => {
 	};
 
 	// Get the first image if available
-	const primaryImage = product.images?.[0]?.imageUrl;
+	const primaryImage = "";
 
 	return (
 		<div className="px-4 py-8">
@@ -373,7 +412,7 @@ const ProductDetails = () => {
 					</div>
 
 					{/* Additional Images Thumbnails */}
-					{product.images && product.images.length > 1 && (
+					{/* {product.images && product.images.length > 1 && (
 						<div className="flex gap-2 overflow-x-auto">
 							{product.images.slice(1, 5).map((image, index) => (
 								<div
@@ -381,14 +420,14 @@ const ProductDetails = () => {
 									className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded border overflow-hidden"
 								>
 									<img
-										src={image.imageUrl}
+										src={`${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}${image.imageUrl}`}
 										alt={`${product.name} ${index + 2}`}
 										className="w-full h-full object-cover"
 									/>
 								</div>
 							))}
 						</div>
-					)}
+					)} */}
 				</div>
 
 				{/* Product Details Section */}
@@ -404,13 +443,21 @@ const ProductDetails = () => {
 					</div>
 
 					{/* Availability Status */}
-					{product.items && product.items.length > 0 && (
-						<div className="flex items-center gap-4">
-							<span className="text-sm font-medium text-gray-600">
-								Available Items: {product.items.length}
-							</span>
-						</div>
-					)}
+					{/* {product.items &&
+						product.items.filter(
+							(item) => item.status === ProductItemStatus.Available
+						).length > 0 && (
+							<div className="flex items-center gap-4">
+								<span className="text-sm font-medium text-gray-600">
+									Available Items:{" "}
+									{
+										product.items.filter(
+											(item) => item.status === ProductItemStatus.Available
+										).length
+									}
+								</span>
+							</div>
+						)} */}
 
 					{/* Description */}
 					{product.description && (
@@ -437,9 +484,11 @@ const ProductDetails = () => {
 								</div>
 							)}
 							<div className="flex justify-between">
-								<span className="text-gray-600">Total Items:</span>
+								<span className="text-gray-600">Available Items:</span>
 								<span className="font-medium">
-									{product.items?.length || 0}
+									{product.items?.filter(
+										(item) => item.status === ProductItemStatus.Available
+									)?.length || 0}
 								</span>
 							</div>
 						</div>

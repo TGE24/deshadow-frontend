@@ -15,6 +15,7 @@ import Stores from "./pages/stores";
 import SalesManagement from "./pages/Sales";
 import SetPassword from "./pages/set-password";
 import ProductDetails from "./pages/productDetails";
+import Inventory from "./pages/inventory";
 
 function App() {
 	return (
@@ -38,6 +39,7 @@ function App() {
 									<Route path="/brands" element={<Brand />} />
 									<Route path="/users" element={<Users />} />
 									<Route path="/products" element={<Products />} />
+									<Route path="/inventory" element={<Inventory />} />
 									<Route path="/stores" element={<Stores />} />
 									<Route path="/sale" element={<SalesManagement />} />
 								</Routes>

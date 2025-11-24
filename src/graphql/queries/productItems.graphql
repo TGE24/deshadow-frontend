@@ -13,6 +13,15 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 						name
 					}
 					sellingPrice
+					images {
+						uuid
+						imageUrl
+						altText
+						isPrimary
+						sortOrder
+						createdAt
+						updatedAt
+					}
 					product {
 						availableItemsCount
 						createdAt
@@ -22,6 +31,14 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 						name
 						updatedAt
 						uuid
+						brand {
+							name
+							uuid
+						}
+						category {
+							name
+							uuid
+						}
 					}
 				}
 			}
