@@ -3,23 +3,24 @@ import { createPortal } from "react-dom";
 import {
 	useProductItemsLazyQuery,
 	ProductItemStatus,
-	Product,
+	// Product,
+	ProductItem,
 } from "../generated/graphql";
 import { useDebounce } from "../hooks/useDebounce";
 
-interface ProductItemResult {
-	__typename: "ProductItem";
-	uuid: string;
-	serialNumber: string;
-	condition: string;
-	status: ProductItemStatus;
-	product: Partial<Product>;
-	sellingPrice?: number;
-}
+// interface ProductItemResult {
+// 	__typename: "ProductItem";
+// 	uuid: string;
+// 	serialNumber: string;
+// 	condition: string;
+// 	status: ProductItemStatus;
+// 	product: Partial<Product>;
+// 	sellingPrice?: number;
+// }
 
 interface SerialNumberAutoSuggestProps {
 	value: string;
-	onSelect: (item: ProductItemResult | null) => void;
+	onSelect: (item: ProductItem | null) => void;
 	placeholder?: string;
 	label?: string;
 	className?: string;
@@ -34,7 +35,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 }) => {
 	const [inputValue, setInputValue] = useState(value);
 	const [isOpen, setIsOpen] = useState(false);
-	const [suggestions, setSuggestions] = useState<ProductItemResult[]>([]);
+	const [suggestions, setSuggestions] = useState<ProductItem[]>([]);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [loading, setLoading] = useState(false);
 	const [isItemSelected, setIsItemSelected] = useState(false);
@@ -99,7 +100,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 					const results = data.productItems.edges
 						.map((edge) => edge.node)
 						.filter((node) => node.__typename === "ProductItem")
-						.map((node) => node as ProductItemResult);
+						.map((node) => node as ProductItem);
 
 					setSuggestions(results);
 					setIsOpen(results.length > 0);
@@ -157,7 +158,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 		}
 	};
 
-	const handleSelectItem = (item: ProductItemResult) => {
+	const handleSelectItem = (item: ProductItem) => {
 		setInputValue(item.serialNumber);
 		setIsOpen(false);
 		setSelectedIndex(-1);

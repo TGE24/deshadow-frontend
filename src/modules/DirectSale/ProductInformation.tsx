@@ -69,7 +69,7 @@ const ProductInformation = ({
 											serialNumber: productItem.serialNumber,
 											// Store product name in a custom field for display
 											productName: productItem.product?.name,
-											sellingPrice: productItem.sellingPrice,
+											sellingPrice: productItem.sellingPrice ?? 0,
 										});
 									} else {
 										onUpdateProduct(item.id, {
@@ -97,8 +97,6 @@ const ProductInformation = ({
 									<p
 										className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
 										onClick={() => {
-											console.log(item);
-											// Use productItemUuid if available, or fallback to productUuid
 											const uuid = item.serialNumber;
 											if (uuid) {
 												onViewProductDetails(uuid);

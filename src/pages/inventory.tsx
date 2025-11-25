@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 import {
 	ColumnDef,
@@ -7,13 +7,13 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { SingleValue } from "react-select";
+// import { SingleValue } from "react-select";
 
 // Components
 import Input from "../components/Input";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import FilterDropdown from "../components/FilterDropdown";
+// import FilterDropdown from "../components/FilterDropdown";
 
 // Modals
 
@@ -23,30 +23,21 @@ import { Pagination } from "../modules/Pagination";
 // GraphQL & Store
 import {
 	ProductItem,
-	useBrandsLazyQuery,
-	useCategoriesLazyQuery,
-	useStoresLazyQuery,
 	useProductItemsLazyQuery,
 	ProductItemStatus,
 } from "../generated/graphql";
 
 // Hooks
-import { useDebounce } from "../hooks/useDebounce";
+// import { useDebounce } from "../hooks/useDebounce";
 import { formatCurrency } from "../utils/formatters";
-
-// Types
-interface SelectOption {
-	value: string;
-	label: string;
-}
 
 // Constants
 const ITEMS_PER_PAGE = 10;
-const SEARCH_DEBOUNCE_DELAY = 500;
+// const SEARCH_DEBOUNCE_DELAY = 500;
 
 const Inventory = () => {
 	// Hooks
-	const navigate = useNavigate();
+	// const navigate = useNavigate();
 
 	// State Management
 	const [page, setPage] = useState(1);
@@ -54,70 +45,70 @@ const Inventory = () => {
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
-	const [selectedStore, setSelectedStore] = useState("");
-	const [selectedBrand, setSelectedBrand] = useState("");
-	const [selectedCategory, setSelectedCategory] = useState("");
+	// const [selectedStore, setSelectedStore] = useState("");
+	// const [selectedBrand, setSelectedBrand] = useState("");
+	// const [selectedCategory, setSelectedCategory] = useState("");
 
 	// Debounced search term to prevent excessive API calls
-	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
+	// const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
 
 	// GraphQL Queries
 	const [getProductItems, { data: products, loading }] =
 		useProductItemsLazyQuery();
 	// Filter Data Queries
-	const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
-	const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
-	const [getStores, { data: storesData }] = useStoresLazyQuery();
+	// const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
+	// const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
+	// const [getStores, { data: storesData }] = useStoresLazyQuery();
 
 	// Memoized select options
-	const storeOptions = useMemo((): SelectOption[] => {
-		const options: SelectOption[] = [{ value: "", label: "All Stores" }];
+	// const storeOptions = useMemo((): SelectOption[] => {
+	// 	const options: SelectOption[] = [{ value: "", label: "All Stores" }];
 
-		if (storesData?.stores?.edges) {
-			storesData.stores.edges.forEach((edge) => {
-				const store = edge.node;
-				if (store.__typename === "Store" && store.uuid && store.name) {
-					options.push({ value: store.uuid, label: store.name });
-				}
-			});
-		}
+	// 	if (storesData?.stores?.edges) {
+	// 		storesData.stores.edges.forEach((edge) => {
+	// 			const store = edge.node;
+	// 			if (store.__typename === "Store" && store.uuid && store.name) {
+	// 				options.push({ value: store.uuid, label: store.name });
+	// 			}
+	// 		});
+	// 	}
 
-		return options;
-	}, [storesData?.stores?.edges]);
+	// 	return options;
+	// }, [storesData?.stores?.edges]);
 
-	const brandOptions = useMemo((): SelectOption[] => {
-		const options: SelectOption[] = [{ value: "", label: "All Brands" }];
+	// const brandOptions = useMemo((): SelectOption[] => {
+	// 	const options: SelectOption[] = [{ value: "", label: "All Brands" }];
 
-		if (brandsData?.brands?.edges) {
-			brandsData.brands.edges.forEach((edge) => {
-				const brand = edge.node;
-				if (brand.__typename === "Brand" && brand.uuid && brand.name) {
-					options.push({ value: brand.uuid, label: brand.name });
-				}
-			});
-		}
+	// 	if (brandsData?.brands?.edges) {
+	// 		brandsData.brands.edges.forEach((edge) => {
+	// 			const brand = edge.node;
+	// 			if (brand.__typename === "Brand" && brand.uuid && brand.name) {
+	// 				options.push({ value: brand.uuid, label: brand.name });
+	// 			}
+	// 		});
+	// 	}
 
-		return options;
-	}, [brandsData?.brands?.edges]);
+	// 	return options;
+	// }, [brandsData?.brands?.edges]);
 
-	const categoryOptions = useMemo((): SelectOption[] => {
-		const options: SelectOption[] = [{ value: "", label: "All Categories" }];
+	// const categoryOptions = useMemo((): SelectOption[] => {
+	// 	const options: SelectOption[] = [{ value: "", label: "All Categories" }];
 
-		if (categoriesData?.categories?.edges) {
-			categoriesData.categories.edges.forEach((edge) => {
-				const category = edge.node;
-				if (
-					category.__typename === "Category" &&
-					category.uuid &&
-					category.name
-				) {
-					options.push({ value: category.uuid, label: category.name });
-				}
-			});
-		}
+	// 	if (categoriesData?.categories?.edges) {
+	// 		categoriesData.categories.edges.forEach((edge) => {
+	// 			const category = edge.node;
+	// 			if (
+	// 				category.__typename === "Category" &&
+	// 				category.uuid &&
+	// 				category.name
+	// 			) {
+	// 				options.push({ value: category.uuid, label: category.name });
+	// 			}
+	// 		});
+	// 	}
 
-		return options;
-	}, [categoriesData?.categories?.edges]);
+	// 	return options;
+	// }, [categoriesData?.categories?.edges]);
 
 	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
 		const baseColumns: ColumnDef<ProductItem>[] = [
@@ -189,12 +180,12 @@ const Inventory = () => {
 	// Effects Section
 
 	// Load filter data on component mount
-	useEffect(() => {
-		getBrands({ variables: { pagination: { first: 100 } } });
-		getCategories({ variables: { pagination: { first: 100 } } });
+	// useEffect(() => {
+	// 	getBrands({ variables: { pagination: { first: 100 } } });
+	// 	getCategories({ variables: { pagination: { first: 100 } } });
 
-		getStores({ variables: { pagination: { first: 100 } } });
-	}, [getBrands, getCategories, getStores]);
+	// 	getStores({ variables: { pagination: { first: 100 } } });
+	// }, [getBrands, getCategories, getStores]);
 
 	// Load products with filters (using debounced search term)
 	useEffect(() => {
@@ -209,10 +200,10 @@ const Inventory = () => {
 		setPage(1);
 	}, [
 		getProductItems,
-		debouncedSearchTerm,
-		selectedStore,
-		selectedBrand,
-		selectedCategory,
+		// debouncedSearchTerm,
+		// selectedStore,
+		// selectedBrand,
+		// selectedCategory,
 	]);
 
 	// Process products data
@@ -236,28 +227,28 @@ const Inventory = () => {
 	// Event Handlers
 
 	// Clear all filters
-	const handleClearFilters = useCallback(() => {
-		setSearchTerm("");
-		setSelectedStore("");
-		setSelectedBrand("");
-		setSelectedCategory("");
-	}, []);
+	// const handleClearFilters = useCallback(() => {
+	// 	setSearchTerm("");
+	// 	setSelectedStore("");
+	// 	setSelectedBrand("");
+	// 	setSelectedCategory("");
+	// }, []);
 
 	// Handle select changes
-	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
-		setSelectedStore(option?.value || "");
-	}, []);
+	// const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
+	// 	setSelectedStore(option?.value || "");
+	// }, []);
 
-	const handleBrandChange = useCallback((option: SingleValue<SelectOption>) => {
-		setSelectedBrand(option?.value || "");
-	}, []);
+	// const handleBrandChange = useCallback((option: SingleValue<SelectOption>) => {
+	// 	setSelectedBrand(option?.value || "");
+	// }, []);
 
-	const handleCategoryChange = useCallback(
-		(option: SingleValue<SelectOption>) => {
-			setSelectedCategory(option?.value || "");
-		},
-		[]
-	);
+	// const handleCategoryChange = useCallback(
+	// 	(option: SingleValue<SelectOption>) => {
+	// 		setSelectedCategory(option?.value || "");
+	// 	},
+	// 	[]
+	// );
 
 	// Pagination handlers
 	const handleNextPage = useCallback(() => {

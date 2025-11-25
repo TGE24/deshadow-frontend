@@ -3,5 +3,19 @@ query ProductItem($uuid: UUID, $serialNumber: String) {
 		uuid
 		condition
 		status
+		sellingPrice
+		serialNumber
+		product {
+			name
+		}
+		images {
+			uuid
+			imageUrl
+			altText
+			isPrimary
+			sortOrder
+			createdAt
+			updatedAt
+		}
 	}
 }

@@ -8,6 +8,7 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 					condition
 					status
 					costPrice
+					sellingPrice
 					externalStoreName
 					store {
 						name

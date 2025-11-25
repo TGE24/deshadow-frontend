@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import {
 	SaleType,
 	PaymentType,
-	Product,
 	useCreateSaleMutation,
-	useProductLazyQuery,
+	useProductItemLazyQuery,
+	ProductItem as ProductItemType,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 import { toast } from "react-toastify";
@@ -33,7 +33,7 @@ const DirectSale = ({
 	setOpen,
 	saleType = SaleType.Direct,
 }: DirectSaleProps) => {
-	const { setProduct } = useProductStore();
+	const { setProductItem } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
 	const [currentStep, setCurrentStep] = useState(1);
@@ -55,21 +55,21 @@ const DirectSale = ({
 		}>;
 	} | null>(null);
 
-	const [getProduct, { data }] = useProductLazyQuery();
+	const [getProductItem, { data }] = useProductItemLazyQuery();
 
 	const handleViewProductDetails = (productUuid: string) => {
-		getProduct({
+		getProductItem({
 			variables: {
-				uuid: productUuid,
+				serialNumber: productUuid,
 			},
 		});
 	};
 
 	useEffect(() => {
-		if (data && data.product) {
-			setProduct(data.product as Product);
+		if (data && data.productItem) {
+			setProductItem(data.productItem as ProductItemType);
 		}
-	}, [data, setProduct]);
+	}, [data, setProductItem]);
 
 	const { register, handleSubmit, setValue, watch } = useForm<CreateSaleForm>({
 		defaultValues: {
