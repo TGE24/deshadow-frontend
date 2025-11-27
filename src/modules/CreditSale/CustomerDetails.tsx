@@ -10,6 +10,7 @@ import {
 	PaymentType,
 	ProductCondition,
 	useProductsQuery,
+	Product,
 } from "../../generated/graphql";
 import { formatNaira } from "../../utils/formatters";
 
@@ -54,7 +55,7 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 	const swapProductOptions = productsData?.products.edges
 		.filter((edge) => edge.node.__typename === "Product")
 		.map((edge) => {
-			const product = edge.node;
+			const product = edge.node as Product;
 			return {
 				value: product.uuid,
 				label: product.name,
@@ -188,13 +189,11 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 								classNames={selectStyles}
 								onChange={(option) => {
 									if (option) {
-										setValue(
-											"swapPhoneDetails.selectedProduct",
-											option.product
-										);
+										const product = option.product as Product;
+										setValue("swapPhoneDetails.selectedProduct", product);
 										setValue(
 											"swapPhoneDetails.brand",
-											option.product.brand?.uuid || ""
+											product.brand?.uuid || ""
 										);
 									}
 								}}
