@@ -25,8 +25,9 @@ interface LayoutProps {
 
 interface MenuItem {
 	name: string;
-	link: string;
+	link?: string;
 	icon: ReactNode;
+	subItems?: { name: string; link: string }[];
 }
 
 // Menu configurations
@@ -34,7 +35,14 @@ const STORE_OWNER_MENU: MenuItem[] = [
 	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
 	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
 	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
-	{ name: "Resellers Record", link: "/credit", icon: <Credit /> },
+	{
+		name: "Resellers",
+		icon: <Credit />,
+		subItems: [
+			{ name: "Resellers Sale", link: "/resellers-sale" },
+			{ name: "Resellers Record", link: "/resellers-record" },
+		],
+	},
 	{ name: "Inventory", link: "/inventory", icon: <Products /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
 	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
@@ -48,7 +56,14 @@ const RESELLER_MENU: MenuItem[] = [
 	{ name: "Dashboard", link: "/dashboard", icon: <Home /> },
 	{ name: "Invoice", link: "/invoice", icon: <Invoice /> },
 	{ name: "Customer Sale", link: "/sale", icon: <Sale /> },
-	{ name: "Resellers Record", link: "/credit", icon: <Credit /> },
+	{
+		name: "Resellers",
+		icon: <Credit />,
+		subItems: [
+			{ name: "Resellers Sale", link: "/resellers-sale" },
+			{ name: "Resellers Record", link: "/resellers-record" },
+		],
+	},
 	{ name: "Products", link: "/products", icon: <Products /> },
 	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
 	{ name: "Inventory", link: "/inventory", icon: <Products /> },
@@ -82,32 +97,120 @@ const MenuList = ({
 	onItemClick?: () => void;
 }) => {
 	const location = useLocation();
+	const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
 	return (
 		<ul className="flex flex-col gap-[10px]">
 			{items.map((item, index) => {
-				const isActive = location.pathname === item.link;
+				const isActive = item.link ? location.pathname === item.link : false;
+				const hasSubItems = item.subItems && item.subItems.length > 0;
+				const isDropdownOpen = openDropdown === index;
+				const isAnySubItemActive =
+					hasSubItems &&
+					item.subItems?.some((sub) => location.pathname === sub.link);
+
 				return (
-					<NavLink to={item.link} key={index} onClick={onItemClick}>
-						<li
-							className={cn(
-								{ "bg-[#FFEBD04D]": isActive },
-								"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
-							)}
-						>
-							<div
-								className={cn(
-									{ "text-[#FFEBD0]": isActive },
-									"size-[18px] text-[#FFEBD099]"
+					<li key={index}>
+						{hasSubItems ? (
+							<>
+								<div
+									className={cn(
+										{ "bg-[#FFEBD04D]": isAnySubItemActive },
+										"flex gap-[8px] items-center justify-between px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+									)}
+									onClick={() => setOpenDropdown(isDropdownOpen ? null : index)}
+								>
+									<div className="flex gap-[8px] items-center">
+										<div
+											className={cn(
+												{ "text-[#FFEBD0]": isAnySubItemActive },
+												"size-[18px] text-[#FFEBD099]"
+											)}
+										>
+											{item.icon}
+										</div>
+										<p
+											className={cn(
+												{ "font-bold": isAnySubItemActive },
+												"text-[#FFEBD0]"
+											)}
+										>
+											{item.name}
+										</p>
+									</div>
+									<svg
+										className={cn(
+											"w-4 h-4 text-[#FFEBD099] transition-transform duration-200",
+											{ "rotate-180": isDropdownOpen }
+										)}
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M19 9l-7 7-7-7"
+										/>
+									</svg>
+								</div>
+								{isDropdownOpen && (
+									<ul className="mt-[8px] ml-[26px] flex flex-col gap-[6px]">
+										{item.subItems?.map((subItem, subIndex) => {
+											const isSubActive = location.pathname === subItem.link;
+											return (
+												<NavLink
+													to={subItem.link}
+													key={subIndex}
+													onClick={onItemClick}
+												>
+													<li
+														className={cn(
+															{ "bg-[#FFEBD04D]": isSubActive },
+															"px-[16px] py-[10px] rounded-[6px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+														)}
+													>
+														<p
+															className={cn(
+																{ "font-bold": isSubActive },
+																"text-[#FFEBD0] text-[14px]"
+															)}
+														>
+															{subItem.name}
+														</p>
+													</li>
+												</NavLink>
+											);
+										})}
+									</ul>
 								)}
-							>
-								{item.icon}
-							</div>
-							<p className={cn({ "font-bold": isActive }, "text-[#FFEBD0]")}>
-								{item.name}
-							</p>
-						</li>
-					</NavLink>
+							</>
+						) : (
+							<NavLink to={item.link || "#"} onClick={onItemClick}>
+								<div
+									className={cn(
+										{ "bg-[#FFEBD04D]": isActive },
+										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+									)}
+								>
+									<div
+										className={cn(
+											{ "text-[#FFEBD0]": isActive },
+											"size-[18px] text-[#FFEBD099]"
+										)}
+									>
+										{item.icon}
+									</div>
+									<p
+										className={cn({ "font-bold": isActive }, "text-[#FFEBD0]")}
+									>
+										{item.name}
+									</p>
+								</div>
+							</NavLink>
+						)}
+					</li>
 				);
 			})}
 		</ul>

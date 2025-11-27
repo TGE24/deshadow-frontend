@@ -4,9 +4,8 @@ import PurchaseOverview from "../modules/Modals/PurchaseOverview";
 import ViewProduct from "../modules/Modals/ViewProduct";
 import DirectSale from "../modules/DirectSale";
 import SwapSale from "../modules/SwapSale";
-import { SaleType } from "../generated/graphql";
 
-type TabType = "direct-sale" | "swap-sale" | "credit-sale";
+type TabType = "direct-sale" | "swap-sale";
 
 const Invoice = () => {
 	const [open, setOpen] = useState(false);
@@ -16,7 +15,6 @@ const Invoice = () => {
 	const tabs = [
 		{ id: "direct-sale" as TabType, label: "Direct Sale" },
 		{ id: "swap-sale" as TabType, label: "Swap Sale" },
-		{ id: "credit-sale" as TabType, label: "Credit Sale" },
 	];
 
 	const renderTabContent = () => {
@@ -27,14 +25,6 @@ const Invoice = () => {
 				);
 			case "swap-sale":
 				return <SwapSale />;
-			case "credit-sale":
-				return (
-					<DirectSale
-						setOpen={setOpen}
-						setOverviewOpen={setOverviewOpen}
-						saleType={SaleType.Credit}
-					/>
-				);
 			default:
 				return null;
 		}

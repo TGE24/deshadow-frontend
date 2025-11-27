@@ -222,7 +222,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 				createPortal(
 					<div
 						ref={dropdownRef}
-						className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+						className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
 						style={{
 							top: `${dropdownPosition.top}px`,
 							left: `${dropdownPosition.left}px`,

@@ -32,6 +32,8 @@ import { useUserStore } from "../../store/userStore";
 const DirectSale = ({
 	setOpen,
 	saleType = SaleType.Direct,
+	showSteps = true,
+	refetch,
 }: DirectSaleProps) => {
 	const { setProductItem } = useProductStore();
 	const { user } = useUserStore();
@@ -218,6 +220,7 @@ const DirectSale = ({
 						invoices: sale.invoices || [],
 					});
 					setSaleCompleted(true);
+					refetch?.();
 				}
 			},
 			onError(error) {
@@ -299,11 +302,13 @@ const DirectSale = ({
 	return (
 		<div className="py-[32px]">
 			<div className="flex">
-				<StepNavigation
-					steps={steps}
-					currentStep={currentStep}
-					onStepClick={setCurrentStep}
-				/>
+				{showSteps && (
+					<StepNavigation
+						steps={steps}
+						currentStep={currentStep}
+						onStepClick={setCurrentStep}
+					/>
+				)}
 
 				{/* Content - Right Side */}
 				<div className="flex-1 bg-white rounded-r-[10px] p-[32px] pt-0">

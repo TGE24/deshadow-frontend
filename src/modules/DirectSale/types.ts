@@ -36,4 +36,6 @@ export interface DirectSaleProps {
 	setOverviewOpen: (open: boolean) => void;
 	setOpen: (open: boolean) => void;
 	saleType?: SaleType;
+	showSteps?: boolean;
+	refetch?: () => void;
 }

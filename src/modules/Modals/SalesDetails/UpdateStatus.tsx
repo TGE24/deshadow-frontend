@@ -133,9 +133,12 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 								sale.totalAmount ? formatNaira(sale.totalAmount) : ""
 							}
 							register={register("totalAmount", {
-								setValueAs: (value: string) => {
+								setValueAs: (value: string | number) => {
+									// Convert to string if it's a number
+									const strValue =
+										typeof value === "number" ? value.toString() : value || "";
 									// Remove currency symbol and commas, keep only numbers and decimal
-									const numericValue = value
+									const numericValue = strValue
 										.replace(/₦|,/g, "")
 										.replace(/[^0-9.]/g, "");
 									return parseFloat(numericValue) || 0;

@@ -4,7 +4,7 @@ import Layout from "./modules/Layout";
 import Dashboard from "./pages/dashboard";
 import Invoice from "./pages/invoice";
 import Receipt from "./pages/receipt";
-import Credit from "./pages/credit";
+// import Credit from "./pages/credit";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Category from "./pages/category";
 import Brand from "./pages/brand";
@@ -17,6 +17,8 @@ import SetPassword from "./pages/set-password";
 import ProductDetails from "./pages/productDetails";
 import Inventory from "./pages/inventory";
 import Attributes from "./pages/attributes";
+import ResellersSale from "./pages/resellersSale";
+import ResellersRecord from "./pages/ResellersRecord";
 
 function App() {
 	return (
@@ -35,7 +37,11 @@ function App() {
 									<Route path="/invoice" element={<Invoice />} />
 									<Route path="/invoice/:id" element={<Receipt />} />
 									<Route path="/product/:id" element={<ProductDetails />} />
-									<Route path="/credit" element={<Credit />} />
+									<Route
+										path="/resellers-record"
+										element={<ResellersRecord />}
+									/>
+									<Route path="/resellers-sale" element={<ResellersSale />} />
 									<Route path="/category" element={<Category />} />
 									<Route path="/brands" element={<Brand />} />
 									<Route path="/users" element={<Users />} />
