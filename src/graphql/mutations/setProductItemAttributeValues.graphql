@@ -1,0 +1,11 @@
+mutation SetProductItemAttributeValues(
+	$inputs: [ProductItemAttributeValueInput!]!
+) {
+	setProductItemAttributeValues(inputs: $inputs) {
+		attribute {
+			uuid
+			name
+		}
+		valueText
+	}
+}

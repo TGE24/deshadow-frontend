@@ -1,0 +1,22 @@
+query Attributes($pagination: PaginationInput) {
+	attributes(pagination: $pagination) {
+		edges {
+			node {
+				... on Attribute {
+					uuid
+					name
+					description
+					createdAt
+					updatedAt
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

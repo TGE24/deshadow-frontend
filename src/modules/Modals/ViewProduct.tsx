@@ -17,13 +17,13 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 	const selectedImage = images[selectedImageIndex] || primaryImage;
 
 	// Format price
-	const formatPrice = (price?: number | null) => {
-		if (!price) return "N/A";
-		return new Intl.NumberFormat("en-NG", {
-			style: "currency",
-			currency: "NGN",
-		}).format(price);
-	};
+	// const formatPrice = (price?: number | null) => {
+	// 	if (!price) return "N/A";
+	// 	return new Intl.NumberFormat("en-NG", {
+	// 		style: "currency",
+	// 		currency: "NGN",
+	// 	}).format(price);
+	// };
 
 	// Format condition
 	const formatCondition = (condition?: string) => {
@@ -43,7 +43,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 			onClose={() => setOpen(false)}
 			center
 			classNames={{
-				modal: "rounded-[16px] !px-0 !py-0 w-full !max-w-[900px] !m-0",
+				modal: "rounded-[16px] !px-0 !py-0 w-full !max-w-[750px] !m-0",
 				overlay: "backdrop-blur-[6px]",
 			}}
 		>
@@ -177,26 +177,48 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 										</span>
 									</div>
 
-									{productItem?.costPrice && (
+									{/* {productItem?.sellingPrice && (
 										<div>
 											<p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
 												Cost Price
 											</p>
 											<p className="text-sm font-medium text-gray-900">
-												{formatPrice(productItem.costPrice)}
+												{formatPrice(productItem.sellingPrice)}
 											</p>
 										</div>
-									)}
+									)} */}
 								</div>
 							</div>
 						</div>
+
+						{/* Product Attributes */}
+						{productItem?.attributeValues &&
+							productItem.attributeValues.length > 0 && (
+								<div className="bg-gray-50 rounded-xl p-6 mb-8">
+									<h3 className="text-lg font-semibold text-gray-900 mb-4">
+										Product Attributes
+									</h3>
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										{productItem.attributeValues.map((attrValue) => (
+											<div key={attrValue.attribute?.uuid}>
+												<p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+													{attrValue.attribute?.name || "Unknown"}
+												</p>
+												<p className="text-sm font-medium text-gray-900">
+													{attrValue.valueText || "N/A"}
+												</p>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
 
 						{/* Image Gallery */}
 						<div className="mb-8">
 							<div className="flex gap-6">
 								{/* Thumbnail Gallery - Left Side */}
 								{images.length > 0 && (
-									<div className="flex flex-col gap-3">
+									<div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto">
 										{images.map((image, index) => (
 											<button
 												key={image.uuid}
@@ -220,7 +242,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 								)}
 
 								{/* Main Image - Right Side */}
-								<div className="flex-1 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center min-h-[400px]">
+								<div className="flex-1 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center h-[300px]">
 									{selectedImage ? (
 										<img
 											src={`${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}${
@@ -232,7 +254,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 									) : (
 										<div className="text-center text-gray-400 p-8">
 											<svg
-												className="mx-auto h-32 w-32 mb-4"
+												className="mx-auto h-24 w-24 mb-4"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24"

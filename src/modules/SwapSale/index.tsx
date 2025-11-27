@@ -129,7 +129,8 @@ const SwapSale: React.FC = () => {
 				// Sale details
 				saleType: SaleType.Swap,
 				paymentType: data.paymentType,
-				totalAmount: data.totalAmount,
+				totalAmount:
+					data.totalAmount - (data.swapPhoneDetails.estimatedValue || 0),
 				discountAmount: data.discountAmount || 0,
 
 				// Store information from current user's assigned store
@@ -141,6 +142,8 @@ const SwapSale: React.FC = () => {
 				// givenProductBrandUuid: data.swapPhoneDetails.brand || null,
 				givenProductCondition:
 					(data.swapPhoneDetails.condition as ProductCondition) || null,
+
+				givenProductValue: data.swapPhoneDetails.estimatedValue || 0,
 
 				// Sale items (products being sold to customer)
 				items: productItems

@@ -1,0 +1,9 @@
+mutation AssignAttributesToProduct(
+	$attributeUuids: [UUID!]!
+	$productUuid: UUID!
+) {
+	assignAttributesToProduct(
+		attributeUuids: $attributeUuids
+		productUuid: $productUuid
+	)
+}

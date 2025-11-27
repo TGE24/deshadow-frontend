@@ -13,6 +13,13 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 					store {
 						name
 					}
+					attributeValues {
+						attribute {
+							name
+							uuid
+						}
+						valueText
+					}
 					sellingPrice
 					images {
 						uuid

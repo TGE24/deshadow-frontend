@@ -1064,6 +1064,14 @@ export enum UserRole {
   SuperAdmin = 'super_admin'
 }
 
+export type AssignAttributesToProductMutationVariables = Exact<{
+  attributeUuids: Array<Scalars['UUID']['input']> | Scalars['UUID']['input'];
+  productUuid: Scalars['UUID']['input'];
+}>;
+
+
+export type AssignAttributesToProductMutation = { __typename?: 'Mutation', assignAttributesToProduct: boolean };
+
 export type AssignResellerToStoreMutationVariables = Exact<{
   resellerUUID: Scalars['UUID']['input'];
   storeUUID: Scalars['UUID']['input'];
@@ -1078,6 +1086,13 @@ export type CompleteInvitationMutationVariables = Exact<{
 
 
 export type CompleteInvitationMutation = { __typename?: 'Mutation', completeInvitation: { __typename?: 'InvitationPayload', challengeToken: string, user: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } } };
+
+export type CreateAttributeMutationVariables = Exact<{
+  input: AttributeInput;
+}>;
+
+
+export type CreateAttributeMutation = { __typename?: 'Mutation', createAttribute: { __typename?: 'Attribute', uuid: any, name: string } };
 
 export type CreateBrandMutationVariables = Exact<{
   input: BrandInput;
@@ -1127,6 +1142,13 @@ export type CreateUserMutationVariables = Exact<{
 
 
 export type CreateUserMutation = { __typename?: 'Mutation', createUser: { __typename?: 'User', uuid: any, email: string, isActive: boolean, firstName: string, lastName: string } };
+
+export type DeleteAttributeMutationVariables = Exact<{
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type DeleteAttributeMutation = { __typename?: 'Mutation', deleteAttribute: boolean };
 
 export type DeleteBrandMutationVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -1192,6 +1214,21 @@ export type RefreshTokenMutationVariables = Exact<{
 
 export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }> } | null } };
 
+export type SetProductItemAttributeValuesMutationVariables = Exact<{
+  inputs: Array<ProductItemAttributeValueInput> | ProductItemAttributeValueInput;
+}>;
+
+
+export type SetProductItemAttributeValuesMutation = { __typename?: 'Mutation', setProductItemAttributeValues: { __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', uuid: any, name: string } } };
+
+export type UpdateAttributeMutationVariables = Exact<{
+  input: AttributeUpdateInput;
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdateAttributeMutation = { __typename?: 'Mutation', updateAttribute: { __typename?: 'Attribute', uuid: any, name: string } };
+
 export type UpdateBrandMutationVariables = Exact<{
   input: BrandInput;
   uuid: Scalars['UUID']['input'];
@@ -1250,6 +1287,13 @@ export type UpdateUserMutationVariables = Exact<{
 
 export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', uuid: any, email: string, isActive: boolean, firstName: string, lastName: string } };
 
+export type AttributesQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type AttributesQuery = { __typename?: 'Query', attributes: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute', uuid: any, name: string, description?: string | null, createdAt: any, updatedAt: any } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
 export type BrandsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
@@ -1288,7 +1332,7 @@ export type ProductQueryVariables = Exact<{
 }>;
 
 
-export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }> } | null };
+export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | null };
 
 export type ProductItemQueryVariables = Exact<{
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -1296,7 +1340,7 @@ export type ProductItemQueryVariables = Exact<{
 }>;
 
 
-export type ProductItemQuery = { __typename?: 'Query', productItem?: { __typename?: 'ProductItem', uuid: any, condition: ProductCondition, status: ProductItemStatus, sellingPrice?: number | null, serialNumber: string, product: { __typename?: 'Product', name: string }, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }> } | null };
+export type ProductItemQuery = { __typename?: 'Query', productItem?: { __typename?: 'ProductItem', uuid: any, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, serialNumber: string, notes?: string | null, product: { __typename?: 'Product', name: string }, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null };
 
 export type ProductItemsQueryVariables = Exact<{
   filter?: InputMaybe<ProductItemFilter>;
@@ -1304,7 +1348,7 @@ export type ProductItemsQueryVariables = Exact<{
 }>;
 
 
-export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, externalStoreName?: string | null, store: { __typename?: 'Store', name: string }, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any } } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, externalStoreName?: string | null, store: { __typename?: 'Store', name: string }, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }>, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any } } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1312,7 +1356,7 @@ export type ProductsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SalesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1338,6 +1382,41 @@ export type UsersQueryVariables = Exact<{
 export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 
+export const AssignAttributesToProductDocument = gql`
+    mutation AssignAttributesToProduct($attributeUuids: [UUID!]!, $productUuid: UUID!) {
+  assignAttributesToProduct(
+    attributeUuids: $attributeUuids
+    productUuid: $productUuid
+  )
+}
+    `;
+export type AssignAttributesToProductMutationFn = Apollo.MutationFunction<AssignAttributesToProductMutation, AssignAttributesToProductMutationVariables>;
+
+/**
+ * __useAssignAttributesToProductMutation__
+ *
+ * To run a mutation, you first call `useAssignAttributesToProductMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssignAttributesToProductMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assignAttributesToProductMutation, { data, loading, error }] = useAssignAttributesToProductMutation({
+ *   variables: {
+ *      attributeUuids: // value for 'attributeUuids'
+ *      productUuid: // value for 'productUuid'
+ *   },
+ * });
+ */
+export function useAssignAttributesToProductMutation(baseOptions?: Apollo.MutationHookOptions<AssignAttributesToProductMutation, AssignAttributesToProductMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssignAttributesToProductMutation, AssignAttributesToProductMutationVariables>(AssignAttributesToProductDocument, options);
+      }
+export type AssignAttributesToProductMutationHookResult = ReturnType<typeof useAssignAttributesToProductMutation>;
+export type AssignAttributesToProductMutationResult = Apollo.MutationResult<AssignAttributesToProductMutation>;
+export type AssignAttributesToProductMutationOptions = Apollo.BaseMutationOptions<AssignAttributesToProductMutation, AssignAttributesToProductMutationVariables>;
 export const AssignResellerToStoreDocument = gql`
     mutation AssignResellerToStore($resellerUUID: UUID!, $storeUUID: UUID!) {
   assignResellerToStore(resellerUUID: $resellerUUID, storeUUID: $storeUUID)
@@ -1412,6 +1491,40 @@ export function useCompleteInvitationMutation(baseOptions?: Apollo.MutationHookO
 export type CompleteInvitationMutationHookResult = ReturnType<typeof useCompleteInvitationMutation>;
 export type CompleteInvitationMutationResult = Apollo.MutationResult<CompleteInvitationMutation>;
 export type CompleteInvitationMutationOptions = Apollo.BaseMutationOptions<CompleteInvitationMutation, CompleteInvitationMutationVariables>;
+export const CreateAttributeDocument = gql`
+    mutation CreateAttribute($input: AttributeInput!) {
+  createAttribute(input: $input) {
+    uuid
+    name
+  }
+}
+    `;
+export type CreateAttributeMutationFn = Apollo.MutationFunction<CreateAttributeMutation, CreateAttributeMutationVariables>;
+
+/**
+ * __useCreateAttributeMutation__
+ *
+ * To run a mutation, you first call `useCreateAttributeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAttributeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAttributeMutation, { data, loading, error }] = useCreateAttributeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateAttributeMutation(baseOptions?: Apollo.MutationHookOptions<CreateAttributeMutation, CreateAttributeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateAttributeMutation, CreateAttributeMutationVariables>(CreateAttributeDocument, options);
+      }
+export type CreateAttributeMutationHookResult = ReturnType<typeof useCreateAttributeMutation>;
+export type CreateAttributeMutationResult = Apollo.MutationResult<CreateAttributeMutation>;
+export type CreateAttributeMutationOptions = Apollo.BaseMutationOptions<CreateAttributeMutation, CreateAttributeMutationVariables>;
 export const CreateBrandDocument = gql`
     mutation CreateBrand($input: BrandInput!) {
   createBrand(input: $input) {
@@ -1684,6 +1797,37 @@ export function useCreateUserMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateUserMutationHookResult = ReturnType<typeof useCreateUserMutation>;
 export type CreateUserMutationResult = Apollo.MutationResult<CreateUserMutation>;
 export type CreateUserMutationOptions = Apollo.BaseMutationOptions<CreateUserMutation, CreateUserMutationVariables>;
+export const DeleteAttributeDocument = gql`
+    mutation DeleteAttribute($uuid: UUID!) {
+  deleteAttribute(uuid: $uuid)
+}
+    `;
+export type DeleteAttributeMutationFn = Apollo.MutationFunction<DeleteAttributeMutation, DeleteAttributeMutationVariables>;
+
+/**
+ * __useDeleteAttributeMutation__
+ *
+ * To run a mutation, you first call `useDeleteAttributeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAttributeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAttributeMutation, { data, loading, error }] = useDeleteAttributeMutation({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useDeleteAttributeMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAttributeMutation, DeleteAttributeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAttributeMutation, DeleteAttributeMutationVariables>(DeleteAttributeDocument, options);
+      }
+export type DeleteAttributeMutationHookResult = ReturnType<typeof useDeleteAttributeMutation>;
+export type DeleteAttributeMutationResult = Apollo.MutationResult<DeleteAttributeMutation>;
+export type DeleteAttributeMutationOptions = Apollo.BaseMutationOptions<DeleteAttributeMutation, DeleteAttributeMutationVariables>;
 export const DeleteBrandDocument = gql`
     mutation DeleteBrand($uuid: UUID!) {
   deleteBrand(uuid: $uuid)
@@ -1991,6 +2135,78 @@ export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions
 export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export const SetProductItemAttributeValuesDocument = gql`
+    mutation SetProductItemAttributeValues($inputs: [ProductItemAttributeValueInput!]!) {
+  setProductItemAttributeValues(inputs: $inputs) {
+    attribute {
+      uuid
+      name
+    }
+    valueText
+  }
+}
+    `;
+export type SetProductItemAttributeValuesMutationFn = Apollo.MutationFunction<SetProductItemAttributeValuesMutation, SetProductItemAttributeValuesMutationVariables>;
+
+/**
+ * __useSetProductItemAttributeValuesMutation__
+ *
+ * To run a mutation, you first call `useSetProductItemAttributeValuesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetProductItemAttributeValuesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setProductItemAttributeValuesMutation, { data, loading, error }] = useSetProductItemAttributeValuesMutation({
+ *   variables: {
+ *      inputs: // value for 'inputs'
+ *   },
+ * });
+ */
+export function useSetProductItemAttributeValuesMutation(baseOptions?: Apollo.MutationHookOptions<SetProductItemAttributeValuesMutation, SetProductItemAttributeValuesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetProductItemAttributeValuesMutation, SetProductItemAttributeValuesMutationVariables>(SetProductItemAttributeValuesDocument, options);
+      }
+export type SetProductItemAttributeValuesMutationHookResult = ReturnType<typeof useSetProductItemAttributeValuesMutation>;
+export type SetProductItemAttributeValuesMutationResult = Apollo.MutationResult<SetProductItemAttributeValuesMutation>;
+export type SetProductItemAttributeValuesMutationOptions = Apollo.BaseMutationOptions<SetProductItemAttributeValuesMutation, SetProductItemAttributeValuesMutationVariables>;
+export const UpdateAttributeDocument = gql`
+    mutation UpdateAttribute($input: AttributeUpdateInput!, $uuid: UUID!) {
+  updateAttribute(input: $input, uuid: $uuid) {
+    uuid
+    name
+  }
+}
+    `;
+export type UpdateAttributeMutationFn = Apollo.MutationFunction<UpdateAttributeMutation, UpdateAttributeMutationVariables>;
+
+/**
+ * __useUpdateAttributeMutation__
+ *
+ * To run a mutation, you first call `useUpdateAttributeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAttributeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAttributeMutation, { data, loading, error }] = useUpdateAttributeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useUpdateAttributeMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAttributeMutation, UpdateAttributeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAttributeMutation, UpdateAttributeMutationVariables>(UpdateAttributeDocument, options);
+      }
+export type UpdateAttributeMutationHookResult = ReturnType<typeof useUpdateAttributeMutation>;
+export type UpdateAttributeMutationResult = Apollo.MutationResult<UpdateAttributeMutation>;
+export type UpdateAttributeMutationOptions = Apollo.BaseMutationOptions<UpdateAttributeMutation, UpdateAttributeMutationVariables>;
 export const UpdateBrandDocument = gql`
     mutation UpdateBrand($input: BrandInput!, $uuid: UUID!) {
   updateBrand(input: $input, uuid: $uuid) {
@@ -2246,6 +2462,63 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const AttributesDocument = gql`
+    query Attributes($pagination: PaginationInput) {
+  attributes(pagination: $pagination) {
+    edges {
+      node {
+        ... on Attribute {
+          uuid
+          name
+          description
+          createdAt
+          updatedAt
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useAttributesQuery__
+ *
+ * To run a query within a React component, call `useAttributesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAttributesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAttributesQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useAttributesQuery(baseOptions?: Apollo.QueryHookOptions<AttributesQuery, AttributesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AttributesQuery, AttributesQueryVariables>(AttributesDocument, options);
+      }
+export function useAttributesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AttributesQuery, AttributesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AttributesQuery, AttributesQueryVariables>(AttributesDocument, options);
+        }
+export function useAttributesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AttributesQuery, AttributesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AttributesQuery, AttributesQueryVariables>(AttributesDocument, options);
+        }
+export type AttributesQueryHookResult = ReturnType<typeof useAttributesQuery>;
+export type AttributesLazyQueryHookResult = ReturnType<typeof useAttributesLazyQuery>;
+export type AttributesSuspenseQueryHookResult = ReturnType<typeof useAttributesSuspenseQuery>;
+export type AttributesQueryResult = Apollo.QueryResult<AttributesQuery, AttributesQueryVariables>;
 export const BrandsDocument = gql`
     query Brands($pagination: PaginationInput) {
   brands(pagination: $pagination) {
@@ -2560,6 +2833,10 @@ export const ProductDocument = gql`
       condition
       status
     }
+    attributes {
+      uuid
+      name
+    }
   }
 }
     `;
@@ -2602,8 +2879,10 @@ export const ProductItemDocument = gql`
     uuid
     condition
     status
+    costPrice
     sellingPrice
     serialNumber
+    notes
     product {
       name
     }
@@ -2615,6 +2894,13 @@ export const ProductItemDocument = gql`
       sortOrder
       createdAt
       updatedAt
+    }
+    attributeValues {
+      attribute {
+        name
+        uuid
+      }
+      valueText
     }
   }
 }
@@ -2668,6 +2954,13 @@ export const ProductItemsDocument = gql`
           externalStoreName
           store {
             name
+          }
+          attributeValues {
+            attribute {
+              name
+              uuid
+            }
+            valueText
           }
           sellingPrice
           images {
@@ -2771,6 +3064,10 @@ export const ProductsDocument = gql`
             serialNumber
             condition
             status
+          }
+          attributes {
+            uuid
+            name
           }
         }
       }

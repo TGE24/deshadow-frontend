@@ -3,8 +3,10 @@ query ProductItem($uuid: UUID, $serialNumber: String) {
 		uuid
 		condition
 		status
+		costPrice
 		sellingPrice
 		serialNumber
+		notes
 		product {
 			name
 		}
@@ -16,6 +18,13 @@ query ProductItem($uuid: UUID, $serialNumber: String) {
 			sortOrder
 			createdAt
 			updatedAt
+		}
+		attributeValues {
+			attribute {
+				name
+				uuid
+			}
+			valueText
 		}
 	}
 }

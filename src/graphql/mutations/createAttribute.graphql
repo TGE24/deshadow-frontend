@@ -1,0 +1,6 @@
+mutation CreateAttribute($input: AttributeInput!) {
+	createAttribute(input: $input) {
+		uuid
+		name
+	}
+}

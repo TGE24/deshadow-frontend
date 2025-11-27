@@ -1,0 +1,3 @@
+mutation DeleteAttribute($uuid: UUID!) {
+	deleteAttribute(uuid: $uuid)
+}

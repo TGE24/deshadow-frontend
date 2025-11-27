@@ -11,6 +11,8 @@ import {
 	Category,
 	Product,
 	Store,
+	useAssignAttributesToProductMutation,
+	useAttributesLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
 	useStoresQuery,
@@ -31,6 +33,7 @@ interface AddProductForm {
 	name: string;
 	description: string;
 	model: string;
+	attributeUuids: string[];
 }
 
 const selectStyles = {
@@ -51,8 +54,14 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null
 	);
+	const [selectedAttributes, setSelectedAttributes] = useState<
+		{ value: string; label: string }[]
+	>([]);
 
 	const [getCategories, { data: categories }] = useCategoriesLazyQuery({
+		fetchPolicy: "network-only",
+	});
+	const [getAttributes, { data: attributes }] = useAttributesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 	const { data: stores } = useStoresQuery({
@@ -63,11 +72,13 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	});
 
 	const [updateProduct, { loading }] = useUpdateProductMutation();
+	const [assignAttributesToProduct] = useAssignAttributesToProductMutation();
 
 	useEffect(() => {
 		getCategories({ variables: { pagination: { first: 100 } } });
 		getBrands({ variables: { pagination: { first: 100 } } });
-	}, [getCategories, getBrands]);
+		getAttributes({ variables: { pagination: { first: 100 } } });
+	}, [getCategories, getBrands, getAttributes]);
 
 	const {
 		register,
@@ -84,6 +95,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			name: "",
 			model: "",
 			description: "",
+			attributeUuids: [],
 		},
 		mode: "onChange",
 	});
@@ -91,6 +103,13 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	// Update form values when selectedUser changes or modal opens
 	useEffect(() => {
 		if (open && selectedProduct) {
+			const productAttributes = selectedProduct.attributes || [];
+			const attributeUuids = productAttributes.map((attr) => attr.uuid);
+			const attrs = productAttributes.map((attr) => ({
+				value: attr.uuid,
+				label: attr.name,
+			}));
+
 			const formData = {
 				storeUuid: selectedProduct.store?.uuid || "",
 				categoryUuid: selectedProduct.category?.uuid || "",
@@ -98,6 +117,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 				name: selectedProduct.name || "",
 				model: selectedProduct.model || "",
 				description: selectedProduct.description || "",
+				attributeUuids,
 			};
 			reset(formData);
 			setSelectedStore(selectedProduct.store ? selectedProduct.store : null);
@@ -105,6 +125,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			setSelectedCategory(
 				selectedProduct.category ? selectedProduct.category : null
 			);
+			setSelectedAttributes(attrs);
 		}
 	}, [open, selectedProduct, reset]);
 
@@ -136,11 +157,21 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 					},
 					uuid: selectedProduct?.uuid || "",
 				},
-				onCompleted() {
-					setOpen(false);
-					reset();
-					refetch();
-					toast.success("Product updated successfully");
+				async onCompleted() {
+					if (selectedProduct?.uuid) {
+						await assignAttributesToProduct({
+							variables: {
+								attributeUuids: data.attributeUuids,
+								productUuid: selectedProduct.uuid,
+							},
+							onCompleted() {
+								setOpen(false);
+								reset();
+								refetch();
+								toast.success("Product updated successfully");
+							},
+						});
+					}
 				},
 				onError(error) {
 					toast.error(error.message);
@@ -292,6 +323,41 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 								</span>
 							)}
 						</div>
+					</div>
+
+					<div className="w-full">
+						<label
+							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+							htmlFor="attributes"
+						>
+							Attributes
+						</label>
+						<Select
+							isMulti
+							options={attributes?.attributes.edges
+								.filter((attr) => attr.node.__typename === "Attribute")
+								.map((attr) => ({
+									value: (attr.node as { uuid: string; name: string }).uuid,
+									label: (attr.node as { uuid: string; name: string }).name,
+								}))}
+							value={selectedAttributes}
+							placeholder="Select Attributes"
+							classNames={selectStyles}
+							onChange={(options) => {
+								const values = options ? options.map((opt) => opt.value) : [];
+								setValue("attributeUuids", values, {
+									shouldValidate: true,
+								});
+								setSelectedAttributes(
+									options as { value: string; label: string }[]
+								);
+							}}
+							menuPortalTarget={document.body}
+							styles={{
+								menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+							}}
+							name="attributeUuids"
+						/>
 					</div>
 					<Input
 						label="Name"

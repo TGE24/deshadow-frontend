@@ -22,5 +22,9 @@ query Product($uuid: UUID!) {
 			condition
 			status
 		}
+		attributes {
+			uuid
+			name
+		}
 	}
 }

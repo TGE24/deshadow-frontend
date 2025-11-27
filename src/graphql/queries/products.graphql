@@ -25,6 +25,10 @@ query Products($pagination: PaginationInput, $filter: ProductFilter) {
 						condition
 						status
 					}
+					attributes {
+						uuid
+						name
+					}
 				}
 			}
 		}

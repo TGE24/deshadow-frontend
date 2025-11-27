@@ -1,0 +1,6 @@
+mutation UpdateAttribute($input: AttributeUpdateInput!, $uuid: UUID!) {
+	updateAttribute(input: $input, uuid: $uuid) {
+		uuid
+		name
+	}
+}

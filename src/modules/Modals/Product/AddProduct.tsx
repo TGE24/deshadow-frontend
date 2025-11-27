@@ -10,10 +10,14 @@ import {
 	Brand,
 	Category,
 	Store,
+	useAssignAttributesToProductMutation,
+	useAttributesLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
 	useCreateProductMutation,
 	useStoresQuery,
+	useMeQuery,
+	UserRole,
 } from "../../../generated/graphql";
 
 interface AddProductModalProps {
@@ -29,6 +33,7 @@ interface AddProductForm {
 	name: string;
 	description: string;
 	model: string;
+	attributeUuids: string[];
 }
 
 const selectStyles = {
@@ -43,7 +48,11 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	setOpen,
 	refetch,
 }) => {
+	const { data: meData } = useMeQuery();
 	const [getCategories, { data: categories }] = useCategoriesLazyQuery({
+		fetchPolicy: "network-only",
+	});
+	const [getAttributes, { data: attributes }] = useAttributesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 	const { data: stores } = useStoresQuery({
@@ -54,11 +63,13 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	});
 
 	const [createProduct, { loading }] = useCreateProductMutation();
+	const [assignAttributesToProduct] = useAssignAttributesToProductMutation();
 
 	useEffect(() => {
 		getCategories({ variables: { pagination: { first: 100 } } });
 		getBrands({ variables: { pagination: { first: 100 } } });
-	}, [getCategories, getBrands]);
+		getAttributes({ variables: { pagination: { first: 100 } } });
+	}, [getCategories, getBrands, getAttributes]);
 
 	const {
 		register,
@@ -76,9 +87,22 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			name: "",
 			model: "",
 			description: "",
+			attributeUuids: [],
 		},
 		mode: "onChange",
 	});
+
+	// Set store for resellers automatically
+	useEffect(() => {
+		if (
+			meData?.me?.role === UserRole.Reseller &&
+			meData?.me?.assignedStore?.uuid
+		) {
+			setValue("storeUuid", meData.me.assignedStore.uuid, {
+				shouldValidate: true,
+			});
+		}
+	}, [meData, setValue]);
 
 	const handleSubmitForm = async (data: AddProductForm) => {
 		// Validate select fields
@@ -106,11 +130,21 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						description: data.description,
 					},
 				},
-				async onCompleted() {
-					setOpen(false);
-					reset();
-					refetch();
-					toast.success("Product created successfully");
+				async onCompleted(res) {
+					if (res.createProduct.uuid) {
+						await assignAttributesToProduct({
+							variables: {
+								attributeUuids: data.attributeUuids,
+								productUuid: res.createProduct.uuid,
+							},
+							onCompleted() {
+								setOpen(false);
+								reset();
+								refetch();
+								toast.success("Product created successfully");
+							},
+						});
+					}
 				},
 				onError(error) {
 					toast.error(error.message);
@@ -138,33 +172,44 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			</h2>
 			<form onSubmit={handleSubmit(handleSubmitForm)}>
 				<div className="mb-[40px] mt-[16px] flex gap-[24px] flex-col">
-					<div className="w-full">
-						<label
-							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-							htmlFor="store"
-						>
-							Store
-						</label>
-						<Select
-							options={stores?.stores.edges.map((store) => ({
-								value: (store.node as Store).uuid,
-								label: (store.node as Store).name,
-							}))}
-							placeholder="Select Store"
-							classNames={selectStyles}
-							onChange={(option) => {
-								setValue("storeUuid", option?.value || "", {
-									shouldValidate: true,
-								});
-							}}
-							name="storeUuid"
-						/>
-						{errors.storeUuid && (
-							<span className="text-red-500 text-sm">
-								{errors.storeUuid.message}
-							</span>
-						)}
-					</div>
+					{meData?.me?.role === UserRole.StoreOwner ? (
+						<div className="w-full">
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="store"
+							>
+								Store
+							</label>
+							<Select
+								options={stores?.stores.edges.map((store) => ({
+									value: (store.node as Store).uuid,
+									label: (store.node as Store).name,
+								}))}
+								placeholder="Select Store"
+								classNames={selectStyles}
+								onChange={(option) => {
+									setValue("storeUuid", option?.value || "", {
+										shouldValidate: true,
+									});
+								}}
+								name="storeUuid"
+							/>
+							{errors.storeUuid && (
+								<span className="text-red-500 text-sm">
+									{errors.storeUuid.message}
+								</span>
+							)}
+						</div>
+					) : meData?.me?.role === UserRole.Reseller ? (
+						<div className="w-full">
+							<label className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro">
+								Store
+							</label>
+							<div className="h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[14px] flex items-center bg-gray-50 text-gray-700">
+								{meData?.me?.assignedStore?.name || "No store assigned"}
+							</div>
+						</div>
+					) : null}
 					<div className="flex flex-col md:flex-row gap-[16px]">
 						<div className="w-full">
 							<label
@@ -247,11 +292,39 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 							placeholder="Enter model"
 							id="model"
 							variant="secondary"
-							register={register("model", {
-								required: "Product model is required",
-								minLength: { value: 1, message: "Model is required" },
-							})}
+							register={register("model")}
 							errors={errors.model}
+						/>
+					</div>
+
+					<div className="w-full">
+						<label
+							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+							htmlFor="attributes"
+						>
+							Attributes
+						</label>
+						<Select
+							isMulti
+							options={attributes?.attributes.edges
+								.filter((attr) => attr.node.__typename === "Attribute")
+								.map((attr) => ({
+									value: (attr.node as { uuid: string; name: string }).uuid,
+									label: (attr.node as { uuid: string; name: string }).name,
+								}))}
+							placeholder="Select Attributes"
+							classNames={selectStyles}
+							onChange={(options) => {
+								const values = options ? options.map((opt) => opt.value) : [];
+								setValue("attributeUuids", values, {
+									shouldValidate: true,
+								});
+							}}
+							menuPortalTarget={document.body}
+							styles={{
+								menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+							}}
+							name="attributeUuids"
 						/>
 					</div>
 				</div>

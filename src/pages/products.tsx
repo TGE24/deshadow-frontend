@@ -143,7 +143,13 @@ const Products = () => {
 				accessorKey: "items",
 				cell: (info) => {
 					const items = info.getValue() as ProductItem[];
-					return items?.length || 0;
+					const quantity = items?.length || 0;
+
+					if (quantity === 0) {
+						return <span className="text-red-600 font-semibold">Sold Out</span>;
+					}
+
+					return quantity;
 				},
 				header: () => <h4>Quantity</h4>,
 			},

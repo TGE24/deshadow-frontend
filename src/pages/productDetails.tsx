@@ -608,8 +608,8 @@ const ProductDetails = () => {
 								<TableLoader columns={columns.length} />
 							) : data.length === 0 ? (
 								<TableEmptyState
-									title="No Sales Found"
-									description="There are no sales records to display. Sales will appear here once they are created."
+									title="No Product Items Found"
+									description="There are no product items to display. Product items will appear here once they are created."
 									colSpan={columns.length}
 								/>
 							) : (
