@@ -177,6 +177,8 @@ const ProductDetails = () => {
 									? "bg-blue-100 text-blue-800"
 									: status === "returned"
 									? "bg-yellow-100 text-yellow-800"
+									: status === "pending"
+									? "bg-amber-100 text-amber-800"
 									: status === "damaged"
 									? "bg-gray-100 text-gray-800"
 									: "bg-gray-100 text-gray-800"
@@ -617,7 +619,7 @@ const ProductDetails = () => {
 									{table.getRowModel().rows.map((row) => (
 										<tr
 											key={row.id}
-											className="border-b-[1px] border-[#E3E3E3]"
+							className={`border-b-[1px] border-[#E3E3E3] ${row.original.status === "pending" ? "bg-amber-50" : ""}`}
 										>
 											{row.getVisibleCells().map((cell) => (
 												<td

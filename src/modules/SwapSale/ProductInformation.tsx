@@ -308,9 +308,39 @@ const ProductInformation = ({
 							}}
 						/>
 					</div>
-				</div>
-			</div>
 
+					{/* Attributes for selected swap product */}
+					{swapPhoneDetails?.selectedProduct?.attributes &&
+						swapPhoneDetails.selectedProduct.attributes.length > 0 && (
+							<>
+								{swapPhoneDetails.selectedProduct.attributes.map(
+									(attribute) => (
+										<div key={attribute.uuid} className="w-full">
+											<Input
+												label={attribute.name}
+												type="text"
+												placeholder={`Enter ${attribute.name.toLowerCase()}`}
+												value={
+													swapPhoneDetails.attributeValues?.[attribute.uuid] ||
+													""
+												}
+												onChange={(e) =>
+													onSwapPhoneDetailsChange({
+														attributeValues: {
+															...(swapPhoneDetails.attributeValues || {}),
+															[attribute.uuid]: e.target.value,
+														},
+													})
+												}
+												className="outline-none focus:outline-none text-[14px]"
+											/>
+										</div>
+									)
+								)}
+							</>
+						)}
+				</div>
+			</div>{" "}
 			{/* Product Information Section */}
 			<div className="border border-gray-200 rounded-[10px] p-[20px]">
 				<h3 className="text-[20px] font-semibold mb-[16px]">
@@ -349,6 +379,7 @@ const ProductInformation = ({
 												// productItemUuid: productItem.uuid,
 												productName: productItem.product?.name,
 												serialNumber: productItem.serialNumber,
+												product: productItem.product,
 											});
 										} else {
 											onUpdateProduct(item.id, {
@@ -356,6 +387,7 @@ const ProductInformation = ({
 												// productItemUuid: "",
 												productName: "",
 												serialNumber: "",
+												product: null,
 											});
 										}
 									}}

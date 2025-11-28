@@ -110,6 +110,7 @@ const AddUser: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 			variables: { pagination: { first: 100 } },
 		});
 	}, [getStores]);
+
 	return (
 		<Modal
 			open={open}

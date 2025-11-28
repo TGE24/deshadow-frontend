@@ -59,6 +59,7 @@ export const INITIAL_SWAP_SALE_FORM_DATA: SwapSaleFormData = {
 		storage: "",
 		condition: "",
 		estimatedValue: 0,
+		attributeValues: {},
 	},
 	subtotal: 0,
 	totalAmount: 0,

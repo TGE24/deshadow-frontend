@@ -16,12 +16,15 @@ export type SwapPhoneDetails = {
 	storage: string;
 	condition: ProductCondition | string;
 	estimatedValue?: number;
+	attributeValues: Record<string, string>;
 };
 
 // Product Item for Swap Sale (similar to DirectSale but simpler)
 export type SwapProductItem = SaleItemInput & {
 	id: string;
 	productName?: string;
+	product?: Product | null;
+	attributeValues?: Record<string, string>;
 };
 
 export type CreateSwapSaleForm = {

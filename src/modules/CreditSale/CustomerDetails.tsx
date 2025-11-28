@@ -244,6 +244,31 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 								</div>
 							</div>
 						</div>
+
+						{/* Attributes for selected swap product */}
+						{formData.swapPhoneDetails?.selectedProduct?.attributes &&
+							formData.swapPhoneDetails.selectedProduct.attributes.length >
+								0 && (
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] mt-[12px]">
+									{formData.swapPhoneDetails.selectedProduct.attributes.map(
+										(attribute) => (
+											<div key={attribute.uuid}>
+												<label className="text-[14px] text-[#1F2937] font-bold mb-[8px] block">
+													{attribute.name}
+												</label>
+												<input
+													type="text"
+													placeholder={`Enter ${attribute.name.toLowerCase()}`}
+													{...register(
+														`swapPhoneDetails.attributeValues.${attribute.uuid}` as const
+													)}
+													className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] px-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] transition-all"
+												/>
+											</div>
+										)
+									)}
+								</div>
+							)}
 					</div>
 				</div>
 			)}

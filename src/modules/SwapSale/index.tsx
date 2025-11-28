@@ -130,7 +130,9 @@ const SwapSale: React.FC = () => {
 				saleType: SaleType.Swap,
 				paymentType: data.paymentType,
 				totalAmount:
-					data.totalAmount - (data.swapPhoneDetails.estimatedValue || 0),
+					data.totalAmount -
+					data.discountAmount -
+					(data.swapPhoneDetails.estimatedValue || 0),
 				discountAmount: data.discountAmount || 0,
 
 				// Store information from current user's assigned store
@@ -157,8 +159,6 @@ const SwapSale: React.FC = () => {
 				// Optional notes
 				notes: null,
 			};
-
-			console.log("Creating sale with data:", saleInput);
 
 			await createSale({
 				variables: { input: saleInput },
@@ -248,6 +248,11 @@ const SwapSale: React.FC = () => {
 									details.estimatedValue
 								);
 							}
+							if (details.attributeValues !== undefined)
+								form.setValue(
+									"swapPhoneDetails.attributeValues",
+									details.attributeValues
+								);
 						}}
 					/>
 				);
