@@ -12,7 +12,7 @@ export interface SwapPhoneDetails {
 	brand: string;
 	condition: ProductCondition | "";
 	estimatedValue: number;
-	attributeValues: Record<string, string>;
+	// attributeValues: Record<string, string>;
 }
 
 export interface CreditSaleFormData {

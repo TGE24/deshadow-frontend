@@ -259,9 +259,9 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 												<input
 													type="text"
 													placeholder={`Enter ${attribute.name.toLowerCase()}`}
-													{...register(
-														`swapPhoneDetails.attributeValues.${attribute.uuid}` as const
-													)}
+													// {...register(
+													// 	`swapPhoneDetails.attributeValues.${attribute.uuid}` as const
+													// )}
 													className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] px-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] transition-all"
 												/>
 											</div>
