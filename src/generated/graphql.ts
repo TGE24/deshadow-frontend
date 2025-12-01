@@ -122,6 +122,11 @@ export type Edge = {
   node: Node;
 };
 
+export type GivenProductAttributeValueInput = {
+  attributeUuid: Scalars['UUID']['input'];
+  valueText: Scalars['String']['input'];
+};
+
 export type InvitationPayload = {
   __typename?: 'InvitationPayload';
   challengeToken: Scalars['String']['output'];
@@ -518,7 +523,6 @@ export type Product = {
   model?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   saleItems: Array<SaleItem>;
-  store?: Maybe<Store>;
   updatedAt: Scalars['Time']['output'];
   uuid: Scalars['UUID']['output'];
 };
@@ -537,7 +541,6 @@ export type ProductFilter = {
   maxPrice?: InputMaybe<Scalars['Float']['input']>;
   minPrice?: InputMaybe<Scalars['Float']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
-  storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type ProductImage = {
@@ -596,7 +599,7 @@ export type ProductItemFilter = {
   conditions?: InputMaybe<Array<ProductCondition>>;
   externalStoreOnly?: InputMaybe<Scalars['Boolean']['input']>;
   productUuid?: InputMaybe<Scalars['UUID']['input']>;
-  serialNumber?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ProductItemStatus>;
 };
 
@@ -638,7 +641,6 @@ export type ProductUpdateInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 export type Query = {
@@ -940,6 +942,7 @@ export type SaleInput = {
   customerName: Scalars['String']['input'];
   customerPhone?: InputMaybe<Scalars['String']['input']>;
   discountAmount?: InputMaybe<Scalars['Float']['input']>;
+  givenProductAttributeValues?: InputMaybe<Array<GivenProductAttributeValueInput>>;
   givenProductCondition?: InputMaybe<ProductCondition>;
   givenProductSerialNumber?: InputMaybe<Scalars['String']['input']>;
   givenProductUuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -1332,7 +1335,7 @@ export type ProductQueryVariables = Exact<{
 }>;
 
 
-export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | null };
+export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | null };
 
 export type ProductItemQueryVariables = Exact<{
   uuid?: InputMaybe<Scalars['UUID']['input']>;
@@ -1356,7 +1359,7 @@ export type ProductsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, store?: { __typename?: 'Store', name: string, uuid: any } | null, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, availableItemsCount: number, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SalesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -2822,10 +2825,6 @@ export const ProductDocument = gql`
       name
       uuid
     }
-    store {
-      name
-      uuid
-    }
     description
     items {
       uuid
@@ -3045,16 +3044,13 @@ export const ProductsDocument = gql`
         ... on Product {
           uuid
           name
+          availableItemsCount
           brand {
             name
             uuid
           }
           model
           category {
-            name
-            uuid
-          }
-          store {
             name
             uuid
           }

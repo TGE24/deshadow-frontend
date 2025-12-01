@@ -89,7 +89,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 				const { data } = await getProductItems({
 					variables: {
 						filter: {
-							serialNumber: debouncedInputValue,
+							search: debouncedInputValue,
 							status: ProductItemStatus.Available,
 						},
 					},

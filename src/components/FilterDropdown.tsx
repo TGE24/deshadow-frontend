@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Select, { SingleValue } from "react-select";
 import Button from "./Button";
-import { useUserStore } from "../store/userStore";
-import { UserRole } from "../generated/graphql";
 
 interface SelectOption {
 	value: string;
@@ -11,7 +9,6 @@ interface SelectOption {
 }
 
 interface FilterDropdownProps {
-	storeOptions: SelectOption[];
 	brandOptions: SelectOption[];
 	categoryOptions: SelectOption[];
 	selectedStore: string;
@@ -53,29 +50,24 @@ const selectStyles = {
 };
 
 const FilterDropdown: React.FC<FilterDropdownProps> = ({
-	storeOptions,
 	brandOptions,
 	categoryOptions,
 	selectedStore,
 	selectedBrand,
 	selectedCategory,
-	onStoreChange,
 	onBrandChange,
 	onCategoryChange,
 	onClearFilters,
 	onApplyFilters,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [tempStore, setTempStore] = useState(selectedStore);
 	const [tempBrand, setTempBrand] = useState(selectedBrand);
 	const [tempCategory, setTempCategory] = useState(selectedCategory);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-	const { user } = useUserStore();
 
 	// Update temp values when props change
 	useEffect(() => {
-		setTempStore(selectedStore);
 		setTempBrand(selectedBrand);
 		setTempCategory(selectedCategory);
 	}, [selectedStore, selectedBrand, selectedCategory]);
@@ -101,9 +93,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 	}, [isOpen]);
 
 	const handleApply = () => {
-		onStoreChange(
-			storeOptions.find((option) => option.value === tempStore) || null
-		);
 		onBrandChange(
 			brandOptions.find((option) => option.value === tempBrand) || null
 		);
@@ -115,7 +104,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 	};
 
 	const handleClear = () => {
-		setTempStore("");
 		setTempBrand("");
 		setTempCategory("");
 		onClearFilters();
@@ -211,26 +199,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
 							<h3 className="text-sm font-semibold text-gray-900 mb-3">
 								Filter Products
 							</h3>
-
-							{/* Store Filter */}
-							{user?.role !== UserRole.Reseller && (
-								<div>
-									<label className="block text-xs font-medium text-gray-700 mb-1">
-										Store
-									</label>
-									<Select
-										options={storeOptions}
-										value={storeOptions.find(
-											(option) => option.value === tempStore
-										)}
-										onChange={(option) => setTempStore(option?.value || "")}
-										placeholder="All Stores"
-										isClearable
-										isSearchable
-										styles={selectStyles}
-									/>
-								</div>
-							)}
 
 							{/* Brand Filter */}
 							<div>

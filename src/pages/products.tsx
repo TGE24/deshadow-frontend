@@ -24,11 +24,9 @@ import { Pagination } from "../modules/Pagination";
 // GraphQL & Store
 import {
 	Product,
-	ProductItem,
 	useProductsLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
-	useStoresLazyQuery,
 } from "../generated/graphql";
 
 // Hooks
@@ -70,23 +68,6 @@ const Products = () => {
 	// Filter Data Queries
 	const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
 	const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
-	const [getStores, { data: storesData }] = useStoresLazyQuery();
-
-	// Memoized select options
-	const storeOptions = useMemo((): SelectOption[] => {
-		const options: SelectOption[] = [{ value: "", label: "All Stores" }];
-
-		if (storesData?.stores?.edges) {
-			storesData.stores.edges.forEach((edge) => {
-				const store = edge.node;
-				if (store.__typename === "Store" && store.uuid && store.name) {
-					options.push({ value: store.uuid, label: store.name });
-				}
-			});
-		}
-
-		return options;
-	}, [storesData?.stores?.edges]);
 
 	const brandOptions = useMemo((): SelectOption[] => {
 		const options: SelectOption[] = [{ value: "", label: "All Brands" }];
@@ -140,10 +121,9 @@ const Products = () => {
 				header: () => <h4>Name</h4>,
 			},
 			{
-				accessorKey: "items",
+				accessorKey: "availableItemsCount",
 				cell: (info) => {
-					const items = info.getValue() as ProductItem[];
-					const quantity = items?.length || 0;
+					const quantity = info.getValue() as number;
 
 					if (quantity === 0) {
 						return <span className="text-red-600 font-semibold">Sold Out</span>;
@@ -166,9 +146,7 @@ const Products = () => {
 	useEffect(() => {
 		getBrands({ variables: { pagination: { first: 100 } } });
 		getCategories({ variables: { pagination: { first: 100 } } });
-
-		getStores({ variables: { pagination: { first: 100 } } });
-	}, [getBrands, getCategories, getStores]);
+	}, [getBrands, getCategories]);
 
 	// Load products with filters (using debounced search term)
 	useEffect(() => {
@@ -327,7 +305,6 @@ const Products = () => {
 				{/* Filter Dropdown */}
 				<div className="flex items-center gap-4">
 					<FilterDropdown
-						storeOptions={storeOptions}
 						brandOptions={brandOptions}
 						categoryOptions={categoryOptions}
 						selectedStore={selectedStore}

@@ -5,16 +5,13 @@ query Products($pagination: PaginationInput, $filter: ProductFilter) {
 				... on Product {
 					uuid
 					name
+					availableItemsCount
 					brand {
 						name
 						uuid
 					}
 					model
 					category {
-						name
-						uuid
-					}
-					store {
 						name
 						uuid
 					}

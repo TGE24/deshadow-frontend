@@ -111,7 +111,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			}));
 
 			const formData = {
-				storeUuid: selectedProduct.store?.uuid || "",
+				// storeUuid: selectedProduct.store?.uuid || "",
 				categoryUuid: selectedProduct.category?.uuid || "",
 				brandUuid: selectedProduct.brand?.uuid || "",
 				name: selectedProduct.name || "",
@@ -120,7 +120,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 				attributeUuids,
 			};
 			reset(formData);
-			setSelectedStore(selectedProduct.store ? selectedProduct.store : null);
+			// setSelectedStore(selectedProduct.store ? selectedProduct.store : null);
 			setSelectedBrand(selectedProduct.brand ? selectedProduct.brand : null);
 			setSelectedCategory(
 				selectedProduct.category ? selectedProduct.category : null
@@ -148,7 +148,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			await updateProduct({
 				variables: {
 					input: {
-						storeUuid: data.storeUuid,
+						// storeUuid: data.storeUuid,
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
