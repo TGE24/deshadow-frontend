@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-// import Button from "../components/Button";
-// import Plus from "../components/Icons/Plus";
+import { useEffect, useMemo, useState } from "react";
 import StatCard from "../components/StatCard";
 import {
 	ColumnDef,
@@ -8,120 +6,39 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import {
-	Sale,
-	SaleType,
-	useSalesLazyQuery,
-	useStoresLazyQuery,
-} from "../generated/graphql";
-import { formatToISODateTime } from "../utils/helpers";
-import DropdownMenu from "../components/DropdownMenu";
-import MoreVertical from "../components/Icons/MoreVertical";
+import { Sale, useSalesLazyQuery } from "../generated/graphql";
 import { formatDateTime, formatNaira } from "../utils/formatters";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import { SingleValue } from "react-select";
-import { SelectOption } from "./Sales";
+// import AuthTester from "../components/AuthTester";
+import { Link } from "react-router-dom";
+import {
+	ProductItem,
+	useProductItemsLazyQuery,
+	ProductItemStatus,
+} from "../generated/graphql";
+import { formatCurrency } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
-import SalesFilterDropdown from "../components/SalesFilterDropdown";
-import { Pagination } from "../modules/Pagination";
+import DropdownMenu from "../components/DropdownMenu";
+import MoreVertical from "../components/Icons/MoreVertical";
 
 const Dashboard = () => {
 	const [open, setOpen] = useState(false);
-	// const [startDate] = useState(new Date());
-	// const [endDate] = useState(addDays(new Date(), 3));
-	const [page, setPage] = useState(1);
 	const [data, setData] = useState<Sale[]>([]);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
-
-	// Filter States
-	const [selectedSaleTypes, setSelectedSaleTypes] = useState([
-		SaleType.Direct,
-		SaleType.Swap,
-	]);
 
 	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 
-	const [getStores, { data: storesData }] = useStoresLazyQuery();
-
-	// Load stores on component mount
-	useEffect(() => {
-		getStores();
-	}, [getStores]);
-
-	// Filter States
-	const [selectedSaleType, setSelectedSaleType] = useState("");
-	const [selectedStore, setSelectedStore] = useState("");
-	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
-
-	// Filter Handlers
-	const handleSaleTypeChange = useCallback(
-		(selectedOptions: SelectOption[] | []) => {
-			setSelectedSaleTypes(
-				selectedOptions.map((option) => option.value as SaleType)
-			);
-		},
-		[]
-	);
-
-	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
-		setSelectedStore(option?.value || "");
-	}, []);
-
-	const handleDateRangeChange = useCallback(
-		(newDateRange: { fromDate: string; toDate: string }) => {
-			setDateRange(newDateRange);
-		},
-		[]
-	);
-
-	const handleClearFilters = useCallback(() => {
-		setSelectedSaleType("");
-		setSelectedStore("");
-		setDateRange({ fromDate: "", toDate: "" });
-	}, []);
-
-	const handleApplyFilters = useCallback(() => {
-		// Filters are applied automatically through useEffect when state changes
-		// This is just a placeholder for the FilterDropdown component
-	}, []);
-
 	// Load sales with filters
 	useEffect(() => {
-		const buildFilters = () => {
-			const filters: Record<string, unknown> = {};
-
-			if (selectedSaleTypes && selectedSaleTypes.length > 0) {
-				filters.saleTypes = selectedSaleTypes;
-			}
-
-			if (selectedStore) {
-				filters.storeUuid = selectedStore;
-			}
-
-			if (dateRange.fromDate) {
-				filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
-			}
-
-			if (dateRange.toDate) {
-				filters.toDate = formatToISODateTime(dateRange.toDate, true);
-			}
-
-			return Object.keys(filters).length > 0 ? filters : undefined;
-		};
-
 		getSales({
 			variables: {
-				pagination: { first: 10 },
-				filter: buildFilters(),
+				pagination: { first: 5 },
 			},
 		});
-
-		// Reset page when filters change
-		setPage(1);
-	}, [getSales, selectedSaleTypes, selectedStore, dateRange]);
+	}, [getSales]);
 
 	const columns = useMemo<ColumnDef<Sale>[]>(() => {
 		const baseColumns: ColumnDef<Sale>[] = [
@@ -213,86 +130,6 @@ const Dashboard = () => {
 		return baseColumns;
 	}, []);
 
-	// Filter Options
-	const saleTypeOptions = useMemo(
-		(): SelectOption[] => [
-			{ value: "", label: "All Sale Types" },
-			{ value: SaleType.Direct, label: "Direct Sale" },
-			{ value: SaleType.Swap, label: "Swap Sale" },
-			{ value: SaleType.Credit, label: "Credit Sale" },
-		],
-		[]
-	);
-
-	const storeOptions = useMemo((): SelectOption[] => {
-		const options: SelectOption[] = [{ value: "", label: "All Stores" }];
-
-		if (storesData?.stores?.edges) {
-			storesData.stores.edges.forEach((edge) => {
-				const store = edge.node;
-				if (store.__typename === "Store" && store.uuid && store.name) {
-					options.push({
-						value: store.uuid,
-						label: store.name,
-					});
-				}
-			});
-		}
-
-		return options;
-	}, [storesData]);
-
-	const buildCurrentFilters = () => {
-		const filters: Record<string, unknown> = {};
-
-		if (selectedSaleType) {
-			filters.saleType = selectedSaleType;
-		}
-
-		if (selectedStore) {
-			filters.storeUuid = selectedStore;
-		}
-
-		if (dateRange.fromDate) {
-			filters.fromDate = formatToISODateTime(dateRange.fromDate, false);
-		}
-
-		if (dateRange.toDate) {
-			filters.toDate = formatToISODateTime(dateRange.toDate, true);
-		}
-
-		return Object.keys(filters).length > 0 ? filters : undefined;
-	};
-	const nextPage = () => {
-		if (sales?.sales?.pageInfo?.hasNextPage) {
-			getSales({
-				variables: {
-					pagination: {
-						first: 10,
-						after: sales?.sales?.pageInfo?.endCursor,
-					},
-					filter: buildCurrentFilters(),
-				},
-			});
-			setPage(page + 1);
-		}
-	};
-
-	const prevPage = () => {
-		if (sales?.sales?.pageInfo?.hasPreviousPage) {
-			getSales({
-				variables: {
-					pagination: {
-						last: 10,
-						before: sales?.sales?.pageInfo?.startCursor,
-					},
-					filter: buildCurrentFilters(),
-				},
-			});
-			setPage(page - 1);
-		}
-	};
-
 	useEffect(() => {
 		if (sales?.sales?.edges) {
 			setData(
@@ -309,8 +146,96 @@ const Dashboard = () => {
 		getCoreRowModel: getCoreRowModel(),
 	});
 
+	// Inventory preview (5 items)
+	const [inventoryData, setInventoryData] = useState<ProductItem[]>([]);
+	const [getProductItems, { data: inventory, loading: inventoryLoading }] =
+		useProductItemsLazyQuery();
+
+	useEffect(() => {
+		getProductItems({
+			variables: {
+				pagination: { first: 5 },
+				filter: { status: ProductItemStatus.Available },
+			},
+		});
+	}, [getProductItems]);
+
+	useEffect(() => {
+		if (inventory?.productItems?.edges) {
+			const processed = inventory.productItems.edges
+				.map((edge) => edge.node)
+				.filter((n) => n.__typename === "ProductItem") as ProductItem[];
+			setInventoryData(processed);
+		}
+	}, [inventory]);
+
+	const inventoryColumns = useMemo<ColumnDef<ProductItem>[]>(() => {
+		return [
+			{
+				accessorKey: "product.category.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Category</h4>,
+			},
+			{
+				accessorKey: "product.brand.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Brand</h4>,
+			},
+			{
+				accessorKey: "product.name",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Name</h4>,
+			},
+			{
+				accessorKey: "serialNumber",
+				cell: (info) => info.getValue(),
+				header: () => <h4>Serial</h4>,
+			},
+			{
+				accessorKey: "sellingPrice",
+				cell: (info) =>
+					formatCurrency(info.getValue() as number | null | undefined),
+				header: () => <h4>Price</h4>,
+			},
+			{
+				accessorKey: "store.name",
+				cell: (info) => info.getValue() ?? "N/A",
+				header: () => <h4>Store</h4>,
+			},
+			{
+				accessorKey: "condition",
+				cell: (info) => {
+					const condition = info.getValue() as string;
+					return (
+						<span
+							className={`px-2 py-1 rounded text-xs font-medium uppercase ${
+								condition === "new"
+									? "bg-green-100 text-green-800"
+									: condition === "fairly_used"
+									? "bg-yellow-100 text-yellow-800"
+									: condition === "refurbished"
+									? "bg-blue-100 text-blue-800"
+									: "bg-gray-100 text-gray-800"
+							}`}
+						>
+							{condition.replace("_", " ")}
+						</span>
+					);
+				},
+				header: () => <h4>Condition</h4>,
+			},
+		];
+	}, []);
+
+	const inventoryTable = useReactTable({
+		data: inventoryData,
+		columns: inventoryColumns,
+		getCoreRowModel: getCoreRowModel(),
+	});
+
 	return (
 		<>
+			{/* {import.meta.env.MODE === "development" && <AuthTester />} */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-[10px]">
 				<div>
 					<h2 className="text-[16px] md:text-[20px] font-bold">
@@ -352,82 +277,135 @@ const Dashboard = () => {
 					bottomStat={"30%"}
 				/>
 			</div>
-			<div className="mt-[48px]">
-				{/* Filters */}
-				<div className="mt-6 flex justify-end items-center">
-					<SalesFilterDropdown
-						saleTypeOptions={saleTypeOptions}
-						storeOptions={storeOptions}
-						selectedSaleTypes={selectedSaleTypes}
-						selectedStore={selectedStore}
-						dateRange={dateRange}
-						onSaleTypeChange={handleSaleTypeChange}
-						onStoreChange={handleStoreChange}
-						onDateRangeChange={handleDateRangeChange}
-						onClearFilters={handleClearFilters}
-						onApplyFilters={handleApplyFilters}
-					/>
-				</div>
-
-				<div className="w-full mt-[48px] overflow-x-auto">
-					<table className="w-full min-w-[800px]">
-						<thead className="bg-[#D4E7E6] h-[41px]">
-							{table.getHeaderGroups().map((headerGroup) => (
-								<tr key={headerGroup.id} className="text-[14px] font-semibold">
-									{headerGroup.headers.map((header) => (
-										<th
-											key={header.id}
-											className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
-										>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext()
-												  )}
-										</th>
-									))}
-								</tr>
-							))}
-						</thead>
-						{loading ? (
-							<TableLoader columns={columns.length} />
-						) : data.length === 0 ? (
-							<TableEmptyState
-								title="No Sales Found"
-								description="There are no sales records to display. Sales will appear here once they are created."
-								colSpan={columns.length}
-							/>
-						) : (
-							<tbody>
-								{table.getRowModel().rows.map((row) => (
-									<tr key={row.id} className="border-b-[1px] border-[#E3E3E3]">
-										{row.getVisibleCells().map((cell) => (
-											<td
-												key={cell.id}
-												className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+			<div className="mt-[48px] flex flex-col gap-[20px]">
+				<div>
+					<div className="w-full mt-[48px] overflow-x-auto">
+						<div>
+							<h2 className="text-[16px] md:text-[20px] font-bold mb-[20px]">
+								Recent Sales
+							</h2>
+						</div>
+						<table className="w-full">
+							<thead className="bg-[#D4E7E6] h-[41px]">
+								{table.getHeaderGroups().map((headerGroup) => (
+									<tr
+										key={headerGroup.id}
+										className="text-[14px] font-semibold"
+									>
+										{headerGroup.headers.map((header) => (
+											<th
+												key={header.id}
+												className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
 											>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext()
-												)}
-											</td>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext()
+													  )}
+											</th>
 										))}
 									</tr>
 								))}
-							</tbody>
-						)}
-					</table>
-					<Pagination
-						page={page}
-						loading={loading}
-						totalCount={sales?.sales.totalCount ?? 0}
-						dataLength={data.length}
-						hasNextPage={sales?.sales?.pageInfo?.hasNextPage ?? false}
-						hasPreviousPage={sales?.sales?.pageInfo?.hasPreviousPage ?? false}
-						onNextPage={nextPage}
-						onPrevPage={prevPage}
-					/>
+							</thead>
+							{loading ? (
+								<TableLoader columns={columns.length} />
+							) : data.length === 0 ? (
+								<TableEmptyState
+									title="No Sales Found"
+									description="There are no sales records to display. Sales will appear here once they are created."
+									colSpan={columns.length}
+								/>
+							) : (
+								<tbody>
+									{table.getRowModel().rows.map((row) => (
+										<tr
+											key={row.id}
+											className="border-b-[1px] border-[#E3E3E3]"
+										>
+											{row.getVisibleCells().map((cell) => (
+												<td
+													key={cell.id}
+													className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext()
+													)}
+												</td>
+											))}
+										</tr>
+									))}
+								</tbody>
+							)}
+						</table>
+					</div>
+				</div>
+				<div>
+					<div className="w-full mt-[48px] overflow-x-auto">
+						<div className="flex items-center justify-between">
+							<h2 className="text-[16px] md:text-[20px] font-bold mb-[20px]">
+								Inventory
+							</h2>
+							<Link to="/inventory" className="text-sm text-[#0B7285]">
+								View All
+							</Link>
+						</div>
+						<table className="w-full min-w-[600px]">
+							<thead className="bg-[#D4E7E6] h-[41px]">
+								{inventoryTable.getHeaderGroups().map((headerGroup) => (
+									<tr
+										key={headerGroup.id}
+										className="text-[14px] font-semibold"
+									>
+										{headerGroup.headers.map((header) => (
+											<th
+												key={header.id}
+												className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
+											>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+															header.column.columnDef.header,
+															header.getContext()
+													  )}
+											</th>
+										))}
+									</tr>
+								))}
+							</thead>
+							{inventoryLoading ? (
+								<TableLoader columns={inventoryColumns.length} />
+							) : inventoryData.length === 0 ? (
+								<TableEmptyState
+									title="No products found"
+									description="No products available"
+									colSpan={inventoryColumns.length}
+								/>
+							) : (
+								<tbody>
+									{inventoryTable.getRowModel().rows.map((row) => (
+										<tr
+											key={row.id}
+											className="border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-gray-50"
+										>
+											{row.getVisibleCells().map((cell) => (
+												<td
+													key={cell.id}
+													className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+												>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext()
+													)}
+												</td>
+											))}
+										</tr>
+									))}
+								</tbody>
+							)}
+						</table>
+					</div>
 				</div>
 			</div>
 			{/* <AddProduct open={open} setOpen={setOpen} refetch={() => {}} /> */}

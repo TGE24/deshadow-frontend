@@ -38,7 +38,8 @@ const ProductDetails = () => {
 	const [selectedConditions, setSelectedConditions] = useState<
 		ProductCondition[]
 	>([]);
-	const [getProduct, { data: products, loading }] = useProductLazyQuery();
+	const [getProduct, { data: products, loading, refetch: refetchProduct }] =
+		useProductLazyQuery();
 	const [getProductItems, { data: itemsData, refetch }] =
 		useProductItemsLazyQuery();
 	const [data, setData] = useState<ProductItem[]>([]);
@@ -124,6 +125,8 @@ const ProductDetails = () => {
 				cell: (info) => info.getValue(),
 				header: () => <h4>Serial Number</h4>,
 			},
+
+			// Dynamic attribute columns will be inserted after this point
 			{
 				accessorKey: "sellingPrice",
 				cell: (info) => {
@@ -225,8 +228,44 @@ const ProductDetails = () => {
 			},
 		];
 
+		// If the queried product has attributes, insert a column per attribute
+		const productAttributes = products?.product?.attributes || [];
+		if (productAttributes.length > 0) {
+			// build columns for each attribute
+			const attributeColumns: ColumnDef<ProductItem>[] = productAttributes.map(
+				(attr) => ({
+					id: `attr_${attr.uuid}`,
+					header: () => <h4>{attr.name}</h4>,
+					cell: ({ row }) => {
+						const productItem = row.original;
+						const av =
+							productItem.attributeValues?.find(
+								(a) => a.attribute?.uuid === attr.uuid
+							) || null;
+						return (
+							<span className="text-sm text-gray-700">
+								{av?.valueText ?? "—"}
+							</span>
+						);
+					},
+				})
+			);
+
+			// insert attribute columns after the serialNumber column
+			const serialIndex = baseColumns.findIndex(
+				(c) =>
+					(c as ColumnDef<ProductItem> & { accessorKey?: string })
+						.accessorKey === "serialNumber"
+			);
+			if (serialIndex >= 0) {
+				baseColumns.splice(serialIndex + 1, 0, ...attributeColumns);
+			} else {
+				baseColumns.push(...attributeColumns);
+			}
+		}
+
 		return baseColumns;
-	}, []);
+	}, [products?.product?.attributes]);
 
 	// Product Item Action Handlers
 	// const handleEditProductItem = () => {
@@ -538,22 +577,15 @@ const ProductDetails = () => {
 								</label>
 								<div className="min-w-[300px]">
 									<Select
-										isMulti
-										options={conditionOptions}
-										value={conditionOptions.filter((option) =>
-											selectedConditions.includes(option.value)
-										)}
-										onChange={(selectedOptions) => {
-											const values = selectedOptions
-												? selectedOptions.map((option) => option.value)
-												: [];
-											setSelectedConditions(values);
-										}}
-										placeholder="Select conditions..."
-										className="text-sm"
-										classNamePrefix="react-select"
-										isClearable
+										menuPortalTarget={
+											typeof document !== "undefined"
+												? document.body
+												: undefined
+										}
+										menuPosition="fixed"
 										styles={{
+											menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+											menu: (base) => ({ ...base, zIndex: 9999 }),
 											control: (provided) => ({
 												...provided,
 												minHeight: "32px",
@@ -579,6 +611,21 @@ const ProductDetails = () => {
 												height: "32px",
 											}),
 										}}
+										isMulti
+										options={conditionOptions}
+										value={conditionOptions.filter((option) =>
+											selectedConditions.includes(option.value)
+										)}
+										onChange={(selectedOptions) => {
+											const values = selectedOptions
+												? selectedOptions.map((option) => option.value)
+												: [];
+											setSelectedConditions(values);
+										}}
+										placeholder="Select conditions..."
+										className="text-sm"
+										classNamePrefix="react-select"
+										isClearable
 									/>
 								</div>
 							</div>
@@ -619,7 +666,9 @@ const ProductDetails = () => {
 									{table.getRowModel().rows.map((row) => (
 										<tr
 											key={row.id}
-							className={`border-b-[1px] border-[#E3E3E3] ${row.original.status === "pending" ? "bg-amber-50" : ""}`}
+											className={`border-b-[1px] border-[#E3E3E3] ${
+												row.original.status === "pending" ? "bg-amber-50" : ""
+											}`}
 										>
 											{row.getVisibleCells().map((cell) => (
 												<td
@@ -660,13 +709,13 @@ const ProductDetails = () => {
 			<EditProduct
 				open={editOpen}
 				setOpen={setEditOpen}
-				refetch={() => getProduct({ variables: { uuid: id! } })}
+				refetch={refetchProduct}
 				selectedProduct={product as Product}
 			/>
 			<DeleteModal
 				open={deleteOpen}
 				setOpen={setDeleteOpen}
-				refetch={() => getProduct({ variables: { uuid: id! } })}
+				refetch={refetchProduct}
 				title="Delete Product"
 				copy={`Are you sure you want to delete ${product?.name}?`}
 				action={handleDeleteProduct}
@@ -676,13 +725,8 @@ const ProductDetails = () => {
 				open={productItemOpen}
 				setOpen={setProductItemOpen}
 				refetch={() => {
-					getProduct({ variables: { uuid: id! } });
-					getProductItems({
-						variables: {
-							filter: { productUuid: id },
-							pagination: { first: 15, after: null },
-						},
-					});
+					refetchProduct();
+					refetch();
 				}}
 				selectedProduct={product as Product}
 			/>

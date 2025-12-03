@@ -30,10 +30,11 @@ import {
 // Hooks
 // import { useDebounce } from "../hooks/useDebounce";
 import { formatCurrency } from "../utils/formatters";
+import { useDebounce } from "../hooks/useDebounce";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
-// const SEARCH_DEBOUNCE_DELAY = 500;
+const SEARCH_DEBOUNCE_DELAY = 500;
 
 const Inventory = () => {
 	// Hooks
@@ -50,7 +51,7 @@ const Inventory = () => {
 	// const [selectedCategory, setSelectedCategory] = useState("");
 
 	// Debounced search term to prevent excessive API calls
-	// const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
+	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
 
 	// GraphQL Queries
 	const [getProductItems, { data: products, loading }] =
@@ -192,7 +193,10 @@ const Inventory = () => {
 		getProductItems({
 			variables: {
 				pagination: { first: ITEMS_PER_PAGE },
-				filter: { status: ProductItemStatus.Available },
+				filter: {
+					status: ProductItemStatus.Available,
+					search: debouncedSearchTerm.trim() || undefined,
+				},
 			},
 		});
 
@@ -200,7 +204,7 @@ const Inventory = () => {
 		setPage(1);
 	}, [
 		getProductItems,
-		// debouncedSearchTerm,
+		debouncedSearchTerm,
 		// selectedStore,
 		// selectedBrand,
 		// selectedCategory,

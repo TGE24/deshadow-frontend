@@ -10,12 +10,10 @@ import {
 	Brand,
 	Category,
 	Product,
-	Store,
 	useAssignAttributesToProductMutation,
 	useAttributesLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
-	useStoresQuery,
 	useUpdateProductMutation,
 } from "../../../generated/graphql";
 
@@ -27,12 +25,10 @@ interface AddProductModalProps {
 }
 
 interface AddProductForm {
-	storeUuid: string;
 	categoryUuid: string;
 	brandUuid: string;
 	name: string;
 	description: string;
-	model: string;
 	attributeUuids: string[];
 }
 
@@ -49,7 +45,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	refetch,
 	selectedProduct,
 }) => {
-	const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 	const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null
@@ -64,9 +59,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	const [getAttributes, { data: attributes }] = useAttributesLazyQuery({
 		fetchPolicy: "network-only",
 	});
-	const { data: stores } = useStoresQuery({
-		variables: { pagination: { first: 100 } },
-	});
+
 	const [getBrands, { data: brands }] = useBrandsLazyQuery({
 		fetchPolicy: "network-only",
 	});
@@ -89,11 +82,10 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 		setError,
 	} = useForm<AddProductForm>({
 		defaultValues: {
-			storeUuid: "",
 			categoryUuid: "",
 			brandUuid: "",
 			name: "",
-			model: "",
+			// model: "",
 			description: "",
 			attributeUuids: [],
 		},
@@ -115,7 +107,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 				categoryUuid: selectedProduct.category?.uuid || "",
 				brandUuid: selectedProduct.brand?.uuid || "",
 				name: selectedProduct.name || "",
-				model: selectedProduct.model || "",
+				// model: selectedProduct.model || "",
 				description: selectedProduct.description || "",
 				attributeUuids,
 			};
@@ -130,11 +122,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 	}, [open, selectedProduct, reset]);
 
 	const handleSubmitForm = async (data: AddProductForm) => {
-		// Validate select fields
-		if (!data.storeUuid) {
-			setError("storeUuid", { message: "Please select a store" });
-			return;
-		}
 		if (!data.categoryUuid) {
 			setError("categoryUuid", { message: "Please select a category" });
 			return;
@@ -152,7 +139,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
-						model: data.model,
+						// model: data.model,
 						description: data.description,
 					},
 					uuid: selectedProduct?.uuid || "",
@@ -199,47 +186,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 			</h2>
 			<form onSubmit={handleSubmit(handleSubmitForm)}>
 				<div className="mb-[76px] mt-[16px] flex gap-[24px] flex-col">
-					<div className="w-full">
-						<label
-							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-							htmlFor="store"
-						>
-							Store
-						</label>
-						<Select
-							options={stores?.stores.edges.map((store) => ({
-								value: (store.node as Store).uuid,
-								label: (store.node as Store).name,
-							}))}
-							value={
-								selectedStore
-									? {
-											value: selectedStore.uuid,
-											label: selectedStore.name,
-									  }
-									: null
-							}
-							placeholder="Select Store"
-							classNames={selectStyles}
-							onChange={(option) => {
-								const newStore = option ? option.value : null;
-								setValue("storeUuid", newStore);
-								const storeObj =
-									option &&
-									stores?.stores.edges
-										.map((store) => store.node as Store)
-										.find((store) => store.uuid === option.value);
-								setSelectedStore(storeObj || null);
-							}}
-							name="storeUuid"
-						/>
-						{errors.storeUuid && (
-							<span className="text-red-500 text-sm">
-								{errors.storeUuid.message}
-							</span>
-						)}
-					</div>
-
 					<div className="flex flex-col md:flex-row gap-[16px]">
 						<div className="w-full">
 							<label
@@ -324,7 +270,6 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 							)}
 						</div>
 					</div>
-
 					<div className="w-full">
 						<label
 							className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
@@ -381,7 +326,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 						register={register("description")}
 						errors={errors.description}
 					/>
-					<Input
+					{/* <Input
 						label="Model"
 						placeholder="Enter model"
 						id="model"
@@ -391,7 +336,7 @@ const EditProduct: React.FC<AddProductModalProps> = ({
 							minLength: { value: 1, message: "Model is required" },
 						})}
 						errors={errors.model}
-					/>
+					/> */}
 				</div>
 				<Button
 					size="large"

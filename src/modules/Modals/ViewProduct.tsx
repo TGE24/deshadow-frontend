@@ -16,15 +16,6 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 	const primaryImage = images.find((img) => img.isPrimary) || images[0];
 	const selectedImage = images[selectedImageIndex] || primaryImage;
 
-	// Format price
-	// const formatPrice = (price?: number | null) => {
-	// 	if (!price) return "N/A";
-	// 	return new Intl.NumberFormat("en-NG", {
-	// 		style: "currency",
-	// 		currency: "NGN",
-	// 	}).format(price);
-	// };
-
 	// Format condition
 	const formatCondition = (condition?: string) => {
 		if (!condition) return "N/A";
@@ -46,6 +37,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 				modal: "rounded-[16px] !px-0 !py-0 w-full !max-w-[750px] !m-0",
 				overlay: "backdrop-blur-[6px]",
 			}}
+			closeIcon={<></>}
 		>
 			<div className="bg-white rounded-[16px] overflow-hidden max-h-[90vh] flex flex-col">
 				{/* Header */}
@@ -56,7 +48,7 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 						</h2>
 						<button
 							onClick={() => setOpen(false)}
-							className="text-gray-400 hover:text-gray-600 transition-colors"
+							className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
 						>
 							<svg
 								className="w-6 h-6"

@@ -8,16 +8,6 @@ import {
 } from "../generated/graphql";
 import { useDebounce } from "../hooks/useDebounce";
 
-// interface ProductItemResult {
-// 	__typename: "ProductItem";
-// 	uuid: string;
-// 	serialNumber: string;
-// 	condition: string;
-// 	status: ProductItemStatus;
-// 	product: Partial<Product>;
-// 	sellingPrice?: number;
-// }
-
 interface SerialNumberAutoSuggestProps {
 	value: string;
 	onSelect: (item: ProductItem | null) => void;
@@ -29,7 +19,7 @@ interface SerialNumberAutoSuggestProps {
 const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 	value,
 	onSelect,
-	placeholder = "Enter serial number...",
+	placeholder = "Search....",
 	label = "Serial Number",
 	className = "",
 }) => {

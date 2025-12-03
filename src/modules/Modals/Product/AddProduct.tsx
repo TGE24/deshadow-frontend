@@ -9,13 +9,11 @@ import Input from "../../../components/Input";
 import {
 	Brand,
 	Category,
-	Store,
 	useAssignAttributesToProductMutation,
 	useAttributesLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
 	useCreateProductMutation,
-	useStoresQuery,
 	useMeQuery,
 	UserRole,
 } from "../../../generated/graphql";
@@ -54,9 +52,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	});
 	const [getAttributes, { data: attributes }] = useAttributesLazyQuery({
 		fetchPolicy: "network-only",
-	});
-	const { data: stores } = useStoresQuery({
-		variables: { pagination: { first: 100 } },
 	});
 	const [getBrands, { data: brands }] = useBrandsLazyQuery({
 		fetchPolicy: "network-only",
@@ -126,7 +121,7 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
-						model: data.model,
+						// model: data.model,
 						description: data.description,
 					},
 				},
@@ -172,44 +167,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			</h2>
 			<form onSubmit={handleSubmit(handleSubmitForm)}>
 				<div className="mb-[40px] mt-[16px] flex gap-[24px] flex-col">
-					{meData?.me?.role === UserRole.StoreOwner ? (
-						<div className="w-full">
-							<label
-								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
-								htmlFor="store"
-							>
-								Store
-							</label>
-							<Select
-								options={stores?.stores.edges.map((store) => ({
-									value: (store.node as Store).uuid,
-									label: (store.node as Store).name,
-								}))}
-								placeholder="Select Store"
-								classNames={selectStyles}
-								onChange={(option) => {
-									setValue("storeUuid", option?.value || "", {
-										shouldValidate: true,
-									});
-								}}
-								name="storeUuid"
-							/>
-							{errors.storeUuid && (
-								<span className="text-red-500 text-sm">
-									{errors.storeUuid.message}
-								</span>
-							)}
-						</div>
-					) : meData?.me?.role === UserRole.Reseller ? (
-						<div className="w-full">
-							<label className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro">
-								Store
-							</label>
-							<div className="h-[48px] rounded-[10px] border-[#F0F0FF] border-[1px] px-[14px] flex items-center bg-gray-50 text-gray-700">
-								{meData?.me?.assignedStore?.name || "No store assigned"}
-							</div>
-						</div>
-					) : null}
 					<div className="flex flex-col md:flex-row gap-[16px]">
 						<div className="w-full">
 							<label

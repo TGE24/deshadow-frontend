@@ -83,7 +83,7 @@ const ProductInformation = ({
 									}
 								}}
 								placeholder="Enter serial number to search..."
-								label="Search by Serial Number"
+								label="Search by Serial Number or Product Name"
 							/>
 							{item.productName && (
 								<div className="mt-2">
