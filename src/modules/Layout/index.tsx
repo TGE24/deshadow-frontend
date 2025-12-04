@@ -9,6 +9,8 @@ import PendingItemsBanner from "../../components/PendingItemsBanner";
 import {
 	useProductItemsQuery,
 	ProductItemStatus,
+	useSalesQuery,
+	SaleStatus,
 } from "../../generated/graphql";
 import PendingItemsIndicator from "../../components/PendingItemsIndicator";
 import NotificationDrawer from "../../components/NotificationDrawer";
@@ -310,9 +312,23 @@ const Layout = ({ children }: LayoutProps) => {
 		fetchPolicy: "network-only",
 	});
 
-	const hasPending =
+	const { data: pendingSalesData } = useSalesQuery({
+		variables: {
+			filter: { saleStatus: SaleStatus.Pending },
+			pagination: { first: 1 },
+		},
+		fetchPolicy: "network-only",
+	});
+
+	const hasPendingItems =
 		!!pendingData?.productItems?.totalCount &&
 		pendingData.productItems.totalCount > 0;
+
+	const hasPendingSales =
+		!!pendingSalesData?.sales?.totalCount &&
+		pendingSalesData.sales.totalCount > 0;
+
+	const hasPending = hasPendingItems || hasPendingSales;
 
 	return (
 		<div className="h-screen overflow-hidden bg-[#FBFBFF] flex">
@@ -390,7 +406,11 @@ const Layout = ({ children }: LayoutProps) => {
 
 			{/* Main content area */}
 			<div className="flex-1 flex flex-col bg-[#FBFBFF] overflow-hidden">
-				<PendingItemsBanner visible={hasPending} />
+				<PendingItemsBanner
+					visible={hasPending}
+					hasPendingItems={hasPendingItems}
+					hasPendingSales={hasPendingSales}
+				/>
 				<Header
 					user={user}
 					onMenuClick={() => setIsMobileMenuOpen(true)}

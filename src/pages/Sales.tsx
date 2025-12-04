@@ -21,6 +21,8 @@ import SalesFilterDropdown from "../components/SalesFilterDropdown";
 import { formatToISODateTime } from "../utils/helpers";
 import { Pagination } from "../modules/Pagination";
 import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
+import Input from "../components/Input";
+import { useDebounce } from "../hooks/useDebounce";
 
 // Types
 export interface SelectOption {
@@ -39,12 +41,15 @@ const SalesManagement = () => {
 	const [data, setData] = useState<Sale[]>([]);
 
 	// Filter States
+	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedSaleTypes, setSelectedSaleTypes] = useState<SaleType[]>([]);
 	const [selectedStore, setSelectedStore] = useState("");
 	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
 
 	// Stores data
 	const [getStores, { data: storesData }] = useStoresLazyQuery();
+	// Debounced search term to prevent excessive API calls
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
 	// Load stores on component mount
 	useEffect(() => {
@@ -243,6 +248,9 @@ const SalesManagement = () => {
 			if (dateRange.toDate) {
 				filters.toDate = formatToISODateTime(dateRange.toDate, true);
 			}
+			if (debouncedSearchTerm) {
+				filters.search = debouncedSearchTerm;
+			}
 
 			return Object.keys(filters).length > 0 ? filters : undefined;
 		};
@@ -256,7 +264,13 @@ const SalesManagement = () => {
 
 		// Reset page when filters change
 		setPage(1);
-	}, [getSales, selectedSaleTypes, selectedStore, dateRange]);
+	}, [
+		getSales,
+		selectedSaleTypes,
+		selectedStore,
+		dateRange,
+		debouncedSearchTerm,
+	]);
 
 	useEffect(() => {
 		if (sales?.sales?.edges) {
@@ -335,7 +349,16 @@ const SalesManagement = () => {
 			</div>
 
 			{/* Filters */}
-			<div className="mt-6 flex justify-end items-center">
+			<div className="mt-6 flex justify-between items-center">
+				{/* Search Bar */}
+				<div className="w-full md:w-96">
+					<Input
+						placeholder="Search sales..."
+						variant="search"
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+					/>
+				</div>
 				<SalesFilterDropdown
 					saleTypeOptions={saleTypeOptions}
 					storeOptions={storeOptions}

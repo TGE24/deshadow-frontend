@@ -2,12 +2,24 @@ import { Link } from "react-router-dom";
 
 const PendingItemsBanner = ({
 	visible,
-	message = "You have pending product items — click to review",
+	hasPendingItems = false,
+	hasPendingSales = false,
 }: {
 	visible: boolean;
-	message?: string;
+	hasPendingItems?: boolean;
+	hasPendingSales?: boolean;
 }) => {
 	if (!visible) return null;
+
+	let message = "You have pending items";
+	if (hasPendingItems && hasPendingSales) {
+		message =
+			"You have pending product items and credit sales — click to review";
+	} else if (hasPendingItems) {
+		message = "You have pending product items — click to review";
+	} else if (hasPendingSales) {
+		message = "You have pending credit sales — click to review";
+	}
 
 	return (
 		<div className="w-full flex justify-center">

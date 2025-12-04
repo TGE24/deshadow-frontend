@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-// import { useNavigate } from "react-router-dom";
+
+import Select from "react-select";
 
 import {
 	ColumnDef,
@@ -8,13 +9,11 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-// import { SingleValue } from "react-select";
 
 // Components
 import Input from "../components/Input";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-// import FilterDropdown from "../components/FilterDropdown";
 
 // Modals
 
@@ -26,10 +25,10 @@ import {
 	ProductItem,
 	useProductItemsLazyQuery,
 	ProductItemStatus,
+	ProductCondition,
 } from "../generated/graphql";
 
 // Hooks
-// import { useDebounce } from "../hooks/useDebounce";
 import { formatCurrency } from "../utils/formatters";
 import { useDebounce } from "../hooks/useDebounce";
 
@@ -38,18 +37,20 @@ const ITEMS_PER_PAGE = 10;
 const SEARCH_DEBOUNCE_DELAY = 500;
 
 const Inventory = () => {
-	// Hooks
-	// const navigate = useNavigate();
-
 	// State Management
 	const [page, setPage] = useState(1);
 	const [data, setData] = useState<ProductItem[]>([]);
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
-	// const [selectedStore, setSelectedStore] = useState("");
-	// const [selectedBrand, setSelectedBrand] = useState("");
-	// const [selectedCategory, setSelectedCategory] = useState("");
+	const [selectedConditions, setSelectedConditions] = useState<
+		ProductCondition[]
+	>([]);
+
+	const conditionOptions = useMemo(
+		() => Object.values(ProductCondition).map((c) => ({ label: c, value: c })),
+		[]
+	);
 
 	// Debounced search term to prevent excessive API calls
 	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
@@ -60,27 +61,7 @@ const Inventory = () => {
 
 	// Router location so we can refetch whenever user lands on this route
 	const location = useLocation();
-	// Filter Data Queries
-	// const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
-	// const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
-	// const [getStores, { data: storesData }] = useStoresLazyQuery();
 
-	// Memoized select options
-	// const storeOptions = useMemo((): SelectOption[] => {
-	// 	const options: SelectOption[] = [{ value: "", label: "All Stores" }];
-
-	// 	if (storesData?.stores?.edges) {
-	// 		storesData.stores.edges.forEach((edge) => {
-	// 			const store = edge.node;
-	// 			if (store.__typename === "Store" && store.uuid && store.name) {
-	// 				options.push({ value: store.uuid, label: store.name });
-	// 			}
-	// 		});
-	// 	}
-
-	// 	return options;
-	// }, [storesData?.stores?.edges]);
-	// Helper to fetch items (uses network-only to avoid cache short-circuiting)
 	const fetchItems = useCallback(
 		(opts?: { after?: string; before?: string }) => {
 			getProductItems({
@@ -96,11 +77,15 @@ const Inventory = () => {
 					filter: {
 						status: ProductItemStatus.Available,
 						search: debouncedSearchTerm.trim() || undefined,
+						conditions:
+							selectedConditions && selectedConditions.length > 0
+								? selectedConditions
+								: undefined,
 					},
 				},
 			});
 		},
-		[getProductItems, debouncedSearchTerm]
+		[getProductItems, debouncedSearchTerm, selectedConditions]
 	);
 
 	// Run on mount, when pathname changes, or when filters/search change
@@ -126,16 +111,6 @@ const Inventory = () => {
 			document.removeEventListener("visibilitychange", onVisibility);
 		};
 	}, [fetchItems]);
-	// 				category.uuid &&
-	// 				category.name
-	// 			) {
-	// 				options.push({ value: category.uuid, label: category.name });
-	// 			}
-	// 		});
-	// 	}
-
-	// 	return options;
-	// }, [categoriesData?.categories?.edges]);
 
 	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
 		const baseColumns: ColumnDef<ProductItem>[] = [
@@ -199,20 +174,8 @@ const Inventory = () => {
 			},
 		];
 
-		// Actions column removed - moved to product details page
-
 		return baseColumns;
 	}, []);
-
-	// Effects Section
-
-	// Load filter data on component mount
-	// useEffect(() => {
-	// 	getBrands({ variables: { pagination: { first: 100 } } });
-	// 	getCategories({ variables: { pagination: { first: 100 } } });
-
-	// 	getStores({ variables: { pagination: { first: 100 } } });
-	// }, [getBrands, getCategories, getStores]);
 
 	// Load products with filters (using debounced search term)
 	useEffect(() => {
@@ -222,6 +185,10 @@ const Inventory = () => {
 				filter: {
 					status: ProductItemStatus.Available,
 					search: debouncedSearchTerm.trim() || undefined,
+					conditions:
+						selectedConditions && selectedConditions.length > 0
+							? selectedConditions
+							: undefined,
 				},
 			},
 		});
@@ -231,12 +198,8 @@ const Inventory = () => {
 	}, [
 		getProductItems,
 		debouncedSearchTerm,
-		// re-run whenever the route navigation occurs (landing on the page)
-		// re-run when the route path changes (landing on this page)
+		selectedConditions,
 		location.pathname,
-		// selectedStore,
-		// selectedBrand,
-		// selectedCategory,
 	]);
 
 	// Process products data
@@ -257,32 +220,6 @@ const Inventory = () => {
 		getCoreRowModel: getCoreRowModel(),
 	});
 
-	// Event Handlers
-
-	// Clear all filters
-	// const handleClearFilters = useCallback(() => {
-	// 	setSearchTerm("");
-	// 	setSelectedStore("");
-	// 	setSelectedBrand("");
-	// 	setSelectedCategory("");
-	// }, []);
-
-	// Handle select changes
-	// const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
-	// 	setSelectedStore(option?.value || "");
-	// }, []);
-
-	// const handleBrandChange = useCallback((option: SingleValue<SelectOption>) => {
-	// 	setSelectedBrand(option?.value || "");
-	// }, []);
-
-	// const handleCategoryChange = useCallback(
-	// 	(option: SingleValue<SelectOption>) => {
-	// 		setSelectedCategory(option?.value || "");
-	// 	},
-	// 	[]
-	// );
-
 	// Pagination handlers
 	const handleNextPage = useCallback(() => {
 		if (products?.productItems?.pageInfo?.hasNextPage) {
@@ -291,6 +228,14 @@ const Inventory = () => {
 					pagination: {
 						first: ITEMS_PER_PAGE,
 						after: products?.productItems?.pageInfo?.endCursor,
+					},
+					filter: {
+						status: ProductItemStatus.Available,
+						search: debouncedSearchTerm.trim() || undefined,
+						conditions:
+							selectedConditions && selectedConditions.length > 0
+								? selectedConditions
+								: undefined,
 					},
 				},
 			});
@@ -301,6 +246,8 @@ const Inventory = () => {
 		products?.productItems?.pageInfo?.hasNextPage,
 		products?.productItems?.pageInfo?.endCursor,
 		page,
+		debouncedSearchTerm,
+		selectedConditions,
 	]);
 
 	const handlePrevPage = useCallback(() => {
@@ -311,6 +258,14 @@ const Inventory = () => {
 						last: ITEMS_PER_PAGE,
 						before: products?.productItems?.pageInfo?.startCursor,
 					},
+					filter: {
+						status: ProductItemStatus.Available,
+						search: debouncedSearchTerm.trim() || undefined,
+						conditions:
+							selectedConditions && selectedConditions.length > 0
+								? selectedConditions
+								: undefined,
+					},
 				},
 			});
 			setPage(page - 1);
@@ -320,6 +275,8 @@ const Inventory = () => {
 		products?.productItems?.pageInfo?.hasPreviousPage,
 		products?.productItems?.pageInfo?.startCursor,
 		page,
+		debouncedSearchTerm,
+		selectedConditions,
 	]);
 
 	return (
@@ -341,6 +298,24 @@ const Inventory = () => {
 						variant="search"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
+					/>
+				</div>
+
+				{/* Condition Filter */}
+				<div className="ml-4 w-48">
+					<Select
+						isMulti
+						options={conditionOptions}
+						value={selectedConditions.map((c) => ({ label: c, value: c }))}
+						onChange={(opts) =>
+							setSelectedConditions(
+								(opts as { label: string; value: ProductCondition }[] | null)
+									? (opts as { label: string; value: ProductCondition }[]).map(
+											(o) => o.value
+									  )
+									: []
+							)
+						}
 					/>
 				</div>
 			</div>
