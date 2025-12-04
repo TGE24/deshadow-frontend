@@ -1,4 +1,8 @@
-import { ProductCondition, PaymentType } from "../../generated/graphql";
+import {
+	ProductCondition,
+	PaymentType,
+	SaleType,
+} from "../../generated/graphql";
 import { CreditSaleFormData } from "./types";
 
 export interface Step {
@@ -8,7 +12,7 @@ export interface Step {
 }
 
 export const INITIAL_CREDIT_SALE_FORM_DATA: CreditSaleFormData = {
-	creditSaleType: "",
+	creditSaleType: "" as SaleType.Direct | SaleType.Swap,
 	productUuid: "",
 	serialNumber: "",
 	condition: "" as ProductCondition | "",
