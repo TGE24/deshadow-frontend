@@ -16,6 +16,7 @@ import SalesManagement from "./pages/Sales";
 import SetPassword from "./pages/set-password";
 import ProductDetails from "./pages/productDetails";
 import Inventory from "./pages/inventory";
+import PendingItems from "./pages/pendingItems";
 import Attributes from "./pages/attributes";
 import ResellersSale from "./pages/resellersSale";
 import ResellersRecord from "./pages/ResellersRecord";
@@ -48,6 +49,7 @@ function App() {
 									<Route path="/products" element={<Products />} />
 									<Route path="/attributes" element={<Attributes />} />
 									<Route path="/inventory" element={<Inventory />} />
+									<Route path="/pending-items" element={<PendingItems />} />
 									<Route path="/stores" element={<Stores />} />
 									<Route path="/sale" element={<SalesManagement />} />
 								</Routes>

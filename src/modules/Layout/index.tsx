@@ -1,10 +1,17 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useRef, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { cn } from "../../utils/cn";
 import { useUserStore } from "../../store/userStore";
 import AvatarDropdown from "../../components/AvatarDropdown";
 import { UserRole } from "../../generated/graphql";
+import PendingItemsBanner from "../../components/PendingItemsBanner";
+import {
+	useProductItemsQuery,
+	ProductItemStatus,
+} from "../../generated/graphql";
+import PendingItemsIndicator from "../../components/PendingItemsIndicator";
+import NotificationDrawer from "../../components/NotificationDrawer";
 
 // Icons
 import Home from "../../components/Icons/Home";
@@ -220,39 +227,92 @@ const MenuList = ({
 const Header = ({
 	user,
 	onMenuClick,
+	topOffset = "0px",
 }: {
 	user: { firstName?: string } | null;
 	onMenuClick: () => void;
-}) => (
-	<nav className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0 sticky top-0">
-		<div className="flex items-center justify-between lg:max-w-[70dvw]">
-			<div className="hidden lg:block">
-				<h1 className="text-[20px] font-bold">
-					Good Morning, {user?.firstName} 👋🏽
-				</h1>
-				<p className="text-[#6A6A6A] text-[14px]">
-					Real time insight on your store performance
-				</p>
-			</div>
-			<button
-				className="lg:hidden size-[38px] flex items-center justify-center"
-				onClick={onMenuClick}
-			>
-				<Menu />
-			</button>
-			<div className="flex items-center gap-[8px]">
-				<div className="border-[1px] border-[#F2F2FE] border-solid size-[48px] rounded-full cursor-pointer flex items-center justify-center">
-					<Notifications />
+	topOffset?: string;
+}) => {
+	const [isNotifOpen, setIsNotifOpen] = useState(false);
+	const notifRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect(() => {
+		const onDocClick = (e: MouseEvent) => {
+			if (!notifRef.current) return;
+			if (!notifRef.current.contains(e.target as Node)) {
+				setIsNotifOpen(false);
+			}
+		};
+		const onEsc = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setIsNotifOpen(false);
+		};
+
+		document.addEventListener("click", onDocClick);
+		document.addEventListener("keydown", onEsc);
+		return () => {
+			document.removeEventListener("click", onDocClick);
+			document.removeEventListener("keydown", onEsc);
+		};
+	}, []);
+
+	return (
+		<nav
+			style={{ top: topOffset }}
+			className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0 sticky"
+		>
+			<div className="flex items-center justify-between lg:max-w-[70dvw]">
+				<div className="hidden lg:block">
+					<h1 className="text-[20px] font-bold">
+						Good Morning, {user?.firstName} 👋🏽
+					</h1>
+					<p className="text-[#6A6A6A] text-[14px]">
+						Real time insight on your store performance
+					</p>
 				</div>
-				<AvatarDropdown {...user} />
+				<button
+					className="lg:hidden size-[38px] flex items-center justify-center"
+					onClick={onMenuClick}
+				>
+					<Menu />
+				</button>
+				<div className="flex items-center gap-[8px]">
+					<div
+						ref={notifRef}
+						className="relative border-[1px] border-[#F2F2FE] border-solid size-[48px] rounded-full cursor-pointer flex items-center justify-center"
+						onClick={() => setIsNotifOpen((s) => !s)}
+					>
+						<Notifications />
+						<PendingItemsIndicator />
+						{isNotifOpen && (
+							<div className="absolute right-0 mt-2 z-[9999] top-[36px]">
+								<div>
+									{/* offset to avoid banner overlap */}
+									<NotificationDrawer onClose={() => setIsNotifOpen(false)} />
+								</div>
+							</div>
+						)}
+					</div>
+					<AvatarDropdown {...user} />
+				</div>
 			</div>
-		</div>
-	</nav>
-);
+		</nav>
+	);
+};
 
 const Layout = ({ children }: LayoutProps) => {
 	const { user } = useUserStore();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const { data: pendingData } = useProductItemsQuery({
+		variables: {
+			filter: { status: ProductItemStatus.Pending },
+			pagination: { first: 1 },
+		},
+		fetchPolicy: "network-only",
+	});
+
+	const hasPending =
+		!!pendingData?.productItems?.totalCount &&
+		pendingData.productItems.totalCount > 0;
 
 	return (
 		<div className="h-screen overflow-hidden bg-[#FBFBFF] flex">
@@ -330,7 +390,12 @@ const Layout = ({ children }: LayoutProps) => {
 
 			{/* Main content area */}
 			<div className="flex-1 flex flex-col bg-[#FBFBFF] overflow-hidden">
-				<Header user={user} onMenuClick={() => setIsMobileMenuOpen(true)} />
+				<PendingItemsBanner visible={hasPending} />
+				<Header
+					user={user}
+					onMenuClick={() => setIsMobileMenuOpen(true)}
+					topOffset={hasPending ? "56px" : "0px"}
+				/>
 				<div className="flex-1 overflow-y-auto lg:p-[20px] xl:p-[34px_38px_38px_38px]">
 					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">
 						{children}
