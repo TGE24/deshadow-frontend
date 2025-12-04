@@ -137,12 +137,20 @@ const ViewProduct = ({ open, setOpen }: ViewProductProps) => {
 										</p>
 										<span
 											className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-												productItem?.condition === "new"
+												productItem?.condition === "new_active"
 													? "bg-green-100 text-green-800"
-													: productItem?.condition === "fairly_used"
-													? "bg-yellow-100 text-yellow-800"
-													: productItem?.condition === "refurbished"
+													: productItem?.condition === "new_locked"
 													? "bg-blue-100 text-blue-800"
+													: productItem?.condition === "new_non_active"
+													? "bg-purple-100 text-purple-800"
+													: productItem?.condition === "new_sealed_box"
+													? "bg-indigo-100 text-indigo-800"
+													: productItem?.condition === "nigeria_used"
+													? "bg-yellow-100 text-yellow-800"
+													: productItem?.condition === "uk_used"
+													? "bg-orange-100 text-orange-800"
+													: productItem?.condition === "used_locked"
+													? "bg-red-100 text-red-800"
 													: "bg-gray-100 text-gray-800"
 											}`}
 										>

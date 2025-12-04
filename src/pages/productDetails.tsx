@@ -147,19 +147,33 @@ const ProductDetails = () => {
 				accessorKey: "condition",
 				cell: (info) => {
 					const condition = info.getValue() as string;
+					const getConditionStyles = (cond: string) => {
+						switch (cond) {
+							case "new_active":
+								return "bg-green-100 text-green-800";
+							case "new_locked":
+								return "bg-blue-100 text-blue-800";
+							case "new_non_active":
+								return "bg-purple-100 text-purple-800";
+							case "new_sealed_box":
+								return "bg-indigo-100 text-indigo-800";
+							case "nigeria_used":
+								return "bg-yellow-100 text-yellow-800";
+							case "uk_used":
+								return "bg-orange-100 text-orange-800";
+							case "used_locked":
+								return "bg-red-100 text-red-800";
+							default:
+								return "bg-gray-100 text-gray-800";
+						}
+					};
 					return (
 						<span
-							className={`px-2 py-1 rounded text-xs font-medium uppercase ${
-								condition === "new"
-									? "bg-green-100 text-green-800"
-									: condition === "fairly_used"
-									? "bg-yellow-100 text-yellow-800"
-									: condition === "refurbished"
-									? "bg-blue-100 text-blue-800"
-									: "bg-gray-100 text-gray-800"
-							}`}
+							className={`px-2 py-1 rounded text-xs font-medium uppercase ${getConditionStyles(
+								condition
+							)}`}
 						>
-							{condition.replace("_", " ")}
+							{condition.replace(/_/g, " ")}
 						</span>
 					);
 				},

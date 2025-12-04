@@ -528,10 +528,13 @@ export type Product = {
 };
 
 export enum ProductCondition {
-  Damaged = 'damaged',
-  FairlyUsed = 'fairly_used',
-  New = 'new',
-  Refurbished = 'refurbished'
+  NewActive = 'new_active',
+  NewLocked = 'new_locked',
+  NewNonActive = 'new_non_active',
+  NewSealedBox = 'new_sealed_box',
+  NigeriaUsed = 'nigeria_used',
+  UkUsed = 'uk_used',
+  UsedLocked = 'used_locked'
 }
 
 export type ProductFilter = {
@@ -651,6 +654,7 @@ export type Query = {
   brands: PaginatedResponse;
   categories: PaginatedResponse;
   category?: Maybe<Category>;
+  conditionSummary: Scalars['JSON']['output'];
   financialDashboard: Scalars['JSON']['output'];
   invoice?: Maybe<Invoice>;
   invoiceStats: Scalars['JSON']['output'];
@@ -933,6 +937,7 @@ export type SaleFilter = {
   paymentStatus?: InputMaybe<PaymentStatus>;
   saleStatus?: InputMaybe<SaleStatus>;
   saleTypes?: InputMaybe<Array<SaleType>>;
+  search?: InputMaybe<Scalars['String']['input']>;
   storeUuid?: InputMaybe<Scalars['UUID']['input']>;
   toDate?: InputMaybe<Scalars['Time']['input']>;
 };

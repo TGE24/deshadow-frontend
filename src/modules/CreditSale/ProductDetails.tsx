@@ -48,9 +48,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
 	// Condition options
 	const conditionOptions = [
-		{ value: ProductCondition.New, label: "New" },
-		{ value: ProductCondition.FairlyUsed, label: "Fairly Used" },
-		{ value: ProductCondition.Refurbished, label: "Refurbished" },
+		{ value: ProductCondition.NewActive, label: "New Active" },
+		{ value: ProductCondition.NewLocked, label: "New Locked" },
+		{ value: ProductCondition.NewNonActive, label: "New Non-Active" },
+		{ value: ProductCondition.NewSealedBox, label: "New Sealed Box" },
+		{ value: ProductCondition.NigeriaUsed, label: "Nigeria Used" },
+		{ value: ProductCondition.UkUsed, label: "UK Used" },
+		{ value: ProductCondition.UsedLocked, label: "Used Locked" },
 	];
 
 	const selectStyles = {
