@@ -6,11 +6,15 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { Sale, useSalesLazyQuery } from "../generated/graphql";
+import {
+	Sale,
+	SaleStatus,
+	SaleType,
+	useSalesLazyQuery,
+} from "../generated/graphql";
 import { formatDateTime, formatNaira } from "../utils/formatters";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-// import AuthTester from "../components/AuthTester";
 import { Link } from "react-router-dom";
 import {
 	ProductItem,
@@ -19,15 +23,15 @@ import {
 } from "../generated/graphql";
 import { formatCurrency } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
-import DropdownMenu from "../components/DropdownMenu";
-import MoreVertical from "../components/Icons/MoreVertical";
+import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 
 const Dashboard = () => {
 	const [open, setOpen] = useState(false);
 	const [data, setData] = useState<Sale[]>([]);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
+	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
 
-	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
+	const [getSales, { data: sales, loading, refetch }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 
@@ -96,36 +100,6 @@ const Dashboard = () => {
 				header: () => <h4>Sale Status</h4>,
 			},
 		];
-
-		{
-			baseColumns.push({
-				header: "Actions",
-				cell: ({ row }) => (
-					<DropdownMenu
-						trigger={
-							<div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-								<MoreVertical className="w-4 h-4" color="black" />
-							</div>
-						}
-						items={[
-							{
-								label: "View Sale",
-								onClick: () => {
-									setSelectedSale(row.original);
-									setOpen(true);
-								},
-							},
-							{
-								label: "Update Status",
-								onClick: () => {
-									setSelectedSale(row.original);
-								},
-							},
-						]}
-					/>
-				),
-			});
-		}
 
 		return baseColumns;
 	}, []);
@@ -318,24 +292,43 @@ const Dashboard = () => {
 								/>
 							) : (
 								<tbody>
-									{table.getRowModel().rows.map((row) => (
-										<tr
-											key={row.id}
-											className="border-b-[1px] border-[#E3E3E3]"
-										>
-											{row.getVisibleCells().map((cell) => (
-												<td
-													key={cell.id}
-													className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
-												>
-													{flexRender(
-														cell.column.columnDef.cell,
-														cell.getContext()
-													)}
-												</td>
-											))}
-										</tr>
-									))}
+									{table.getRowModel().rows.map((row) => {
+										const sale = row.original;
+										const isCreditPending =
+											sale.saleType === SaleType.Credit &&
+											sale.saleStatus === SaleStatus.Pending;
+
+										return (
+											<tr
+												key={row.id}
+												className={`border-b-[1px] border-[#E3E3E3] cursor-pointer ${
+													isCreditPending
+														? "bg-orange-50 hover:bg-orange-100 border-orange-200"
+														: ""
+												}`}
+												onClick={() => {
+													setSelectedSale(sale);
+													if (isCreditPending) {
+														setUpdateStatusOpen(true);
+													} else {
+														setOpen(true);
+													}
+												}}
+											>
+												{row.getVisibleCells().map((cell) => (
+													<td
+														key={cell.id}
+														className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+													>
+														{flexRender(
+															cell.column.columnDef.cell,
+															cell.getContext()
+														)}
+													</td>
+												))}
+											</tr>
+										);
+									})}
 								</tbody>
 							)}
 						</table>
@@ -408,9 +401,15 @@ const Dashboard = () => {
 					</div>
 				</div>
 			</div>
-			{/* <AddProduct open={open} setOpen={setOpen} refetch={() => {}} /> */}
 
 			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
+
+			<UpdateStatus
+				open={updateStatusOpen}
+				setOpen={setUpdateStatusOpen}
+				sale={selectedSale}
+				refetch={refetch}
+			/>
 		</>
 	);
 };
