@@ -24,7 +24,7 @@ const Invoice = () => {
 					<DirectSale setOpen={setOpen} setOverviewOpen={setOverviewOpen} />
 				);
 			case "swap-sale":
-				return <SwapSale />;
+				return <SwapSale setOpen={setOpen} />;
 			default:
 				return null;
 		}

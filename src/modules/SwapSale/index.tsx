@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { SwapSaleFormData, SwapProductItem } from "./types";
 import { INITIAL_SWAP_SALE_FORM_DATA, SWAP_SALE_STEPS } from "./constants";
@@ -9,6 +9,8 @@ import {
 	SaleInput,
 	ProductCondition,
 	PaymentType,
+	useProductItemLazyQuery,
+	ProductItem as ProductItemType,
 } from "../../generated/graphql";
 import { calculateSwapSubtotal } from "../../utils/swapHelpers";
 import { canProceedToNextStep } from "./validation";
@@ -20,8 +22,12 @@ import CustomerDetails from "./CustomerDetails";
 import ReviewOrder from "./ReviewOrder";
 import SwapSaleSuccess from "./SwapSaleSuccess";
 import { toast } from "react-toastify";
+import { useProductStore } from "../../store/productStore";
 
-const SwapSale: React.FC = () => {
+const SwapSale: React.FC<{
+	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ setOpen }) => {
+	const { setProductItem } = useProductStore();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [createSale, { loading: isCreatingSale }] = useCreateSaleMutation();
 	const { data: meData } = useMeQuery();
@@ -98,6 +104,22 @@ const SwapSale: React.FC = () => {
 		setCurrentStep((prev) => Math.max(prev - 1, 1));
 	}, []);
 
+	const [getProductItem, { data }] = useProductItemLazyQuery();
+
+	const handleViewProductDetails = (productUuid: string) => {
+		getProductItem({
+			variables: {
+				serialNumber: productUuid,
+			},
+		});
+	};
+
+	useEffect(() => {
+		if (data && data.productItem) {
+			setProductItem(data.productItem as ProductItemType);
+		}
+	}, [data, setProductItem]);
+
 	const handleStepClick = useCallback(
 		(step: number) => {
 			if (
@@ -112,11 +134,16 @@ const SwapSale: React.FC = () => {
 
 	const onSubmit = async (data: SwapSaleFormData) => {
 		try {
-			// Validate that we have a store UUID
-			const storeUuid =
+			// Prefer store UUID from the selected product item (if provided),
+			// otherwise fall back to current user's store.
+			const storeFromProduct = productItems.find((p) => p.storeUuid)?.storeUuid;
+			const fallbackUserStore =
 				meData?.me?.assignedStore?.uuid || meData?.me?.ownedStores[0]?.uuid;
+			const storeUuid = storeFromProduct || fallbackUserStore;
 			if (!storeUuid) {
-				console.error("No store found for current user");
+				console.error(
+					"No store found for sale (neither product nor user store)"
+				);
 				return;
 			}
 			// Prepare the sale input data according to GraphQL SaleInput schema
@@ -146,6 +173,20 @@ const SwapSale: React.FC = () => {
 					(data.swapPhoneDetails.condition as ProductCondition) || null,
 
 				givenProductValue: data.swapPhoneDetails.estimatedValue || 0,
+
+				// Given product attribute values (if any) - convert from Record<uuid, string> to
+				// array of { attributeUuid, valueText } as expected by the GraphQL input
+				givenProductAttributeValues: data.swapPhoneDetails.attributeValues
+					? Object.entries(data.swapPhoneDetails.attributeValues)
+							.filter(
+								([, v]) =>
+									v !== undefined && v !== null && String(v).trim() !== ""
+							)
+							.map(([attributeUuid, value]) => ({
+								attributeUuid,
+								valueText: String(value),
+							}))
+					: undefined,
 
 				// Sale items (products being sold to customer)
 				items: productItems
@@ -214,7 +255,10 @@ const SwapSale: React.FC = () => {
 								)
 							);
 						}}
-						onViewProductDetails={() => {}}
+						onViewProductDetails={(id) => {
+							setOpen(true);
+							handleViewProductDetails(id);
+						}}
 						discountAmount={formData.discountAmount}
 						onDiscountChange={(value) => form.setValue("discountAmount", value)}
 						swapPhoneDetails={formData.swapPhoneDetails}

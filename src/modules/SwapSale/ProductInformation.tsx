@@ -36,6 +36,12 @@ const ProductInformation = ({
 		variables: { pagination: { first: 100 } },
 	});
 
+	// Subtotal for all product items (used in breakdown)
+	const productsSubtotal = productItems.reduce(
+		(total, item) => total + (item.unitPrice || 0),
+		0
+	);
+
 	return (
 		<div className="flex flex-col gap-[32px]">
 			{/* Swap Phone Details Section */}
@@ -380,6 +386,7 @@ const ProductInformation = ({
 												productName: productItem.product?.name,
 												serialNumber: productItem.serialNumber,
 												product: productItem.product,
+												storeUuid: productItem.store?.uuid || null,
 											});
 										} else {
 											onUpdateProduct(item.id, {
@@ -388,6 +395,7 @@ const ProductInformation = ({
 												productName: "",
 												serialNumber: "",
 												product: null,
+												storeUuid: null,
 											});
 										}
 									}}
@@ -475,16 +483,35 @@ const ProductInformation = ({
 							className="outline-none focus:outline-none text-[14px]"
 							min="0"
 						/>
-						<div className="flex justify-between items-center text-[16px] pt-[16px]">
-							<span className="font-semibold ">Total:</span>
-							<span className="font-bold">
-								{formatNaira(
-									productItems.reduce(
-										(total, item) => total + item.unitPrice,
-										0
-									) - (discountAmount || 0)
-								)}
-							</span>
+						<div className="text-[14px] pt-[12px] space-y-[6px]">
+							<div className="flex justify-between">
+								<span className="text-gray-600">Products Subtotal:</span>
+								<span className="font-medium">
+									{formatNaira(productsSubtotal)}
+								</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-gray-600">Discount:</span>
+								<span className="font-medium">
+									-{formatNaira(discountAmount || 0)}
+								</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-gray-600">Swap Phone Value:</span>
+								<span className="font-medium">
+									-{formatNaira(swapPhoneDetails?.estimatedValue || 0)}
+								</span>
+							</div>
+							<div className="flex justify-between items-center text-[16px] pt-[12px] border-t border-blue-100">
+								<span className="font-semibold">Total:</span>
+								<span className="font-bold">
+									{formatNaira(
+										productsSubtotal -
+											(discountAmount || 0) -
+											(swapPhoneDetails?.estimatedValue || 0)
+									)}
+								</span>
+							</div>
 						</div>
 					</div>
 				</div>

@@ -257,7 +257,7 @@ const ReviewOrder = ({ productItems, formData }: ReviewOrderProps) => {
 					</div>
 					<div className="flex justify-between items-center py-[6px]">
 						<span className="text-[14px]">Swap Phone Value:</span>
-						<span className="text-[14px] font-medium text-green-600">
+						<span className="text-[14px] font-medium text-red-600">
 							-{formatNaira(formData.swapPhoneDetails.estimatedValue || 0)}
 						</span>
 					</div>

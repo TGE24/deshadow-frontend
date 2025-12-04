@@ -24,6 +24,8 @@ export type SwapProductItem = SaleItemInput & {
 	id: string;
 	productName?: string;
 	product?: Product | null;
+	// UUID of the store the selected product item belongs to (optional)
+	storeUuid?: string | null;
 	attributeValues?: Record<string, string>;
 };
 

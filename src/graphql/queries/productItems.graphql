@@ -12,6 +12,7 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 					externalStoreName
 					store {
 						name
+						uuid
 					}
 					attributeValues {
 						attribute {

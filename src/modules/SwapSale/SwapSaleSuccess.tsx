@@ -3,7 +3,12 @@ import Button from "../../components/Button";
 import { SwapSaleFormData, SwapProductItem } from "./types";
 import { formatNaira, formatDateTime } from "../../utils/formatters";
 import { calculateSwapSubtotal } from "../../utils/swapHelpers";
-import { SaleType, PaymentType } from "../../generated/graphql";
+import {
+	SaleType,
+	PaymentType,
+	useBrandsQuery,
+	Brand,
+} from "../../generated/graphql";
 
 interface SwapSaleSuccessProps {
 	saleData: {
@@ -27,7 +32,6 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 	formData,
 	onNewSale,
 	onViewSale,
-	onClose,
 }) => {
 	// Helper function to format payment type for display
 	const formatPaymentType = (paymentType: PaymentType | null) => {
@@ -71,6 +75,25 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 	const subtotal = calculateSwapSubtotal(productItems);
 	const swapPhoneValue = formData.swapPhoneDetails.estimatedValue || 0;
 	const swapDifference = subtotal - swapPhoneValue;
+
+	// Fetch brands to resolve brand UUID to name when needed
+	const { data: brands } = useBrandsQuery({
+		variables: { pagination: { first: 100 } },
+	});
+
+	const formatBrand = (value: string) => {
+		const brand = brands?.brands.edges
+			.map((edge) => edge.node as Brand)
+			.find((brand) => brand.uuid === value);
+		return brand ? brand.name : value;
+	};
+
+	// Selected product attributes (if any) and helper flag to avoid duplicate storage display
+	const selectedAttributes =
+		formData.swapPhoneDetails.selectedProduct?.attributes || [];
+	const hasStorageAttribute = selectedAttributes.some(
+		(a) => a.name && a.name.toLowerCase().includes("storag")
+	);
 
 	return (
 		<div className="flex flex-col items-center justify-center min-h-[600px] p-[32px] text-center">
@@ -163,16 +186,45 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 							<div className="flex justify-between text-[12px]">
 								<span className="text-gray-600">Device:</span>
 								<span className="font-medium text-gray-800">
-									{formData.swapPhoneDetails.brand}{" "}
-									{formData.swapPhoneDetails.model}
+									{formData.swapPhoneDetails.selectedProduct?.name ||
+										formatBrand(formData.swapPhoneDetails.brand) ||
+										"Unknown"}
 								</span>
 							</div>
-							<div className="flex justify-between text-[12px]">
-								<span className="text-gray-600">Storage:</span>
-								<span className="font-medium text-gray-800">
-									{formData.swapPhoneDetails.storage}
-								</span>
-							</div>
+							{selectedAttributes.length > 0 && (
+								<div className="mt-[4px]">
+									{selectedAttributes.map((attribute) => {
+										const val =
+											formData.swapPhoneDetails.attributeValues?.[
+												attribute.uuid
+											];
+										return (
+											<div
+												key={attribute.uuid}
+												className="flex justify-between text-[12px]"
+											>
+												<span className="text-gray-600">{attribute.name}:</span>
+												<span className="font-medium text-gray-800">
+													{val || "Not provided"}
+												</span>
+											</div>
+										);
+									})}
+								</div>
+							)}
+
+							{!hasStorageAttribute &&
+								formData.swapPhoneDetails.selectedProduct?.attributes &&
+								formData.swapPhoneDetails.selectedProduct.attributes.some(
+									(a) => a.name && a.name.toLowerCase().includes("storag")
+								) && (
+									<div className="flex justify-between text-[12px]">
+										<span className="text-gray-600">Storage:</span>
+										<span className="font-medium text-gray-800">
+											{formData.swapPhoneDetails.storage}
+										</span>
+									</div>
+								)}
 							<div className="flex justify-between text-[12px]">
 								<span className="text-gray-600">Condition:</span>
 								<span className="font-medium text-gray-800">
@@ -181,7 +233,7 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 							</div>
 							<div className="flex justify-between text-[12px]">
 								<span className="text-gray-600">Estimated Value:</span>
-								<span className="font-medium text-green-600">
+								<span className="font-medium text-red-600">
 									{formatNaira(swapPhoneValue)}
 								</span>
 							</div>
@@ -191,23 +243,62 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 					{/* Products Summary */}
 					<div className="border-t border-gray-200 pt-[16px]">
 						<p className="text-[12px] text-gray-500 mb-[8px]">New Devices</p>
-						<div className="space-y-[6px]">
-							{productItems.slice(0, 2).map((item, index) => (
+						<div className="space-y-[8px]">
+							{productItems.slice(0, 10).map((item, index) => (
 								<div
 									key={item.id}
-									className="flex justify-between items-center text-[12px]"
+									className="bg-white p-[12px] rounded-[6px] border border-gray-200"
 								>
-									<span className="text-gray-700">
-										{item.productName || `Product ${index + 1}`}
-									</span>
-									<span className="font-medium text-gray-800">
-										{formatNaira(item.unitPrice)}
-									</span>
+									<div className="flex justify-between items-start">
+										<div className="flex-1 text-left">
+											<p className="font-medium text-[14px] text-gray-800">
+												{item.productName || `Product ${index + 1}`}
+											</p>
+											<p className="text-[12px] text-gray-500 mt-[4px]">
+												Serial:{" "}
+												<span className="font-mono">
+													{item.serialNumber || "—"}
+												</span>
+											</p>
+											{item.attributeValues &&
+												Object.keys(item.attributeValues).length > 0 && (
+													<div className="mt-[8px] space-y-[4px]">
+														{Object.entries(item.attributeValues).map(
+															([attrUuid, val]) => {
+																const attrName =
+																	item.product?.attributes.find(
+																		(a) => a.uuid === attrUuid
+																	)?.name || attrUuid;
+																return (
+																	<p
+																		key={attrUuid}
+																		className="text-[12px] text-gray-600"
+																	>
+																		{attrName}:{" "}
+																		<span className="font-medium text-gray-800">
+																			{val}
+																		</span>
+																	</p>
+																);
+															}
+														)}
+													</div>
+												)}
+										</div>
+										<div className="text-right pl-[12px]">
+											<p className="text-[14px] font-medium text-gray-800">
+												{formatNaira(item.unitPrice)}
+											</p>
+											<p className="text-[11px] text-gray-500 mt-[6px]">
+												{item.product?.brand?.name || item.product?.model || ""}
+											</p>
+										</div>
+									</div>
 								</div>
 							))}
-							{productItems.length > 2 && (
-								<p className="text-[10px] text-gray-500 italic">
-									+{productItems.length - 2} more items
+							{productItems.length > 10 && (
+								<p className="text-[11px] text-gray-500 italic">
+									+{productItems.length - 10} more items
 								</p>
 							)}
 						</div>
@@ -222,7 +313,7 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 							</div>
 							<div className="flex justify-between text-[12px]">
 								<span className="text-gray-600">Swap Device Credit:</span>
-								<span className="font-medium text-green-600">
+								<span className="font-medium text-red-600">
 									-{formatNaira(swapPhoneValue)}
 								</span>
 							</div>
@@ -259,14 +350,6 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 						View Sale Details
 					</Button>
 				)}
-				<Button
-					type="button"
-					variant="outline"
-					onClick={onClose}
-					className="flex-1 h-[48px] text-[14px] font-medium"
-				>
-					Close
-				</Button>
 			</div>
 
 			{/* Success Stats */}
@@ -280,7 +363,7 @@ const SwapSaleSuccess: React.FC<SwapSaleSuccessProps> = ({
 					</p>
 				</div>
 				<div className="text-center">
-					<p className="text-[16px] font-bold text-blue-600">
+					<p className="text-[16px] font-bold text-red-600">
 						{formatNaira(swapPhoneValue)}
 					</p>
 					<p className="text-[12px] text-gray-500">Swap Credit</p>
