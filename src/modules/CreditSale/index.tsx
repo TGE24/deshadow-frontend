@@ -27,6 +27,14 @@ const CreditSale: React.FC = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 	const [showSuccess, setShowSuccess] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [saleResultState, setSaleResultState] = useState<{
+		saleId: string;
+		customerName: string;
+		totalAmount: number;
+		saleType: SaleType;
+		paymentType: PaymentType | "" | null;
+		createdAt: string;
+	} | null>(null);
 
 	const { register, setValue, watch, reset } = useForm<CreditSaleFormData>({
 		defaultValues: INITIAL_CREDIT_SALE_FORM_DATA,
@@ -165,13 +173,48 @@ const CreditSale: React.FC = () => {
 				saleInput.givenProductCondition = formData.swapPhoneDetails
 					.condition as ProductCondition;
 				saleInput.givenProductValue = formData.swapPhoneDetails.estimatedValue;
+
+				// Include given product attribute values if provided
+				if (
+					formData.swapPhoneDetails.attributeValues &&
+					Object.keys(formData.swapPhoneDetails.attributeValues).length > 0
+				) {
+					saleInput.givenProductAttributeValues = Object.entries(
+						formData.swapPhoneDetails.attributeValues
+					)
+						.filter(
+							([, v]) =>
+								v !== undefined && v !== null && String(v).trim() !== ""
+						)
+						.map(([attributeUuid, value]) => ({
+							attributeUuid,
+							valueText: String(value),
+						}));
+				}
 			}
 
-			await createSale({
+			const createSaleResp = await createSale({
 				variables: {
 					input: saleInput as SaleInput,
 				},
 			});
+
+			const created = createSaleResp.data?.createSale;
+			setSaleResultState(
+				created
+					? {
+							saleId: created.uuid,
+							customerName: formData.customerName,
+							totalAmount: formData.totalAmount,
+							saleType:
+								formData.creditSaleType === "swap"
+									? SaleType.Swap
+									: SaleType.Direct,
+							paymentType: formData.paymentType,
+							createdAt: created.createdAt,
+					  }
+					: null
+			);
 
 			setShowSuccess(true);
 			setIsSubmitting(false);
@@ -214,13 +257,36 @@ const CreditSale: React.FC = () => {
 
 	// Show success screen if sale is completed
 	if (showSuccess) {
+		// Build a minimal productItems array for the success screen
+		const soldItems = [
+			{
+				id: "1",
+				productName: "",
+				serialNumber: formData.serialNumber,
+				unitPrice: formData.saleAmount,
+				attributeValues: {},
+			},
+		];
+
 		return (
 			<div className="py-[32px]">
 				<div className="bg-white rounded-[10px] w-full">
 					<CreditSaleSuccess
-						serialNumber={formData.serialNumber}
-						customerName={formData.customerName}
-						totalAmount={formData.totalAmount}
+						saleData={
+							saleResultState || {
+								saleId: "",
+								customerName: formData.customerName,
+								totalAmount: formData.totalAmount,
+								saleType:
+									formData.creditSaleType === "swap"
+										? SaleType.Swap
+										: SaleType.Direct,
+								paymentType: formData.paymentType,
+								createdAt: new Date().toISOString(),
+							}
+						}
+						productItems={soldItems}
+						formData={formData}
 						onNewSale={handleNewSale}
 						onClose={handleClose}
 					/>

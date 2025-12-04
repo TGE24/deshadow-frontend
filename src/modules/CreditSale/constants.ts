@@ -26,6 +26,7 @@ export const INITIAL_CREDIT_SALE_FORM_DATA: CreditSaleFormData = {
 		brand: "",
 		condition: "" as ProductCondition | "",
 		estimatedValue: 0,
+		attributeValues: {},
 	},
 	paymentType: "" as PaymentType | "",
 	saleAmount: 0,

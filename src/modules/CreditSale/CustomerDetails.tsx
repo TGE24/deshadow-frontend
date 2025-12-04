@@ -11,6 +11,7 @@ import {
 	ProductCondition,
 	useProductsQuery,
 	Product,
+	SaleType,
 } from "../../generated/graphql";
 import { formatNaira } from "../../utils/formatters";
 
@@ -34,8 +35,8 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 	});
 
 	const saleTypeOptions = [
-		{ value: "direct" as const, label: "Direct Sale" },
-		{ value: "swap" as const, label: "Swap Sale" },
+		{ value: "direct" as SaleType.Direct, label: "Direct Sale" },
+		{ value: "swap" as SaleType.Swap, label: "Swap Sale" },
 	];
 
 	const paymentTypeOptions = [
@@ -118,10 +119,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
 	return (
 		<div className="space-y-[20px]">
-			<h2 className="text-[24px] font-bold text-gray-900 mb-[24px]">
-				Customer & Payment Details
-			</h2>
-
 			{/* Sale Type Selection */}
 			<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
 				<div className="flex items-center gap-[8px] mb-[12px]">
@@ -261,9 +258,9 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 												<input
 													type="text"
 													placeholder={`Enter ${attribute.name.toLowerCase()}`}
-													// {...register(
-													// 	`swapPhoneDetails.attributeValues.${attribute.uuid}` as const
-													// )}
+													{...register(
+														`swapPhoneDetails.attributeValues.${attribute.uuid}` as const
+													)}
 													className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] px-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] transition-all"
 												/>
 											</div>

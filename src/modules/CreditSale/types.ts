@@ -2,9 +2,10 @@ import {
 	PaymentType,
 	ProductCondition,
 	Product,
+	SaleType,
 } from "../../generated/graphql";
 
-export type CreditSaleType = "direct" | "swap";
+export type CreditSaleType = SaleType.Direct | SaleType.Swap;
 
 export interface SwapPhoneDetails {
 	selectedProduct?: Product | null;
@@ -12,12 +13,12 @@ export interface SwapPhoneDetails {
 	brand: string;
 	condition: ProductCondition | "";
 	estimatedValue: number;
-	// attributeValues: Record<string, string>;
+	attributeValues?: Record<string, string>;
 }
 
 export interface CreditSaleFormData {
 	// Sale Type
-	creditSaleType: CreditSaleType | "";
+	creditSaleType: SaleType.Direct | SaleType.Swap;
 
 	// Product Details (sold on credit)
 	productUuid: string;

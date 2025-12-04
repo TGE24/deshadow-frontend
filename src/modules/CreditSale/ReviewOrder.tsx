@@ -1,7 +1,7 @@
 import React from "react";
 import { CreditSaleFormData } from "./types";
 import { formatNaira } from "../../utils/formatters";
-import { useProductQuery } from "../../generated/graphql";
+import { SaleType, useProductQuery } from "../../generated/graphql";
 
 interface ReviewOrderProps {
 	formData: CreditSaleFormData;
@@ -78,9 +78,130 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 						</p>
 					</div>
 				</div>
+				{/* Attributes */}
+				{attributeEntries.length > 0 && (
+					<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
+						<div className="flex items-center gap-[8px] mb-[12px]">
+							<svg
+								className="w-[18px] h-[18px] text-[#278783]"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+								/>
+							</svg>
+							<label className="text-[14px] text-[#1F2937] font-bold">
+								Product Attributes
+							</label>
+							<span className="ml-auto text-[12px] text-gray-500 bg-white px-[10px] py-[4px] rounded-full">
+								{attributeEntries.length} attribute
+								{attributeEntries.length > 1 ? "s" : ""}
+							</span>
+						</div>
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
+							{attributeEntries.map(([key, value], idx) => (
+								<div
+									key={`${key}-${idx}`}
+									className="bg-white rounded-[8px] p-[12px]"
+								>
+									<span className="text-gray-500 font-medium">
+										{attributeNameByUuid[key] || key}:
+									</span>
+									<p className="text-gray-900 font-semibold mt-[4px]">
+										{value}
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* External Store Details */}
+			{/* Swap Phone Details (show when swap) */}
+			{formData.creditSaleType === "swap" && (
+				<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
+					<div className="flex items-center gap-[8px] mb-[12px]">
+						<svg
+							className="w-[18px] h-[18px] text-[#278783]"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+							/>
+						</svg>
+						<label className="text-[14px] text-[#1F2937] font-bold">
+							Swap Phone Details
+						</label>
+					</div>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Product:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formData.swapPhoneDetails?.selectedProduct?.name || "-"}
+							</p>
+						</div>
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Serial:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formData.swapPhoneDetails?.serialNumber || "-"}
+							</p>
+						</div>
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Condition:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formData.swapPhoneDetails?.condition
+									?.replace(/_/g, " ")
+									?.replace(/\b\w/g, (l) => l.toUpperCase()) || "-"}
+							</p>
+						</div>
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">
+								Estimated Value:
+							</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formatNaira(formData.swapPhoneDetails?.estimatedValue || 0)}
+							</p>
+						</div>
+					</div>
+					{formData.swapPhoneDetails?.selectedProduct?.attributes &&
+						formData.swapPhoneDetails.selectedProduct.attributes.length > 0 && (
+							<div className="mt-[12px] rounded-[8px] p-[12px] bg-white border-[1px] border-[#E5E7EB]">
+								<div className="text-[14px] font-medium text-gray-700 mb-[8px]">
+									Swap Attributes
+								</div>
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
+									{formData.swapPhoneDetails.selectedProduct.attributes.map(
+										(attr) => (
+											<div key={attr.uuid} className="p-[8px]">
+												<span className="text-gray-500 block">
+													{attr.name}:
+												</span>
+												<p className="text-gray-900 font-semibold mt-[4px]">
+													{(formData.swapPhoneDetails.attributeValues &&
+														formData.swapPhoneDetails.attributeValues[
+															attr.uuid
+														]) ||
+														"-"}
+												</p>
+											</div>
+										)
+									)}
+								</div>
+							</div>
+						)}
+				</div>
+			)}
 			<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
 				<div className="flex items-center gap-[8px] mb-[12px]">
 					<svg
@@ -121,47 +242,6 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 					</div>
 				</div>
 			</div>
-
-			{/* Attributes */}
-			{attributeEntries.length > 0 && (
-				<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
-					<div className="flex items-center gap-[8px] mb-[12px]">
-						<svg
-							className="w-[18px] h-[18px] text-[#278783]"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-							/>
-						</svg>
-						<label className="text-[14px] text-[#1F2937] font-bold">
-							Product Attributes
-						</label>
-						<span className="ml-auto text-[12px] text-gray-500 bg-white px-[10px] py-[4px] rounded-full">
-							{attributeEntries.length} attribute
-							{attributeEntries.length > 1 ? "s" : ""}
-						</span>
-					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
-						{attributeEntries.map(([key, value], idx) => (
-							<div
-								key={`${key}-${idx}`}
-								className="bg-white rounded-[8px] p-[12px]"
-							>
-								<span className="text-gray-500 font-medium">
-									{attributeNameByUuid[key] || key}:
-								</span>
-								<p className="text-gray-900 font-semibold mt-[4px]">{value}</p>
-							</div>
-						))}
-					</div>
-				</div>
-			)}
 
 			{/* Customer Information */}
 			<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
@@ -236,35 +316,92 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 								.replace(/\b\w/g, (l) => l.toUpperCase())}
 						</span>
 					</div>
-					<div className="flex justify-between items-center">
-						<span className="text-[14px] text-[#1F2937] font-medium">
-							Sale Amount:
-						</span>
-						<span className="text-[16px] font-semibold text-gray-700">
-							{formatNaira(formData.saleAmount)}
-						</span>
-					</div>
-					{formData.discountAmount > 0 && (
-						<div className="flex justify-between items-center">
-							<span className="text-[14px] text-[#1F2937] font-medium">
-								Discount:
-							</span>
-							<span className="text-[14px] font-semibold text-red-500">
-								-{formatNaira(formData.discountAmount)}
-							</span>
-						</div>
-					)}
-					{formData.creditSaleType === "swap" &&
-						formData.swapPhoneDetails.estimatedValue > 0 && (
+					{formData.creditSaleType === "swap" ? (
+						<>
 							<div className="flex justify-between items-center">
 								<span className="text-[14px] text-[#1F2937] font-medium">
-									Swap Value:
+									Products Subtotal:
 								</span>
-								<span className="text-[14px] font-semibold text-green-600">
-									-{formatNaira(formData.swapPhoneDetails.estimatedValue)}
+								<span className="text-[16px] font-semibold text-gray-700">
+									{formatNaira(formData.saleAmount)}
 								</span>
 							</div>
-						)}
+							{formData.discountAmount > 0 && (
+								<div className="flex justify-between items-center">
+									<span className="text-[14px] text-[#1F2937] font-medium">
+										Discount:
+									</span>
+									<span className="text-[14px] font-semibold text-red-500">
+										-{formatNaira(formData.discountAmount)}
+									</span>
+								</div>
+							)}
+							<div className="flex justify-between items-center">
+								<span className="text-[14px] text-[#1F2937] font-medium">
+									Swap Phone Value:
+								</span>
+								<span className="text-[14px] font-semibold text-green-600">
+									{formatNaira(formData.swapPhoneDetails?.estimatedValue || 0)}
+								</span>
+							</div>
+							{/* Final total = swapValue - saleAmount - discount
+							<div className="flex justify-between items-center pt-[12px] border-t-[2px] border-[#278783]/30">
+								<span className="text-[16px] text-[#1F2937] font-bold">
+									Final Total:
+								</span>
+								<span className="text-[22px] font-bold text-[#278783]">
+									{formatNaira(
+										Math.max(
+											0,
+											(formData.swapPhoneDetails?.estimatedValue || 0) -
+												(formData.saleAmount || 0) -
+												(formData.discountAmount || 0)
+										)
+									)}
+								</span>
+							</div> */}
+						</>
+					) : (
+						<>
+							<div className="flex justify-between items-center">
+								<span className="text-[14px] text-[#1F2937] font-medium">
+									Sale Amount:
+								</span>
+								<span className="text-[16px] font-semibold text-gray-700">
+									{formatNaira(formData.saleAmount)}
+								</span>
+							</div>
+							{formData.discountAmount > 0 && (
+								<div className="flex justify-between items-center">
+									<span className="text-[14px] text-[#1F2937] font-medium">
+										Discount:
+									</span>
+									<span className="text-[14px] font-semibold text-red-500">
+										-{formatNaira(formData.discountAmount)}
+									</span>
+								</div>
+							)}
+							{(formData.creditSaleType as SaleType) === SaleType.Swap &&
+								formData.swapPhoneDetails.estimatedValue > 0 && (
+									<div className="flex justify-between items-center">
+										<span className="text-[14px] text-[#1F2937] font-medium">
+											Swap Value:
+										</span>
+										<span className="text-[14px] font-semibold text-green-600">
+											-{formatNaira(formData.swapPhoneDetails.estimatedValue)}
+										</span>
+									</div>
+								)}
+							<div className="flex justify-between items-center pt-[12px] border-t-[2px] border-[#278783]/30">
+								<span className="text-[16px] text-[#1F2937] font-bold">
+									Total Amount:
+								</span>
+								<span className="text-[22px] font-bold text-[#278783]">
+									{formatNaira(formData.totalAmount)}
+								</span>
+							</div>
+						</>
+					)}
 					<div className="flex justify-between items-center pt-[12px] border-t-[2px] border-[#278783]/30">
 						<span className="text-[16px] text-[#1F2937] font-bold">
 							Total Amount:

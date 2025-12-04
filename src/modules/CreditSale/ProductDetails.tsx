@@ -87,10 +87,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
 	return (
 		<div className="space-y-[20px]">
-			<h2 className="text-[16px] font-bold text-gray-900 mb-[24px]">
-				Product Details
-			</h2>
-
 			{/* Product Selection */}
 			<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
 				<div className="flex items-center gap-[8px] mb-[12px]">
