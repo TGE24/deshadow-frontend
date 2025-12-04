@@ -190,7 +190,13 @@ const DirectSale = ({
 			user?.ownedStores && user.ownedStores.length > 0
 				? user.ownedStores[0].uuid
 				: "";
-		const storeUuid = assignedStoreUuid || ownedStoreUuid || "";
+
+		// Prefer storeUuid from a selected product item when available
+		const productItemStoreUuid = productItems.find(
+			(it) => it.storeUuid
+		)?.storeUuid;
+		const storeUuid =
+			productItemStoreUuid || assignedStoreUuid || ownedStoreUuid || "";
 
 		const subtotal = calculateSubtotal(productItems);
 		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);

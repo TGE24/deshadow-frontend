@@ -70,6 +70,8 @@ const ProductInformation = ({
 											// Store product name in a custom field for display
 											productName: productItem.product?.name,
 											sellingPrice: productItem.sellingPrice ?? 0,
+											// capture store UUID from selected product item when available
+											storeUuid: productItem.store?.uuid || null,
 										});
 									} else {
 										onUpdateProduct(item.id, {
@@ -79,6 +81,7 @@ const ProductInformation = ({
 											serialNumber: "",
 											productName: "",
 											sellingPrice: undefined,
+											storeUuid: null,
 										});
 									}
 								}}

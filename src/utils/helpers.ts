@@ -6,6 +6,7 @@ export const createNewProductItem = (): ProductItem => ({
 	unitPrice: 0,
 	serialNumber: "",
 	productName: "",
+	storeUuid: null,
 });
 
 export const calculateSubtotal = (productItems: ProductItem[]): number => {

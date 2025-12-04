@@ -32,7 +32,6 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 	formData,
 	onNewSale,
 	onViewSale,
-	onClose,
 }) => {
 	// Helper function to format payment type for display
 	const formatPaymentType = (paymentType: PaymentType) => {
@@ -155,19 +154,85 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 					<div className="border-t border-gray-200 pt-[16px]">
 						<p className="text-[12px] text-gray-500 mb-[8px]">Items Sold</p>
 						<div className="space-y-[8px]">
-							{productItems.slice(0, 3).map((item, index) => (
-								<div
-									key={item.id}
-									className="flex justify-between items-center text-[14px]"
-								>
-									<span className="text-gray-700">
-										{item.productName || `Product ${index + 1}`}
-									</span>
-									<span className="font-medium text-gray-800">
-										{formatNaira(item.unitPrice)}
-									</span>
-								</div>
-							))}
+							{productItems.slice(0, 3).map((item, index) => {
+								// Defensive extraction of attribute values which may come
+								// as an array (from GraphQL ProductItem.attributeValues)
+								// or as a map on the local `item` when filled in the form.
+								const rawAttrVals =
+									(item as ProductItem & Record<string, unknown>)
+										.attributeValues ||
+									(item as ProductItem & Record<string, unknown>)
+										.attributeValuesArray ||
+									null;
+								const attrMap: Record<string, string> = {};
+								if (Array.isArray(rawAttrVals)) {
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									rawAttrVals.forEach((av: any) => {
+										const key =
+											av?.attribute?.uuid ||
+											av?.attributeUuid ||
+											av?.attribute?.id;
+										const val =
+											av?.valueText ?? av?.value ?? av?.valueString ?? "";
+										if (key) attrMap[key] = val;
+									});
+								} else if (rawAttrVals && typeof rawAttrVals === "object") {
+									Object.assign(attrMap, rawAttrVals);
+								}
+
+								return (
+									<div key={item.id} className="flex flex-col gap-2 text-left">
+										<div className="flex justify-between items-center">
+											<div>
+												<p className="font-medium text-gray-800">
+													{item.productName || `Product ${index + 1}`}
+												</p>
+												<p className="text-[12px] text-gray-500">
+													Serial: {item.serialNumber || "—"}
+												</p>
+											</div>
+											<div className="text-right">
+												<p className="font-medium text-gray-800">
+													{formatNaira(item.unitPrice)}
+												</p>
+												{item.sellingPrice && (
+													<p className="text-[12px] text-gray-500">
+														Min: {formatNaira(item.sellingPrice)}
+													</p>
+												)}
+											</div>
+										</div>
+
+										<div className="grid grid-cols-2 gap-2 text-[12px] text-gray-500">
+											{item.product?.brand && (
+												<div>Brand: {item.product.brand.name}</div>
+											)}
+
+											{item.product?.attributes &&
+												item.product.attributes.length > 0 && (
+													<div className="col-span-2">
+														<p className="text-[12px] text-gray-500 mb-1">
+															Attributes:
+														</p>
+														<div className="flex flex-wrap gap-2">
+															{item.product.attributes.map((attr) => (
+																<div
+																	key={attr.uuid}
+																	className="text-[12px] bg-gray-50 p-1 rounded"
+																>
+																	<span className="font-medium">
+																		{attr.name}:
+																	</span>{" "}
+																	<span>{attrMap[attr.uuid] ?? "—"}</span>
+																</div>
+															))}
+														</div>
+													</div>
+												)}
+										</div>
+									</div>
+								);
+							})}
 							{productItems.length > 3 && (
 								<p className="text-[12px] text-gray-500 italic">
 									+{productItems.length - 3} more items
@@ -254,14 +319,14 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 						View Sale Details
 					</Button>
 				)}
-				<Button
+				{/* <Button
 					type="button"
 					variant="outline"
 					onClick={onClose}
 					className="flex-1 h-[48px] text-[14px] font-medium"
 				>
 					Close
-				</Button>
+				</Button> */}
 			</div>
 
 			{/* Success Stats */}

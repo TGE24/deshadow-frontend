@@ -6,7 +6,7 @@ import {
 } from "react-hook-form";
 import Select, { SingleValue } from "react-select";
 import { CreateSaleForm } from "./types";
-import { PaymentType } from "../../generated/graphql";
+import { PaymentType, SaleType } from "../../generated/graphql";
 
 interface CustomerDetailsProps {
 	register: UseFormRegister<CreateSaleForm>;
@@ -20,6 +20,7 @@ const CustomerDetails = ({
 	watch,
 }: CustomerDetailsProps) => {
 	const paymentType = watch("paymentType");
+	const saleType = watch("saleType");
 
 	// Payment type options
 	const paymentTypeOptions = [
@@ -46,16 +47,24 @@ const CustomerDetails = ({
 			/>
 			<div className="flex gap-[16px]">
 				<Input
-					placeholder="Enter customer Email"
+					placeholder={
+						saleType === SaleType.Credit
+							? "customer@example.com (optional)"
+							: "Enter customer Email"
+					}
 					name="customerEmail"
 					id="customerEmail"
 					label="Email"
 					variant="secondary"
 					register={register("customerEmail", {
-						required: "Customer email is required",
-						pattern: {
-							value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-							message: "Invalid email address",
+						validate: (value: string) => {
+							const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+							if (!value || value.trim() === "") {
+								return saleType === SaleType.Credit
+									? true
+									: "Customer email is required";
+							}
+							return emailRegex.test(value) || "Invalid email address";
 						},
 					})}
 				/>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 // import { useNavigate } from "react-router-dom";
 
 import {
@@ -56,6 +57,9 @@ const Inventory = () => {
 	// GraphQL Queries
 	const [getProductItems, { data: products, loading }] =
 		useProductItemsLazyQuery();
+
+	// Router location so we can refetch whenever user lands on this route
+	const location = useLocation();
 	// Filter Data Queries
 	// const [getBrands, { data: brandsData }] = useBrandsLazyQuery();
 	// const [getCategories, { data: categoriesData }] = useCategoriesLazyQuery();
@@ -76,30 +80,52 @@ const Inventory = () => {
 
 	// 	return options;
 	// }, [storesData?.stores?.edges]);
+	// Helper to fetch items (uses network-only to avoid cache short-circuiting)
+	const fetchItems = useCallback(
+		(opts?: { after?: string; before?: string }) => {
+			getProductItems({
+				fetchPolicy: "network-only",
+				variables: {
+					pagination: {
+						first: ITEMS_PER_PAGE,
+						...(opts?.after ? { after: opts.after } : {}),
+						...(opts?.before
+							? { before: opts.before, last: ITEMS_PER_PAGE }
+							: {}),
+					},
+					filter: {
+						status: ProductItemStatus.Available,
+						search: debouncedSearchTerm.trim() || undefined,
+					},
+				},
+			});
+		},
+		[getProductItems, debouncedSearchTerm]
+	);
 
-	// const brandOptions = useMemo((): SelectOption[] => {
-	// 	const options: SelectOption[] = [{ value: "", label: "All Brands" }];
+	// Run on mount, when pathname changes, or when filters/search change
+	useEffect(() => {
+		fetchItems();
 
-	// 	if (brandsData?.brands?.edges) {
-	// 		brandsData.brands.edges.forEach((edge) => {
-	// 			const brand = edge.node;
-	// 			if (brand.__typename === "Brand" && brand.uuid && brand.name) {
-	// 				options.push({ value: brand.uuid, label: brand.name });
-	// 			}
-	// 		});
-	// 	}
+		// Reset page when filters change
+		setPage(1);
+	}, [fetchItems, location.pathname]);
 
-	// 	return options;
-	// }, [brandsData?.brands?.edges]);
+	// Re-fetch when window/tab regains focus or when document becomes visible
+	useEffect(() => {
+		const onFocus = () => fetchItems();
+		const onVisibility = () => {
+			if (document.visibilityState === "visible") fetchItems();
+		};
 
-	// const categoryOptions = useMemo((): SelectOption[] => {
-	// 	const options: SelectOption[] = [{ value: "", label: "All Categories" }];
+		window.addEventListener("focus", onFocus);
+		document.addEventListener("visibilitychange", onVisibility);
 
-	// 	if (categoriesData?.categories?.edges) {
-	// 		categoriesData.categories.edges.forEach((edge) => {
-	// 			const category = edge.node;
-	// 			if (
-	// 				category.__typename === "Category" &&
+		return () => {
+			window.removeEventListener("focus", onFocus);
+			document.removeEventListener("visibilitychange", onVisibility);
+		};
+	}, [fetchItems]);
 	// 				category.uuid &&
 	// 				category.name
 	// 			) {
@@ -205,6 +231,9 @@ const Inventory = () => {
 	}, [
 		getProductItems,
 		debouncedSearchTerm,
+		// re-run whenever the route navigation occurs (landing on the page)
+		// re-run when the route path changes (landing on this page)
+		location.pathname,
 		// selectedStore,
 		// selectedBrand,
 		// selectedCategory,

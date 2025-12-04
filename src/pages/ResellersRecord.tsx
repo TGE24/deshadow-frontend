@@ -22,10 +22,12 @@ import Plus from "../components/Icons/Plus";
 import DirectSale from "../modules/DirectSale";
 import { Modal } from "react-responsive-modal";
 import PurchaseOverview from "../modules/Modals/PurchaseOverview";
+import ViewProduct from "../modules/Modals/ViewProduct";
 
 const ResellersRecord = () => {
 	const [open, setOpen] = useState(false);
 	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
+	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
 	const [overviewOpen, setOverviewOpen] = useState(false);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
@@ -329,7 +331,7 @@ const ResellersRecord = () => {
 				}}
 			>
 				<DirectSale
-					setOpen={setCreditDeviceModalOpen}
+					setOpen={setDetailsOpen}
 					setOverviewOpen={setOverviewOpen}
 					saleType={SaleType.Credit}
 					showSteps={false}
@@ -337,6 +339,7 @@ const ResellersRecord = () => {
 				/>
 			</Modal>
 			<PurchaseOverview open={overviewOpen} setOpen={setOverviewOpen} />
+			<ViewProduct open={detailsOpen} setOpen={setDetailsOpen} />
 		</>
 	);
 };

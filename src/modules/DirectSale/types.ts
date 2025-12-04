@@ -11,6 +11,8 @@ export type ProductItem = SaleItemInput & {
 	serialNumber?: string;
 	productName?: string;
 	sellingPrice?: number;
+	// UUID of the store the selected product item belongs to (optional)
+	storeUuid?: string | null;
 };
 
 export type CreateSaleForm = {

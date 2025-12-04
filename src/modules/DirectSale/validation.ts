@@ -29,6 +29,11 @@ export const canProceedToNextStep = (
 				);
 			});
 		case 2: // Customer Details
+			// For credit sales, customerEmail is optional
+			if (formData.saleType === SaleType.Credit) {
+				return Boolean(formData.customerName && formData.customerPhone);
+			}
+
 			return Boolean(
 				formData.customerName &&
 					formData.customerEmail &&
