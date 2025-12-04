@@ -66,10 +66,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
 	const handleCostPriceChange = (value: string) => {
 		const numericValue = extractNumericValue(value);
-		setValue("costPrice", parseFloat(numericValue) || 0);
-		setCostPriceDisplay(
-			numericValue ? formatNaira(parseFloat(numericValue)) : ""
-		);
+		// If empty, leave costPrice undefined (optional)
+		if (!numericValue) {
+			setValue("costPrice", undefined);
+			setCostPriceDisplay("");
+			return;
+		}
+
+		setValue("costPrice", parseFloat(numericValue));
+		setCostPriceDisplay(formatNaira(parseFloat(numericValue)));
 	};
 
 	const handleSellingPriceChange = (value: string) => {
@@ -198,7 +203,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 							/>
 						</svg>
 						<label className="text-[14px] text-[#1F2937] font-bold">
-							Cost Price <span className="text-red-500">*</span>
+							Cost Price
 						</label>
 					</div>
 					<div className="relative">

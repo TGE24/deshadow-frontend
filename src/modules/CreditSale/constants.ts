@@ -12,7 +12,7 @@ export const INITIAL_CREDIT_SALE_FORM_DATA: CreditSaleFormData = {
 	productUuid: "",
 	serialNumber: "",
 	condition: "" as ProductCondition | "",
-	costPrice: 0,
+	costPrice: undefined,
 	sellingPrice: 0,
 	externalStoreName: "",
 	externalStoreContact: "",

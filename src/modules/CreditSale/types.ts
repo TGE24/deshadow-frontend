@@ -23,7 +23,7 @@ export interface CreditSaleFormData {
 	productUuid: string;
 	serialNumber: string;
 	condition: ProductCondition | "";
-	costPrice: number;
+	costPrice?: number | undefined;
 	sellingPrice: number;
 
 	// External Store Details

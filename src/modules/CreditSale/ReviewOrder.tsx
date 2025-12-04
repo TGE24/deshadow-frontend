@@ -1,6 +1,7 @@
 import React from "react";
 import { CreditSaleFormData } from "./types";
 import { formatNaira } from "../../utils/formatters";
+import { useProductQuery } from "../../generated/graphql";
 
 interface ReviewOrderProps {
 	formData: CreditSaleFormData;
@@ -10,6 +11,18 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 	const attributeEntries = Object.entries(formData.attributeValues).filter(
 		([, value]) => value
 	);
+
+	// Fetch product to resolve attribute UUID -> friendly name
+	const { data: productData } = useProductQuery({
+		variables: { uuid: formData.productUuid },
+		skip: !formData.productUuid,
+	});
+
+	const productAttributes = productData?.product?.attributes || [];
+	const attributeNameByUuid: Record<string, string> = {};
+	productAttributes.forEach((attr) => {
+		if (attr?.uuid) attributeNameByUuid[attr.uuid] = attr.name || attr.uuid;
+	});
 
 	return (
 		<div className="space-y-[20px]">
@@ -135,9 +148,14 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 						</span>
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
-						{attributeEntries.map(([key, value]) => (
-							<div key={key} className="bg-white rounded-[8px] p-[12px]">
-								<span className="text-gray-500 font-medium">{key}:</span>
+						{attributeEntries.map(([key, value], idx) => (
+							<div
+								key={`${key}-${idx}`}
+								className="bg-white rounded-[8px] p-[12px]"
+							>
+								<span className="text-gray-500 font-medium">
+									{attributeNameByUuid[key] || key}:
+								</span>
 								<p className="text-gray-900 font-semibold mt-[4px]">{value}</p>
 							</div>
 						))}

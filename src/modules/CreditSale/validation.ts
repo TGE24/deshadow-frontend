@@ -11,7 +11,6 @@ export const canProceedToNextStep = (
 				formData.productUuid &&
 				formData.serialNumber &&
 				formData.condition &&
-				formData.costPrice > 0 &&
 				formData.sellingPrice > 0 &&
 				formData.externalStoreName &&
 				formData.externalStoreContact &&

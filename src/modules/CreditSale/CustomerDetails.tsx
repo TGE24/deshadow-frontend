@@ -26,7 +26,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 	watch,
 }) => {
 	const [estimatedValueDisplay, setEstimatedValueDisplay] = useState("");
-	const [saleAmountDisplay, setSaleAmountDisplay] = useState("");
 	const [discountAmountDisplay, setDiscountAmountDisplay] = useState("");
 	const formData = watch();
 
@@ -43,13 +42,18 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 		{ value: PaymentType.Cash, label: "Cash" },
 		{ value: PaymentType.Transfer, label: "Transfer" },
 		{ value: PaymentType.Pos, label: "POS" },
+		{ value: PaymentType.CashTransfer, label: "Cash + Transfer" },
+		{ value: PaymentType.PosCash, label: "POS + Cash" },
+		{ value: PaymentType.PosTransfer, label: "POS + Transfer" },
 	];
 
-	const conditionOptions = [
-		{ value: ProductCondition.New, label: "New" },
-		{ value: ProductCondition.FairlyUsed, label: "Fairly Used" },
-		{ value: ProductCondition.Refurbished, label: "Refurbished" },
-	];
+	const conditionOptions = Object.values(ProductCondition).map((cond) => ({
+		value: cond,
+		label: cond
+			.replace("_", " ")
+			.toLowerCase()
+			.replace(/\b\w/g, (c) => c.toUpperCase()),
+	}));
 
 	// Product options for swap phone
 	const swapProductOptions = productsData?.products.edges
@@ -74,12 +78,10 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 		return formattedValue.replace(/[^\d.]/g, "");
 	};
 
-	const handleSaleAmountChange = (value: string) => {
-		const numericValue = extractNumericValue(value);
-		const amount = parseFloat(numericValue) || 0;
-		setValue("saleAmount", amount);
-		setSaleAmountDisplay(numericValue ? formatNaira(amount) : "");
-	};
+	// Keep saleAmount in sync with sellingPrice (Amount is the product's selling price)
+	React.useEffect(() => {
+		setValue("saleAmount", formData.sellingPrice || 0);
+	}, [formData.sellingPrice, setValue]);
 
 	const handleDiscountAmountChange = (value: string) => {
 		const numericValue = extractNumericValue(value);
@@ -369,19 +371,15 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
 						<div>
 							<label className="text-[14px] text-[#1F2937] font-bold mb-[8px] block">
-								Amount <span className="text-red-500">*</span>
+								Amount (Selling Price)
 							</label>
 							<div className="relative">
 								<span className="absolute left-[14px] top-[50%] translate-y-[-50%] text-[#278783] font-bold text-[16px]">
 									₦
 								</span>
-								<input
-									type="text"
-									placeholder="0.00"
-									value={saleAmountDisplay}
-									onChange={(e) => handleSaleAmountChange(e.target.value)}
-									className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] pl-[36px] pr-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] font-medium transition-all"
-								/>
+								<div className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] pl-[36px] pr-[14px] flex items-center text-[14px] font-medium">
+									{formatNaira(formData.sellingPrice)}
+								</div>
 							</div>
 						</div>
 						<div>
