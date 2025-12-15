@@ -36,24 +36,38 @@ export const formatCurrency = (
 /**
  * Formats a number as Nigerian Naira without decimal places
  * @param value - The numeric value to format
+ * @param includeSymbol - Whether to include the ₦ symbol (default: true)
  * @returns Formatted currency string
  */
-export const formatNaira = (value: number | null | undefined): string => {
-	return formatCurrency(value, { maximumFractionDigits: 0 });
+export const formatNaira = (
+	value: number | null | undefined,
+	includeSymbol: boolean = true
+): string => {
+	const formatted = formatCurrency(value, { maximumFractionDigits: 0 });
+	if (!includeSymbol) {
+		return formatted.replace(/₦\s?/g, "").trim();
+	}
+	return formatted;
 };
 
 /**
  * Formats a number as Nigerian Naira with 2 decimal places
  * @param value - The numeric value to format
+ * @param includeSymbol - Whether to include the ₦ symbol (default: true)
  * @returns Formatted currency string
  */
 export const formatNairaWithDecimals = (
-	value: number | null | undefined
+	value: number | null | undefined,
+	includeSymbol: boolean = true
 ): string => {
-	return formatCurrency(value, {
+	const formatted = formatCurrency(value, {
 		maximumFractionDigits: 2,
 		minimumFractionDigits: 2,
 	});
+	if (!includeSymbol) {
+		return formatted.replace(/₦\s?/g, "").trim();
+	}
+	return formatted;
 };
 
 /**

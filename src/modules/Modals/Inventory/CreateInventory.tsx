@@ -192,8 +192,6 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 				sellingPrice: data.sellingPrice
 					? parseFloat(data.sellingPrice)
 					: undefined,
-				// TODO: Add image upload when backend supports it
-				// image: data.image?.[0] || null,
 			};
 
 			// Add external store fields if needed

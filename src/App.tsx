@@ -20,6 +20,7 @@ import PendingItems from "./pages/pendingItems";
 import Attributes from "./pages/attributes";
 import ResellersSale from "./pages/resellersSale";
 import ResellersRecord from "./pages/ResellersRecord";
+import Accessories from "./pages/accessories";
 
 function App() {
 	return (
@@ -52,6 +53,7 @@ function App() {
 									<Route path="/pending-items" element={<PendingItems />} />
 									<Route path="/stores" element={<Stores />} />
 									<Route path="/sale" element={<SalesManagement />} />
+									<Route path="/accessories" element={<Accessories />} />
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

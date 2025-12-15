@@ -1,0 +1,5 @@
+mutation CreateAccessory($input: AccessoryInput!) {
+	createAccessory(input: $input) {
+		uuid
+	}
+}

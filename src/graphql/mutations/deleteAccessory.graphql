@@ -1,0 +1,3 @@
+mutation DeleteAccessory($uuid: UUID!) {
+	deleteAccessory(uuid: $uuid)
+}

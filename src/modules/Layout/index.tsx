@@ -54,6 +54,7 @@ const STORE_OWNER_MENU: MenuItem[] = [
 	},
 	{ name: "Inventory", link: "/inventory", icon: <Products /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
+	{ name: "Accessories", link: "/accessories", icon: <Products /> },
 	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
 	{ name: "Users", link: "/users", icon: <Attribute /> },
 	{ name: "Brands", link: "/brands", icon: <Brands /> },
@@ -76,6 +77,7 @@ const RESELLER_MENU: MenuItem[] = [
 	{ name: "Products", link: "/products", icon: <Products /> },
 	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
 	{ name: "Inventory", link: "/inventory", icon: <Products /> },
+	{ name: "Accessories", link: "/accessories", icon: <Products /> },
 ];
 
 const ADMIN_MENU: MenuItem[] = [

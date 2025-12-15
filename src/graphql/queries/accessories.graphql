@@ -1,0 +1,28 @@
+query Accessories($pagination: PaginationInput, $filter: AccessoryFilter) {
+	accessories(pagination: $pagination, filter: $filter) {
+		edges {
+			node {
+				... on Accessory {
+					uuid
+					store {
+						uuid
+						name
+					}
+					name
+					quantity
+					costPrice
+					sellingPrice
+					createdAt
+					updatedAt
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
