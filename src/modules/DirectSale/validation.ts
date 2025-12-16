@@ -12,6 +12,11 @@ export const canProceedToNextStep = (
 				// Product name is always required
 				if (!item.productName) return false;
 
+				// For accessories, quantity is required
+				if (item.isAccessory) {
+					return item.quantity && item.quantity > 0;
+				}
+
 				// For credit sales, unit price is optional
 				if (formData.saleType === SaleType.Credit) {
 					// If unit price is provided, it must be valid and >= selling price

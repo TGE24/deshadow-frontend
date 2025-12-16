@@ -10,7 +10,11 @@ export const createNewProductItem = (): ProductItem => ({
 });
 
 export const calculateSubtotal = (productItems: ProductItem[]): number => {
-	return productItems.reduce((total, item) => total + (item.unitPrice || 0), 0);
+	return productItems.reduce((total, item) => {
+		const price = item.unitPrice || 0;
+		const quantity = item.isAccessory ? item.quantity || 1 : 1;
+		return total + price * quantity;
+	}, 0);
 };
 
 export const calculateFinalTotal = (

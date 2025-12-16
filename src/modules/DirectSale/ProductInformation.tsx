@@ -1,10 +1,12 @@
+import { useEffect, useMemo } from "react";
+import Select from "react-select";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import SerialNumberAutoSuggest from "../../components/SerialNumberAutoSuggest";
 import { ProductItem } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
-import { SaleType } from "../../generated/graphql";
+import { SaleType, useAccessoriesLazyQuery } from "../../generated/graphql";
 
 interface ProductInformationProps {
 	productItems: ProductItem[];
@@ -28,6 +30,28 @@ const ProductInformation = ({
 	saleType,
 }: ProductInformationProps) => {
 	const isCreditSale = saleType === SaleType.Credit;
+	const [getAccessories, { data: accessoriesData }] = useAccessoriesLazyQuery({
+		fetchPolicy: "network-only",
+	});
+
+	const accessoriesOptions = useMemo(
+		() =>
+			accessoriesData?.accessories?.edges?.map((edge) => {
+				const node = edge.node as { uuid: string; name: string };
+				return {
+					value: node.uuid,
+					label: node.name,
+					accessory: node,
+				};
+			}) || [],
+		[accessoriesData?.accessories?.edges]
+	);
+
+	// Load accessories on component mount
+	useEffect(() => {
+		getAccessories({ variables: { pagination: { first: 100 } } });
+	}, [getAccessories]);
+
 	return (
 		<div className="flex flex-col gap-[24px] border border-gray-200 rounded-[10px] p-[20px]">
 			<h3 className="text-[20px] font-semibold">Product Information</h3>
@@ -54,63 +78,155 @@ const ProductInformation = ({
 						)}
 					</div>
 
+					<div className="flex items-center gap-[16px] mb-[16px] pb-[16px] border-b border-gray-200">
+						<input
+							type="checkbox"
+							id={`accessory-${item.id}`}
+							checked={item.isAccessory || false}
+							onChange={(e) =>
+								onUpdateProduct(item.id, {
+									isAccessory: e.target.checked,
+									product: null,
+									serialNumber: "",
+									productName: "",
+									sellingPrice: undefined,
+									storeUuid: null,
+									accessoryUuid: "",
+								})
+							}
+							className="w-[18px] h-[18px] cursor-pointer"
+						/>
+						<label
+							htmlFor={`accessory-${item.id}`}
+							className="cursor-pointer text-[14px] font-medium text-gray-900"
+						>
+							Is this an Accessory?
+						</label>
+					</div>
+
 					<div className="flex flex-col gap-[16px]">
-						<div className="w-full">
-							<SerialNumberAutoSuggest
-								value={item.serialNumber || ""}
-								onSelect={(productItem) => {
-									if (productItem) {
-										// Store minimal product info for display purposes
-										// We need to get the actual product UUID, but for now use the productItem uuid
-										onUpdateProduct(item.id, {
-											product: productItem.product,
-											// productUuid: productItem.product?.uuid,
-											// productItemUuid: productItem.uuid,
-											serialNumber: productItem.serialNumber,
-											// Store product name in a custom field for display
-											productName: productItem.product?.name,
-											sellingPrice: productItem.sellingPrice ?? 0,
-											// capture store UUID from selected product item when available
-											storeUuid: productItem.store?.uuid || null,
-										});
-									} else {
-										onUpdateProduct(item.id, {
-											product: null,
-											// productUuid: "",
-											// productItemUuid: "",
-											serialNumber: "",
-											productName: "",
-											sellingPrice: undefined,
-											storeUuid: null,
-										});
+						{item.isAccessory ? (
+							// Accessory Selection
+							<div className="w-full">
+								<Select
+									options={accessoriesOptions}
+									value={
+										item.accessoryUuid
+											? accessoriesOptions.find(
+													(opt) => opt.value === item.accessoryUuid
+											  )
+											: null
 									}
-								}}
-								placeholder="Enter serial number to search..."
-								label="Search by Serial Number or Product Name"
-							/>
-							{item.productName && (
-								<div className="mt-2">
-									<p className="text-[12px] text-gray-600">
-										Selected:{" "}
-										<span className="font-medium">{item.productName}</span>
-									</p>
-									<p className="text-[12px] text-gray-500">
-										Serial: {item.serialNumber}
-									</p>
-									<p
-										className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
-										onClick={() => {
-											const uuid = item.serialNumber;
-											if (uuid) {
-												onViewProductDetails(uuid);
-											}
+									onChange={(option) => {
+										if (option) {
+											onUpdateProduct(item.id, {
+												accessoryUuid: option.value,
+												productName: option.label,
+												sellingPrice: 0,
+											});
+										} else {
+											onUpdateProduct(item.id, {
+												accessoryUuid: "",
+												productName: "",
+												sellingPrice: undefined,
+											});
+										}
+									}}
+									isSearchable
+									placeholder="Select an accessory..."
+									styles={{
+										control: (base) => ({
+											...base,
+											minHeight: "50px",
+											borderRadius: "10px",
+											borderColor: "#E5E7EB",
+											borderWidth: "2px",
+											fontSize: "14px",
+										}),
+										option: (base, state) => ({
+											...base,
+											backgroundColor: state.isSelected ? "#278783" : "white",
+											color: state.isSelected ? "white" : "black",
+											cursor: "pointer",
+										}),
+									}}
+								/>
+								{item.productName && (
+									<div className="mt-2">
+										<p className="text-[12px] text-gray-600">
+											Selected:{" "}
+											<span className="font-medium">{item.productName}</span>
+										</p>
+									</div>
+								)}
+								{item.isAccessory && item.productName && (
+									<Input
+										label="Quantity"
+										type="number"
+										value={item.quantity || ""}
+										onChange={(e) => {
+											const value = parseInt(e.target.value) || 0;
+											onUpdateProduct(item.id, {
+												quantity: value,
+											});
 										}}
-									>
-										View product details
-									</p>
-								</div>
-							)}
-						</div>
+										placeholder="Enter quantity"
+										min="1"
+										required
+									/>
+								)}
+							</div>
+						) : (
+							// Gadget Selection
+							<div className="w-full">
+								<SerialNumberAutoSuggest
+									value={item.serialNumber || ""}
+									onSelect={(productItem) => {
+										if (productItem) {
+											onUpdateProduct(item.id, {
+												product: productItem.product,
+												serialNumber: productItem.serialNumber,
+												productName: productItem.product?.name,
+												sellingPrice: productItem.sellingPrice ?? 0,
+												storeUuid: productItem.store?.uuid || null,
+											});
+										} else {
+											onUpdateProduct(item.id, {
+												product: null,
+												serialNumber: "",
+												productName: "",
+												sellingPrice: undefined,
+												storeUuid: null,
+											});
+										}
+									}}
+									placeholder="Enter serial number to search..."
+									label="Search by Serial Number or Product Name"
+								/>
+								{item.productName && (
+									<div className="mt-2">
+										<p className="text-[12px] text-gray-600">
+											Selected:{" "}
+											<span className="font-medium">{item.productName}</span>
+										</p>
+										<p className="text-[12px] text-gray-500">
+											Serial: {item.serialNumber}
+										</p>
+										<p
+											className="text-[12px] text-blue-600 underline cursor-pointer mt-[6px] hover:text-blue-800"
+											onClick={() => {
+												const uuid = item.serialNumber;
+												if (uuid) {
+													onViewProductDetails(uuid);
+												}
+											}}
+										>
+											View product details
+										</p>
+									</div>
+								)}
+							</div>
+						)}
 
 						<div className="w-full">
 							<Input
@@ -160,7 +276,11 @@ const ProductInformation = ({
 								<div className="flex justify-between items-center text-[14px]">
 									<span className="text-gray-600">Price:</span>
 									<span className="font-semibold text-gray-800">
-										{formatNaira(item.unitPrice)}
+										{formatNaira(
+											item.isAccessory
+												? (item.unitPrice || 0) * (item.quantity || 1)
+												: item.unitPrice
+										)}
 									</span>
 								</div>
 							</div>
@@ -203,10 +323,11 @@ const ProductInformation = ({
 						<span className="font-semibold ">Total:</span>
 						<span className="font-bold">
 							{formatNaira(
-								productItems.reduce(
-									(total, item) => total + (item.unitPrice || 0),
-									0
-								) - (discountAmount || 0)
+								productItems.reduce((total, item) => {
+									const price = item.unitPrice || 0;
+									const quantity = item.isAccessory ? item.quantity || 1 : 1;
+									return total + price * quantity;
+								}, 0) - (discountAmount || 0)
 							)}
 						</span>
 					</div>

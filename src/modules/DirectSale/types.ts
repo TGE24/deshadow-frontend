@@ -13,6 +13,11 @@ export type ProductItem = SaleItemInput & {
 	sellingPrice?: number;
 	// UUID of the store the selected product item belongs to (optional)
 	storeUuid?: string | null;
+	// Flag to indicate if this is an accessory
+	isAccessory?: boolean;
+	// Accessory UUID if isAccessory is true
+	accessoryUuid?: string;
+	quantity?: number;
 };
 
 export type CreateSaleForm = {

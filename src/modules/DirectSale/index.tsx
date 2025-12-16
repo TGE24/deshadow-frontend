@@ -201,13 +201,22 @@ const DirectSale = ({
 		const subtotal = calculateSubtotal(productItems);
 		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);
 
+		// Separate gadgets and accessories into distinct arrays
+		const gadgets = productItems.filter((item) => !item.isAccessory);
+		const accessories = productItems.filter((item) => item.isAccessory);
+
 		await createSale({
 			variables: {
 				input: {
 					...data,
 					totalAmount: totalAmountAfterDiscount,
-					items: productItems.map((item) => ({
+					items: gadgets.map((item) => ({
 						serialNumber: item.serialNumber || "",
+						unitPrice: item.unitPrice,
+					})),
+					accessories: accessories.map((item) => ({
+						productUuid: item.accessoryUuid || "",
+						quantity: item.quantity || 0,
 						unitPrice: item.unitPrice,
 					})),
 					storeUuid,
