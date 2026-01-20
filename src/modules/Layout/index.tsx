@@ -232,10 +232,18 @@ const Header = ({
 	user,
 	onMenuClick,
 	topOffset = "0px",
+	refetch,
+	refetchSales,
+	hasPendingItems,
+	hasPendingSales,
 }: {
 	user: { firstName?: string } | null;
 	onMenuClick: () => void;
 	topOffset?: string;
+	refetch: () => void;
+	refetchSales: () => void;
+	hasPendingItems: boolean;
+	hasPendingSales: boolean;
 }) => {
 	const [isNotifOpen, setIsNotifOpen] = useState(false);
 	const notifRef = useRef<HTMLDivElement | null>(null);
@@ -286,7 +294,12 @@ const Header = ({
 						onClick={() => setIsNotifOpen((s) => !s)}
 					>
 						<Notifications />
-						<PendingItemsIndicator />
+						<PendingItemsIndicator
+							refetch={refetch}
+							refetchSales={refetchSales}
+							hasPendingItems={hasPendingItems}
+							hasPendingSales={hasPendingSales}
+						/>
 						{isNotifOpen && (
 							<div className="absolute right-0 mt-2 z-[9999] top-[36px]">
 								<div>
@@ -306,7 +319,7 @@ const Header = ({
 const Layout = ({ children }: LayoutProps) => {
 	const { user } = useUserStore();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-	const { data: pendingData } = useProductItemsQuery({
+	const { data: pendingData, refetch } = useProductItemsQuery({
 		variables: {
 			filter: { status: ProductItemStatus.Pending },
 			pagination: { first: 1 },
@@ -314,7 +327,7 @@ const Layout = ({ children }: LayoutProps) => {
 		fetchPolicy: "network-only",
 	});
 
-	const { data: pendingSalesData } = useSalesQuery({
+	const { data: pendingSalesData, refetch: refetchSales } = useSalesQuery({
 		variables: {
 			filter: { saleStatus: SaleStatus.Pending },
 			pagination: { first: 1 },
@@ -417,6 +430,10 @@ const Layout = ({ children }: LayoutProps) => {
 					user={user}
 					onMenuClick={() => setIsMobileMenuOpen(true)}
 					topOffset={hasPending ? "56px" : "0px"}
+					refetch={refetch}
+					refetchSales={refetchSales}
+					hasPendingItems={hasPendingItems}
+					hasPendingSales={hasPendingSales}
 				/>
 				<div className="flex-1 overflow-y-auto lg:p-[20px] xl:p-[34px_38px_38px_38px]">
 					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">

@@ -16,7 +16,6 @@ import TableEmptyState from "../components/TableEmptyState";
 import { formatDateTime, formatNaira } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import { Pagination } from "../modules/Pagination";
-import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import DirectSale from "../modules/DirectSale";
@@ -26,7 +25,6 @@ import ViewProduct from "../modules/Modals/ViewProduct";
 
 const ResellersRecord = () => {
 	const [open, setOpen] = useState(false);
-	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
 	const [detailsOpen, setDetailsOpen] = useState(false);
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
 	const [overviewOpen, setOverviewOpen] = useState(false);
@@ -279,11 +277,7 @@ const ResellersRecord = () => {
 										}`}
 										onClick={() => {
 											setSelectedSale(sale);
-											if (isCreditPending) {
-												setUpdateStatusOpen(true);
-											} else {
-												setOpen(true);
-											}
+											setOpen(true);
 										}}
 									>
 										{row.getVisibleCells().map((cell) => (
@@ -315,10 +309,9 @@ const ResellersRecord = () => {
 					onPrevPage={prevPage}
 				/>
 			</div>
-			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
-			<UpdateStatus
-				open={updateStatusOpen}
-				setOpen={setUpdateStatusOpen}
+			<ViewSale
+				open={open}
+				setOpen={setOpen}
 				sale={selectedSale}
 				refetch={refetch}
 			/>

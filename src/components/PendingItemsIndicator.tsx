@@ -1,42 +1,25 @@
 import { useEffect } from "react";
-import {
-	ProductItemStatus,
-	SaleStatus,
-	useProductItemsQuery,
-	useSalesQuery,
-} from "../generated/graphql";
 
-const PendingItemsIndicator = () => {
-	const { data, loading, error, refetch } = useProductItemsQuery({
-		variables: {
-			filter: { status: ProductItemStatus.Pending },
-			pagination: { first: 1 },
-		},
-		fetchPolicy: "network-only",
-	});
-
-	const {
-		data: salesData,
-		loading: salesLoading,
-		error: salesError,
-		refetch: refetchSales,
-	} = useSalesQuery({
-		variables: {
-			filter: { saleStatus: SaleStatus.Pending },
-			pagination: { first: 1 },
-		},
-		fetchPolicy: "network-only",
-	});
-
+const PendingItemsIndicator = ({
+	hasPendingItems = false,
+	hasPendingSales = false,
+	refetch,
+	refetchSales,
+}: {
+	hasPendingItems: boolean;
+	hasPendingSales: boolean;
+	refetch: () => void;
+	refetchSales: () => void;
+}) => {
 	useEffect(() => {
 		const onFocus = () => {
-			refetch().catch(() => {});
-			refetchSales().catch(() => {});
+			refetch();
+			refetchSales();
 		};
 		const onVisibility = () => {
 			if (document.visibilityState === "visible") {
-				refetch().catch(() => {});
-				refetchSales().catch(() => {});
+				refetch();
+				refetchSales();
 			}
 		};
 
@@ -49,16 +32,9 @@ const PendingItemsIndicator = () => {
 		};
 	}, [refetch, refetchSales]);
 
-	const hasPendingItems =
-		!!data?.productItems?.totalCount && data.productItems.totalCount > 0;
-
-	const hasPendingSales =
-		!!salesData?.sales?.totalCount && salesData.sales.totalCount > 0;
-
 	const hasPending = hasPendingItems || hasPendingSales;
 
-	if (loading || salesLoading || error || salesError || !hasPending)
-		return null;
+	if (!hasPending) return null;
 
 	return (
 		<span

@@ -48,6 +48,7 @@ export type AccessoryInput = {
 export type AccessorySaleInput = {
   productUuid: Scalars['UUID']['input'];
   quantity: Scalars['Int']['input'];
+  unitPrice?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type AccessoryUpdateInput = {
@@ -245,6 +246,7 @@ export type Mutation = {
   processReturn: Return;
   refreshToken: AuthPayload;
   requestPasswordReset: PasswordResetResponse;
+  resendInvitation: PasswordResetResponse;
   resetPassword: PasswordResetResponse;
   setProductItemAttributeValues: ProductItemAttributeValue;
   unassignAttributeFromProduct: Scalars['Boolean']['output'];
@@ -413,6 +415,11 @@ export type MutationRefreshTokenArgs = {
 
 export type MutationRequestPasswordResetArgs = {
   input: RequestPasswordResetInput;
+};
+
+
+export type MutationResendInvitationArgs = {
+  userUuid: Scalars['UUID']['input'];
 };
 
 

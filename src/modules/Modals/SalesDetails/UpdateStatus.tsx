@@ -17,6 +17,7 @@ interface UpdateSaleProps {
 	setOpen: (open: boolean) => void;
 	sale: Sale;
 	refetch: () => void;
+	setDetailsOpen?: (open: boolean) => void;
 }
 
 const UpdateStatus: React.FC<UpdateSaleProps> = ({
@@ -24,6 +25,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 	setOpen,
 	sale,
 	refetch,
+	setDetailsOpen,
 }) => {
 	const [updateSale, { loading }] = useUpdateSaleStatusMutation();
 	const {
@@ -62,6 +64,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 			},
 			onCompleted() {
 				setOpen(false);
+				setDetailsOpen?.(false);
 				reset();
 				refetch();
 			},
