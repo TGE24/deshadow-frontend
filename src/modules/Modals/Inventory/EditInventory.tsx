@@ -135,7 +135,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		const numericValue = extractNumericValue(value);
 		setValue("costPrice", numericValue);
 		setCostPriceDisplay(
-			numericValue ? formatNaira(parseFloat(numericValue)) : ""
+			numericValue ? formatNaira(parseFloat(numericValue)) : "",
 		);
 		// Trigger validation for both fields
 		trigger(["costPrice", "sellingPrice"]);
@@ -146,7 +146,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		const numericValue = extractNumericValue(value);
 		setValue("sellingPrice", numericValue);
 		setSellingPriceDisplay(
-			numericValue ? formatNaira(parseFloat(numericValue)) : ""
+			numericValue ? formatNaira(parseFloat(numericValue)) : "",
 		);
 		// Trigger validation for both fields
 		trigger(["costPrice", "sellingPrice"]);
@@ -190,6 +190,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 		formData.append("product_item_uuid", productItemUuid);
 
 		try {
+			const token = localStorage.getItem("accessToken");
 			const response = await fetch(
 				`${
 					import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL
@@ -197,10 +198,10 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 				{
 					method: "POST",
 					headers: {
-						"X-API-Key": `${import.meta.env.VITE_ENV_UPLOAD_API_KEY}`,
+						Authorization: token ? `Bearer ${token}` : "",
 					},
 					body: formData,
-				}
+				},
 			);
 
 			if (!response.ok) {
@@ -327,7 +328,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 							} catch (error) {
 								console.error("Error uploading images:", error);
 								toast.success(
-									"Product updated successfully, but some images failed to upload"
+									"Product updated successfully, but some images failed to upload",
 								);
 							}
 						} else {
@@ -443,7 +444,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 									? {
 											value: selectedProduct.uuid,
 											label: selectedProduct.name,
-									  }
+										}
 									: null
 							}
 							name="productUuid"
@@ -561,7 +562,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 									setSelectedCondition(option);
 									setValue(
 										"condition",
-										option ? (option.value as ProductCondition) : undefined
+										option ? (option.value as ProductCondition) : undefined,
 									);
 								}}
 								name="condition"
