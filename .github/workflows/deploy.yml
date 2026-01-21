@@ -30,6 +30,7 @@ jobs:
           port: ${{ secrets.DO_PORT || 22 }}
           timeout: 60s
           command_timeout: 20m
+          debug: true
           script: |
             # Set error handling
             set -e
