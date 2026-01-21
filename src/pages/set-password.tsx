@@ -5,10 +5,7 @@ import { useForm } from "react-hook-form";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
-import {
-	// CompleteInvitationMutation,
-	useCompleteInvitationMutation,
-} from "../generated/graphql";
+import { useCompleteInvitationMutation } from "../generated/graphql";
 
 interface LoginFormData {
 	confirmPassword: string;
