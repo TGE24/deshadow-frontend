@@ -14,6 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug - Check secrets
+        run: |
+          echo "Host: ${{ secrets.DO_HOST }}"
+          echo "Username: ${{ secrets.DO_USERNAME }}"
+          echo "Port: ${{ secrets.DO_PORT }}"
+          echo "Key length: $(echo '${{ secrets.DO_SSH_KEY }}' | wc -c)"
+
       - name: Deploy to Digital Ocean
         uses: appleboy/ssh-action@v1.0.3
         with:
