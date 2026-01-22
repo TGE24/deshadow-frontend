@@ -5,6 +5,7 @@ import Plus from "../components/Icons/Plus";
 import {
 	useDeleteUserMutation,
 	User,
+	useResendInvitationMutation,
 	UserRole,
 	useUsersLazyQuery,
 } from "../generated/graphql";
@@ -22,6 +23,8 @@ import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
 import TableEmptyState from "../components/TableEmptyState";
 import { useUserStore } from "../store/userStore";
+import DropdownMenu from "../components/DropdownMenu";
+import MoreVertical from "../components/Icons/MoreVertical";
 
 const Users = () => {
 	const { user } = useUserStore();
@@ -35,6 +38,7 @@ const Users = () => {
 		fetchPolicy: "network-only",
 	});
 	const [deleteUser, { loading: deleteLoading }] = useDeleteUserMutation();
+	const [resendInvitation] = useResendInvitationMutation();
 	const [data, setData] = useState<User[]>([]);
 
 	const columns = useMemo<ColumnDef<User>[]>(
@@ -65,7 +69,7 @@ const Users = () => {
 						className={cn(
 							{ "bg-[#ecfdf3] text-[#027a48]": info.getValue() },
 							{ "bg-[#fef3f2] text-[#b42318]": !info.getValue() },
-							"w-[70px] h-[24px] flex items-center justify-center rounded-[10px] text-[12px] font-medium capitalize"
+							"w-[70px] h-[24px] flex items-center justify-center rounded-[10px] text-[12px] font-medium capitalize",
 						)}
 					>
 						{String(info.getValue() ? "active" : "inactive")}
@@ -75,31 +79,50 @@ const Users = () => {
 			},
 			{
 				header: "Actions",
-				cell: ({ row }) => (
-					<div className="flex gap-[20px]">
-						<button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setSelectedUser(row.original);
-								setOpenEdit(true);
-							}}
-						>
-							Edit
-						</button>
-						<button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setSelectedUser(row.original);
-								setDeleteOpen(true);
-							}}
-						>
-							Delete
-						</button>
-					</div>
-				),
+				cell: ({ row }) => {
+					return (
+						<DropdownMenu
+							trigger={
+								<button className="p-2 hover:bg-gray-100 rounded-full">
+									<MoreVertical />
+								</button>
+							}
+							items={[
+								{
+									label: "Edit User",
+									onClick: () => {
+										setSelectedUser(row.original);
+										setOpenEdit(true);
+									},
+								},
+								{
+									label: "Resend User Invite",
+									onClick: () => {
+										resendInvitation({
+											variables: { userUuid: row.original.uuid },
+											onCompleted: () => {
+												toast("Invitation resent successfully", {
+													type: "success",
+												});
+											},
+										});
+									},
+								},
+								{
+									label: "Delete User",
+									onClick: () => {
+										setSelectedUser(row.original);
+										setDeleteOpen(true);
+									},
+									className: "text-red-600 hover:text-red-700",
+								},
+							]}
+						/>
+					);
+				},
 			},
 		],
-		[]
+		[resendInvitation],
 	);
 
 	useEffect(() => {
@@ -116,7 +139,7 @@ const Users = () => {
 			setData(
 				users.users.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "User") as User[]
+					.filter((node) => node.__typename === "User") as User[],
 			);
 		}
 	}, [users]);
@@ -191,7 +214,7 @@ const Users = () => {
 													.replace("_", " ")
 													.toLowerCase()
 													.replace(/\b\w/g, (c) => c.toUpperCase()),
-										  }
+											}
 								}
 								onChange={(option) => {
 									setRole((option?.value as UserRole | "all") || "all");
@@ -234,8 +257,8 @@ const Users = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -262,7 +285,7 @@ const Users = () => {
 										>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</td>
 									))}

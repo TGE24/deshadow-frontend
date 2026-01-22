@@ -1314,6 +1314,13 @@ export type RefreshTokenMutationVariables = Exact<{
 
 export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }> } | null } };
 
+export type ResendInvitationMutationVariables = Exact<{
+  userUuid: Scalars['UUID']['input'];
+}>;
+
+
+export type ResendInvitationMutation = { __typename?: 'Mutation', resendInvitation: { __typename?: 'PasswordResetResponse', success: boolean } };
+
 export type SetProductItemAttributeValuesMutationVariables = Exact<{
   inputs: Array<ProductItemAttributeValueInput> | ProductItemAttributeValueInput;
 }>;
@@ -2315,6 +2322,39 @@ export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions
 export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export const ResendInvitationDocument = gql`
+    mutation ResendInvitation($userUuid: UUID!) {
+  resendInvitation(userUuid: $userUuid) {
+    success
+  }
+}
+    `;
+export type ResendInvitationMutationFn = Apollo.MutationFunction<ResendInvitationMutation, ResendInvitationMutationVariables>;
+
+/**
+ * __useResendInvitationMutation__
+ *
+ * To run a mutation, you first call `useResendInvitationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResendInvitationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resendInvitationMutation, { data, loading, error }] = useResendInvitationMutation({
+ *   variables: {
+ *      userUuid: // value for 'userUuid'
+ *   },
+ * });
+ */
+export function useResendInvitationMutation(baseOptions?: Apollo.MutationHookOptions<ResendInvitationMutation, ResendInvitationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResendInvitationMutation, ResendInvitationMutationVariables>(ResendInvitationDocument, options);
+      }
+export type ResendInvitationMutationHookResult = ReturnType<typeof useResendInvitationMutation>;
+export type ResendInvitationMutationResult = Apollo.MutationResult<ResendInvitationMutation>;
+export type ResendInvitationMutationOptions = Apollo.BaseMutationOptions<ResendInvitationMutation, ResendInvitationMutationVariables>;
 export const SetProductItemAttributeValuesDocument = gql`
     mutation SetProductItemAttributeValues($inputs: [ProductItemAttributeValueInput!]!) {
   setProductItemAttributeValues(inputs: $inputs) {
