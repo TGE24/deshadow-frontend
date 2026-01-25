@@ -10,7 +10,9 @@ import {
 	Sale,
 	SaleStatus,
 	SaleType,
+	useConditionSummaryQuery,
 	useSalesLazyQuery,
+	useSalesReportLazyQuery,
 } from "../generated/graphql";
 import { formatDateTime, formatNaira } from "../utils/formatters";
 import TableLoader from "../components/TableLoader";
@@ -30,6 +32,58 @@ const Dashboard = () => {
 	const [data, setData] = useState<Sale[]>([]);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
+	const [getSalesReport, { data: salesReport }] = useSalesReportLazyQuery();
+	const { data: conditionSummary } = useConditionSummaryQuery();
+
+	const salesReportStats = useMemo(() => {
+		if (!salesReport?.salesReport) {
+			return null;
+		}
+		return JSON.parse(salesReport?.salesReport)?.breakdown ?? null;
+	}, [salesReport]);
+
+	// Process condition summary data
+	const stats = useMemo(() => {
+		if (!conditionSummary?.conditionSummary) {
+			return {
+				inventory: { total: 0, new: 0, used: 0 },
+				sales: { total: 0, new: 0, used: 0 },
+			};
+		}
+
+		const { inventory, sales } = JSON.parse(conditionSummary.conditionSummary);
+
+		// Helper to sum specific keys from an object
+		const sumValues = (
+			obj: Record<string, number | undefined>,
+			keys: string[],
+		) => keys.reduce((sum, key) => sum + (obj?.[key] ?? 0), 0);
+
+		// Process inventory or sales data
+		const processData = (data: Record<string, number | undefined>) => {
+			const newCount = sumValues(data, [
+				"new_active",
+				"new_locked",
+				"new_non_active",
+				"new_sealed_box",
+			]);
+			const usedCount = sumValues(data, [
+				"nigeria_used",
+				"uk_used",
+				"used_locked",
+			]);
+			return {
+				new: newCount,
+				used: usedCount,
+				total: newCount + usedCount,
+			};
+		};
+
+		return {
+			inventory: processData(inventory),
+			sales: processData(sales),
+		};
+	}, [conditionSummary]);
 
 	const [getSales, { data: sales, loading, refetch }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
@@ -43,6 +97,15 @@ const Dashboard = () => {
 			},
 		});
 	}, [getSales]);
+
+	useEffect(() => {
+		getSalesReport({
+			variables: {
+				startDate: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+				endDate: new Date(new Date().setHours(23, 59, 59, 999)).toISOString(),
+			},
+		});
+	}, [getSalesReport]);
 
 	const columns = useMemo<ColumnDef<Sale>[]>(() => {
 		const baseColumns: ColumnDef<Sale>[] = [
@@ -90,7 +153,7 @@ const Dashboard = () => {
 					return (
 						<span
 							className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
-								status
+								status,
 							)}`}
 						>
 							{status}
@@ -109,7 +172,7 @@ const Dashboard = () => {
 			setData(
 				sales.sales.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "Sale") as Sale[]
+					.filter((node) => node.__typename === "Sale") as Sale[],
 			);
 		}
 	}, [sales]);
@@ -186,10 +249,10 @@ const Dashboard = () => {
 								condition === "new"
 									? "bg-green-100 text-green-800"
 									: condition === "fairly_used"
-									? "bg-yellow-100 text-yellow-800"
-									: condition === "refurbished"
-									? "bg-blue-100 text-blue-800"
-									: "bg-gray-100 text-gray-800"
+										? "bg-yellow-100 text-yellow-800"
+										: condition === "refurbished"
+											? "bg-blue-100 text-blue-800"
+											: "bg-gray-100 text-gray-800"
 							}`}
 						>
 							{condition.replace("_", " ")}
@@ -213,7 +276,7 @@ const Dashboard = () => {
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-[10px]">
 				<div>
 					<h2 className="text-[16px] md:text-[20px] font-bold">
-						Daily Activity Report
+						Activity Report
 					</h2>
 					<p className="text-[14px] text-[#6A6A6A]">
 						View your analytic store performance from the reports
@@ -232,23 +295,28 @@ const Dashboard = () => {
 				<StatCard
 					bgColor="#FFEBD0"
 					headline={"Total Sales"}
-					stat1={{ copy: "Total Uk Used Phones Sold", value: 63 }}
-					stat2={{ copy: "Total Brand New Phones Sold", value: 43 }}
-					bottomStat={"25%"}
+					stat1={{ copy: "Used Phones Sold", value: stats.sales.used }}
+					stat2={{ copy: "Brand New Phones Sold", value: stats.sales.new }}
+					bottomStat={`${stats.sales.total > 0 ? Math.round((stats.sales.new / stats.sales.total) * 100) : 0}%`}
 				/>
 				<StatCard
 					bgColor="rgba(39,135,131,0.2)"
 					headline={"New Stocks"}
-					stat1={{ copy: "Total Uk Used Stock", value: 63 }}
-					stat2={{ copy: "Total Brand New Stock", value: 43 }}
-					bottomStat={""}
+					stat1={{ copy: "Used Stock", value: stats.inventory.used }}
+					stat2={{ copy: "Brand New Stock", value: stats.inventory.new }}
+					bottomStat={
+						stats.inventory.total > 0 ? `${stats.inventory.total} total` : ""
+					}
 				/>
 				<StatCard
 					bgColor="#FFEBD0"
-					headline={"Total Returns"}
-					stat1={{ copy: "Total Uk Used Stock", value: 2 }}
-					stat2={{ copy: "Total (pbeg)", value: 0 }}
-					bottomStat={"30%"}
+					headline={"Sales Report"}
+					stat1={{
+						copy: "Credit Sales",
+						value: salesReportStats?.credit_sales,
+					}}
+					stat2={{ copy: "Swap Sales", value: salesReportStats?.swap_sales }}
+					bottomStat={`${stats.inventory.total > 0 ? Math.round((stats.inventory.used / stats.inventory.total) * 100) : 0}%`}
 				/>
 			</div>
 			<div className="mt-[48px] flex flex-col gap-[20px]">
@@ -275,8 +343,8 @@ const Dashboard = () => {
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext()
-													  )}
+															header.getContext(),
+														)}
 											</th>
 										))}
 									</tr>
@@ -322,7 +390,7 @@ const Dashboard = () => {
 													>
 														{flexRender(
 															cell.column.columnDef.cell,
-															cell.getContext()
+															cell.getContext(),
 														)}
 													</td>
 												))}
@@ -360,8 +428,8 @@ const Dashboard = () => {
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext()
-													  )}
+															header.getContext(),
+														)}
 											</th>
 										))}
 									</tr>
@@ -389,7 +457,7 @@ const Dashboard = () => {
 												>
 													{flexRender(
 														cell.column.columnDef.cell,
-														cell.getContext()
+														cell.getContext(),
 													)}
 												</td>
 											))}

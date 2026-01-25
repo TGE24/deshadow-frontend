@@ -1,0 +1,3 @@
+query SalesReport($storeId: Int, $startDate: Time, $endDate: Time) {
+	salesReport(storeId: $storeId, startDate: $startDate, endDate: $endDate)
+}

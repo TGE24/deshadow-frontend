@@ -9,8 +9,10 @@ import { useAuth } from "../hooks/useAuth";
 import {
 	useLoginWith2FaMutation,
 	useMeLazyQuery,
+	useResendOtpMutation,
 	UserRole,
 } from "../generated/graphql";
+import { toast } from "react-toastify";
 
 const OTP = () => {
 	const navigate = useNavigate();
@@ -23,10 +25,13 @@ const OTP = () => {
 	// GraphQL mutation
 	const [getUser] = useMeLazyQuery();
 	const [login, { loading }] = useLoginWith2FaMutation();
+	const [resendOtp, { loading: resendOTPLoading }] = useResendOtpMutation();
 
 	// Local state
 	const [otp, setOTP] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
+	const [resendCountdown, setResendCountdown] = useState(300); // 5 minutes in seconds
+	const [canResend, setCanResend] = useState(false);
 
 	// Redirect if no challenge token
 	useEffect(() => {
@@ -34,6 +39,41 @@ const OTP = () => {
 			navigate("/");
 		}
 	}, [authPayload?.challengeToken, navigate]);
+
+	// Countdown timer for resend OTP
+	useEffect(() => {
+		if (resendCountdown <= 0) {
+			setCanResend(true);
+			return;
+		}
+
+		const timer = setInterval(() => {
+			setResendCountdown((prev) => prev - 1);
+		}, 1000);
+
+		return () => clearInterval(timer);
+	}, [resendCountdown]);
+
+	const formatTime = (seconds: number) => {
+		const minutes = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+	};
+
+	const handleResendOTP = () => {
+		if (canResend) {
+			resendOtp({
+				variables: {
+					challengeToken: authPayload?.challengeToken || "",
+				},
+				onCompleted() {
+					toast.success("OTP has been resent to your email.");
+					setResendCountdown(300); // Reset to 5 minutes
+					setCanResend(false);
+				},
+			});
+		}
+	};
 
 	const handleChange = (otp: string) => {
 		setOTP(otp);
@@ -80,7 +120,7 @@ const OTP = () => {
 				},
 				onError(error) {
 					setErrorMessage(
-						error.message || "Authentication failed. Please try again."
+						error.message || "Authentication failed. Please try again.",
 					);
 				},
 			});
@@ -150,6 +190,27 @@ const OTP = () => {
 						? "Please correct the error and try again"
 						: "Enter the 6-digit code and click 'Verify Code' to proceed"}
 				</p>
+
+				<div className="flex items-center justify-center gap-[12px] mt-[24px]">
+					<button
+						onClick={handleResendOTP}
+						disabled={!canResend}
+						className={`px-[16px] py-[8px] rounded-[8px] font-semibold transition-all ${
+							canResend
+								? "bg-[#278783] text-white hover:bg-[#1a5f5c] cursor-pointer"
+								: "bg-gray-200 text-gray-500 cursor-not-allowed"
+						}`}
+					>
+						{resendOTPLoading ? "Resending..." : "Resend OTP"}
+					</button>
+					<span
+						className={`text-[14px] font-semibold ${
+							canResend ? "text-green-600" : "text-[#6A6A6A]"
+						}`}
+					>
+						{canResend ? <></> : `${formatTime(resendCountdown)}`}
+					</span>
+				</div>
 			</div>
 		</div>
 	);

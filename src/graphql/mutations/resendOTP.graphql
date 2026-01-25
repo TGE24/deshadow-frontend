@@ -1,0 +1,6 @@
+mutation ResendOTP($challengeToken: String!) {
+	resendOTP(challengeToken: $challengeToken) {
+		success
+		message
+	}
+}

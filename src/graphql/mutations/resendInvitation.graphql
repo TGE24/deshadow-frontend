@@ -1,0 +1,5 @@
+mutation ResendInvitation($userUuid: UUID!) {
+	resendInvitation(userUuid: $userUuid) {
+		success
+	}
+}

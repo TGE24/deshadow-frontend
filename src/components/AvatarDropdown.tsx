@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { User } from "../generated/graphql";
-import MapPin from "./Icons/MapPin";
 import Credit from "./Icons/Credit";
 import Settings from "./Icons/Settings";
 import Logout from "./Icons/Logout";
@@ -12,6 +11,7 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 	firstName,
 	lastName,
 	email,
+	role,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { logout } = useAuth();
@@ -19,7 +19,7 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 	// Use the reusable click outside hook
 	const dropdownRef = useClickOutside<HTMLDivElement>(
 		() => setIsOpen(false),
-		isOpen
+		isOpen,
 	);
 
 	return (
@@ -48,9 +48,12 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 							<p className="text-[#5C5C5C] text-[12px] font-semibold">
 								{email}
 							</p>
+							<p className="text-[#5C5C5C] text-[12px] font-semibold">
+								{role?.replace("_", " ").toUpperCase()}
+							</p>
 						</div>
 					</div>
-					<div className="bg-[#EFEFF0] p-[10px] mt-[16px] w-full rounded-[4px]">
+					{/* <div className="bg-[#EFEFF0] p-[10px] mt-[16px] w-full rounded-[4px]">
 						<div className="flex gap-[8px] items-center">
 							<div className="size-[24px]">
 								<MapPin />
@@ -60,15 +63,15 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 								<p>3A, opposite Dr Adewale Oshin str...</p>
 							</div>
 						</div>
-					</div>
+					</div> */}
 					<ul className="mt-[16px] flex flex-col gap-[17px]">
-						<Link to="/profile">
+						<Link to="/#">
 							<li className="flex gap-[6px] items-center text-[#8C8C8C] text-[16px]">
 								<Credit color={"#8C8C8C"} />
 								<p>Your Profile</p>
 							</li>
 						</Link>
-						<Link to="/settings">
+						<Link to="/#">
 							<li className="flex gap-[6px] items-center text-[#8C8C8C] text-[16px]">
 								<Settings color={"#8C8C8C"} />
 								<p>Account Settings</p>

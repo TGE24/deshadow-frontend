@@ -247,6 +247,7 @@ export type Mutation = {
   refreshToken: AuthPayload;
   requestPasswordReset: PasswordResetResponse;
   resendInvitation: PasswordResetResponse;
+  resendOTP: PasswordResetResponse;
   resetPassword: PasswordResetResponse;
   setProductItemAttributeValues: ProductItemAttributeValue;
   unassignAttributeFromProduct: Scalars['Boolean']['output'];
@@ -420,6 +421,11 @@ export type MutationRequestPasswordResetArgs = {
 
 export type MutationResendInvitationArgs = {
   userUuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationResendOtpArgs = {
+  challengeToken: Scalars['String']['input'];
 };
 
 
@@ -1314,6 +1320,34 @@ export type RefreshTokenMutationVariables = Exact<{
 
 export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, user?: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, ownedStores: Array<{ __typename?: 'Store', name: string }> } | null } };
 
+export type RequestPasswordResetMutationVariables = Exact<{
+  input: RequestPasswordResetInput;
+}>;
+
+
+export type RequestPasswordResetMutation = { __typename?: 'Mutation', requestPasswordReset: { __typename?: 'PasswordResetResponse', success: boolean } };
+
+export type ResendInvitationMutationVariables = Exact<{
+  userUuid: Scalars['UUID']['input'];
+}>;
+
+
+export type ResendInvitationMutation = { __typename?: 'Mutation', resendInvitation: { __typename?: 'PasswordResetResponse', success: boolean } };
+
+export type ResendOtpMutationVariables = Exact<{
+  challengeToken: Scalars['String']['input'];
+}>;
+
+
+export type ResendOtpMutation = { __typename?: 'Mutation', resendOTP: { __typename?: 'PasswordResetResponse', success: boolean, message: string } };
+
+export type ResetPasswordMutationVariables = Exact<{
+  input: ResetPasswordInput;
+}>;
+
+
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'PasswordResetResponse', success: boolean, message: string } };
+
 export type SetProductItemAttributeValuesMutationVariables = Exact<{
   inputs: Array<ProductItemAttributeValueInput> | ProductItemAttributeValueInput;
 }>;
@@ -1424,6 +1458,11 @@ export type CategoriesQueryVariables = Exact<{
 
 export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, isOwned: boolean, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
+export type ConditionSummaryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConditionSummaryQuery = { __typename?: 'Query', conditionSummary: any };
+
 export type FinancialDashboardQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -1481,6 +1520,15 @@ export type SalesQueryVariables = Exact<{
 
 
 export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, productItem?: { __typename?: 'ProductItem', serialNumber: string } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type SalesReportQueryVariables = Exact<{
+  storeId?: InputMaybe<Scalars['Int']['input']>;
+  startDate?: InputMaybe<Scalars['Time']['input']>;
+  endDate?: InputMaybe<Scalars['Time']['input']>;
+}>;
+
+
+export type SalesReportQuery = { __typename?: 'Query', salesReport: any };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -2315,6 +2363,140 @@ export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions
 export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export const RequestPasswordResetDocument = gql`
+    mutation RequestPasswordReset($input: RequestPasswordResetInput!) {
+  requestPasswordReset(input: $input) {
+    success
+  }
+}
+    `;
+export type RequestPasswordResetMutationFn = Apollo.MutationFunction<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>;
+
+/**
+ * __useRequestPasswordResetMutation__
+ *
+ * To run a mutation, you first call `useRequestPasswordResetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestPasswordResetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestPasswordResetMutation, { data, loading, error }] = useRequestPasswordResetMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRequestPasswordResetMutation(baseOptions?: Apollo.MutationHookOptions<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>(RequestPasswordResetDocument, options);
+      }
+export type RequestPasswordResetMutationHookResult = ReturnType<typeof useRequestPasswordResetMutation>;
+export type RequestPasswordResetMutationResult = Apollo.MutationResult<RequestPasswordResetMutation>;
+export type RequestPasswordResetMutationOptions = Apollo.BaseMutationOptions<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>;
+export const ResendInvitationDocument = gql`
+    mutation ResendInvitation($userUuid: UUID!) {
+  resendInvitation(userUuid: $userUuid) {
+    success
+  }
+}
+    `;
+export type ResendInvitationMutationFn = Apollo.MutationFunction<ResendInvitationMutation, ResendInvitationMutationVariables>;
+
+/**
+ * __useResendInvitationMutation__
+ *
+ * To run a mutation, you first call `useResendInvitationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResendInvitationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resendInvitationMutation, { data, loading, error }] = useResendInvitationMutation({
+ *   variables: {
+ *      userUuid: // value for 'userUuid'
+ *   },
+ * });
+ */
+export function useResendInvitationMutation(baseOptions?: Apollo.MutationHookOptions<ResendInvitationMutation, ResendInvitationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResendInvitationMutation, ResendInvitationMutationVariables>(ResendInvitationDocument, options);
+      }
+export type ResendInvitationMutationHookResult = ReturnType<typeof useResendInvitationMutation>;
+export type ResendInvitationMutationResult = Apollo.MutationResult<ResendInvitationMutation>;
+export type ResendInvitationMutationOptions = Apollo.BaseMutationOptions<ResendInvitationMutation, ResendInvitationMutationVariables>;
+export const ResendOtpDocument = gql`
+    mutation ResendOTP($challengeToken: String!) {
+  resendOTP(challengeToken: $challengeToken) {
+    success
+    message
+  }
+}
+    `;
+export type ResendOtpMutationFn = Apollo.MutationFunction<ResendOtpMutation, ResendOtpMutationVariables>;
+
+/**
+ * __useResendOtpMutation__
+ *
+ * To run a mutation, you first call `useResendOtpMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResendOtpMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resendOtpMutation, { data, loading, error }] = useResendOtpMutation({
+ *   variables: {
+ *      challengeToken: // value for 'challengeToken'
+ *   },
+ * });
+ */
+export function useResendOtpMutation(baseOptions?: Apollo.MutationHookOptions<ResendOtpMutation, ResendOtpMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResendOtpMutation, ResendOtpMutationVariables>(ResendOtpDocument, options);
+      }
+export type ResendOtpMutationHookResult = ReturnType<typeof useResendOtpMutation>;
+export type ResendOtpMutationResult = Apollo.MutationResult<ResendOtpMutation>;
+export type ResendOtpMutationOptions = Apollo.BaseMutationOptions<ResendOtpMutation, ResendOtpMutationVariables>;
+export const ResetPasswordDocument = gql`
+    mutation ResetPassword($input: ResetPasswordInput!) {
+  resetPassword(input: $input) {
+    success
+    message
+  }
+}
+    `;
+export type ResetPasswordMutationFn = Apollo.MutationFunction<ResetPasswordMutation, ResetPasswordMutationVariables>;
+
+/**
+ * __useResetPasswordMutation__
+ *
+ * To run a mutation, you first call `useResetPasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResetPasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resetPasswordMutation, { data, loading, error }] = useResetPasswordMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetPasswordMutation, ResetPasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument, options);
+      }
+export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
+export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
+export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
 export const SetProductItemAttributeValuesDocument = gql`
     mutation SetProductItemAttributeValues($inputs: [ProductItemAttributeValueInput!]!) {
   setProductItemAttributeValues(inputs: $inputs) {
@@ -2924,6 +3106,43 @@ export type CategoriesQueryHookResult = ReturnType<typeof useCategoriesQuery>;
 export type CategoriesLazyQueryHookResult = ReturnType<typeof useCategoriesLazyQuery>;
 export type CategoriesSuspenseQueryHookResult = ReturnType<typeof useCategoriesSuspenseQuery>;
 export type CategoriesQueryResult = Apollo.QueryResult<CategoriesQuery, CategoriesQueryVariables>;
+export const ConditionSummaryDocument = gql`
+    query ConditionSummary {
+  conditionSummary
+}
+    `;
+
+/**
+ * __useConditionSummaryQuery__
+ *
+ * To run a query within a React component, call `useConditionSummaryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConditionSummaryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConditionSummaryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useConditionSummaryQuery(baseOptions?: Apollo.QueryHookOptions<ConditionSummaryQuery, ConditionSummaryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConditionSummaryQuery, ConditionSummaryQueryVariables>(ConditionSummaryDocument, options);
+      }
+export function useConditionSummaryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConditionSummaryQuery, ConditionSummaryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConditionSummaryQuery, ConditionSummaryQueryVariables>(ConditionSummaryDocument, options);
+        }
+export function useConditionSummarySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConditionSummaryQuery, ConditionSummaryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConditionSummaryQuery, ConditionSummaryQueryVariables>(ConditionSummaryDocument, options);
+        }
+export type ConditionSummaryQueryHookResult = ReturnType<typeof useConditionSummaryQuery>;
+export type ConditionSummaryLazyQueryHookResult = ReturnType<typeof useConditionSummaryLazyQuery>;
+export type ConditionSummarySuspenseQueryHookResult = ReturnType<typeof useConditionSummarySuspenseQuery>;
+export type ConditionSummaryQueryResult = Apollo.QueryResult<ConditionSummaryQuery, ConditionSummaryQueryVariables>;
 export const FinancialDashboardDocument = gql`
     query FinancialDashboard($storeId: Int) {
   financialDashboard(storeId: $storeId)
@@ -3482,6 +3701,46 @@ export type SalesQueryHookResult = ReturnType<typeof useSalesQuery>;
 export type SalesLazyQueryHookResult = ReturnType<typeof useSalesLazyQuery>;
 export type SalesSuspenseQueryHookResult = ReturnType<typeof useSalesSuspenseQuery>;
 export type SalesQueryResult = Apollo.QueryResult<SalesQuery, SalesQueryVariables>;
+export const SalesReportDocument = gql`
+    query SalesReport($storeId: Int, $startDate: Time, $endDate: Time) {
+  salesReport(storeId: $storeId, startDate: $startDate, endDate: $endDate)
+}
+    `;
+
+/**
+ * __useSalesReportQuery__
+ *
+ * To run a query within a React component, call `useSalesReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSalesReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSalesReportQuery({
+ *   variables: {
+ *      storeId: // value for 'storeId'
+ *      startDate: // value for 'startDate'
+ *      endDate: // value for 'endDate'
+ *   },
+ * });
+ */
+export function useSalesReportQuery(baseOptions?: Apollo.QueryHookOptions<SalesReportQuery, SalesReportQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SalesReportQuery, SalesReportQueryVariables>(SalesReportDocument, options);
+      }
+export function useSalesReportLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SalesReportQuery, SalesReportQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SalesReportQuery, SalesReportQueryVariables>(SalesReportDocument, options);
+        }
+export function useSalesReportSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SalesReportQuery, SalesReportQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SalesReportQuery, SalesReportQueryVariables>(SalesReportDocument, options);
+        }
+export type SalesReportQueryHookResult = ReturnType<typeof useSalesReportQuery>;
+export type SalesReportLazyQueryHookResult = ReturnType<typeof useSalesReportLazyQuery>;
+export type SalesReportSuspenseQueryHookResult = ReturnType<typeof useSalesReportSuspenseQuery>;
+export type SalesReportQueryResult = Apollo.QueryResult<SalesReportQuery, SalesReportQueryVariables>;
 export const StoresDocument = gql`
     query Stores($pagination: PaginationInput) {
   stores(pagination: $pagination) {

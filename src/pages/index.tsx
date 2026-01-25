@@ -63,7 +63,7 @@ const Login = () => {
 				onError(error) {
 					setErrorMessage(
 						error.message ||
-							"Login failed. Please check your credentials and try again."
+							"Login failed. Please check your credentials and try again.",
 					);
 				},
 			});
@@ -141,6 +141,7 @@ const Login = () => {
 						as="link"
 						variant="outline"
 						className="text-[#278783] hover:text-[#1f6663] text-[14px] font-medium py-0"
+						to="/forgot-password"
 					>
 						Forgot your password?
 					</Button>
