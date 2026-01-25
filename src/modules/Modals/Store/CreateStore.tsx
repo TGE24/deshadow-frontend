@@ -103,9 +103,7 @@ const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 						label="Store description"
 						placeholder="Enter store description"
 						variant="secondary"
-						register={register("description", {
-							required: "Please Enter your Store Description",
-						})}
+						register={register("description")}
 						errors={errors.description}
 						id="description"
 					/>
@@ -116,7 +114,7 @@ const CreateStore: React.FC<ModalProps> = ({ open, setOpen, refetch }) => {
 					disabled={loading}
 					type="submit"
 				>
-					{loading ? "Creating..." : "SAVE"}
+					{loading ? "Creating..." : "Create Store"}
 				</Button>
 			</form>
 		</Modal>

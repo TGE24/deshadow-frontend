@@ -72,7 +72,7 @@ const ProductDetails = () => {
 					.replace("_", " ")
 					.replace(/\b\w/g, (char) => char.toUpperCase()),
 			})),
-		[]
+		[],
 	);
 
 	const columns = useMemo<ColumnDef<ProductItem>[]>(() => {
@@ -170,7 +170,7 @@ const ProductDetails = () => {
 					return (
 						<span
 							className={`px-2 py-1 rounded text-xs font-medium uppercase ${getConditionStyles(
-								condition
+								condition,
 							)}`}
 						>
 							{condition.replace(/_/g, " ")}
@@ -189,16 +189,16 @@ const ProductDetails = () => {
 								status === "available"
 									? "bg-green-100 text-green-800"
 									: status === "sold"
-									? "bg-red-100 text-red-800"
-									: status === "reserved"
-									? "bg-blue-100 text-blue-800"
-									: status === "returned"
-									? "bg-yellow-100 text-yellow-800"
-									: status === "pending"
-									? "bg-amber-100 text-amber-800"
-									: status === "damaged"
-									? "bg-gray-100 text-gray-800"
-									: "bg-gray-100 text-gray-800"
+										? "bg-red-100 text-red-800"
+										: status === "reserved"
+											? "bg-blue-100 text-blue-800"
+											: status === "returned"
+												? "bg-yellow-100 text-yellow-800"
+												: status === "pending"
+													? "bg-amber-100 text-amber-800"
+													: status === "damaged"
+														? "bg-gray-100 text-gray-800"
+														: "bg-gray-100 text-gray-800"
 							}`}
 						>
 							{status.replace("_", " ")}
@@ -254,7 +254,7 @@ const ProductDetails = () => {
 						const productItem = row.original;
 						const av =
 							productItem.attributeValues?.find(
-								(a) => a.attribute?.uuid === attr.uuid
+								(a) => a.attribute?.uuid === attr.uuid,
 							) || null;
 						return (
 							<span className="text-sm text-gray-700">
@@ -262,14 +262,14 @@ const ProductDetails = () => {
 							</span>
 						);
 					},
-				})
+				}),
 			);
 
 			// insert attribute columns after the serialNumber column
 			const serialIndex = baseColumns.findIndex(
 				(c) =>
 					(c as ColumnDef<ProductItem> & { accessorKey?: string })
-						.accessorKey === "serialNumber"
+						.accessorKey === "serialNumber",
 			);
 			if (serialIndex >= 0) {
 				baseColumns.splice(serialIndex + 1, 0, ...attributeColumns);
@@ -325,7 +325,7 @@ const ProductDetails = () => {
 			setData(
 				itemsData?.productItems.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "ProductItem") as ProductItem[]
+					.filter((node) => node.__typename === "ProductItem") as ProductItem[],
 			);
 		}
 	}, [itemsData]);
@@ -417,9 +417,6 @@ const ProductDetails = () => {
 		}
 	};
 
-	// Get the first image if available
-	const primaryImage = "";
-
 	return (
 		<div className="px-4 py-8">
 			{/* Breadcrumb */}
@@ -435,58 +432,8 @@ const ProductDetails = () => {
 
 			{/* Main Content Grid */}
 			<div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
-				{/* Image Section */}
-				<div className="lg:col-span-1 space-y-4">
-					<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-						{primaryImage ? (
-							<img
-								src={primaryImage}
-								alt={product.name}
-								className="w-full h-full object-cover"
-							/>
-						) : (
-							<div className="w-full h-full flex items-center justify-center">
-								<div className="text-center text-gray-400">
-									<svg
-										className="mx-auto h-24 w-24 mb-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={1}
-											d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-										/>
-									</svg>
-									<span className="text-lg">No Image Available</span>
-								</div>
-							</div>
-						)}
-					</div>
-
-					{/* Additional Images Thumbnails */}
-					{/* {product.images && product.images.length > 1 && (
-						<div className="flex gap-2 overflow-x-auto">
-							{product.images.slice(1, 5).map((image, index) => (
-								<div
-									key={index}
-									className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded border overflow-hidden"
-								>
-									<img
-										src={`${import.meta.env.VITE_ENV_GRAPHQL_API_BASE_URL}${image.imageUrl}`}
-										alt={`${product.name} ${index + 2}`}
-										className="w-full h-full object-cover"
-									/>
-								</div>
-							))}
-						</div>
-					)} */}
-				</div>
-
 				{/* Product Details Section */}
-				<div className="lg:col-span-4 space-y-6">
+				<div className="lg:col-span-5 space-y-6">
 					{/* Title and Brand */}
 					<div>
 						<h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -542,7 +489,7 @@ const ProductDetails = () => {
 								<span className="text-gray-600">Available Items:</span>
 								<span className="font-medium">
 									{product.items?.filter(
-										(item) => item.status === ProductItemStatus.Available
+										(item) => item.status === ProductItemStatus.Available,
 									)?.length || 0}
 								</span>
 							</div>
@@ -628,7 +575,7 @@ const ProductDetails = () => {
 										isMulti
 										options={conditionOptions}
 										value={conditionOptions.filter((option) =>
-											selectedConditions.includes(option.value)
+											selectedConditions.includes(option.value),
 										)}
 										onChange={(selectedOptions) => {
 											const values = selectedOptions
@@ -660,8 +607,8 @@ const ProductDetails = () => {
 													? null
 													: flexRender(
 															header.column.columnDef.header,
-															header.getContext()
-													  )}
+															header.getContext(),
+														)}
 											</th>
 										))}
 									</tr>
@@ -691,7 +638,7 @@ const ProductDetails = () => {
 												>
 													{flexRender(
 														cell.column.columnDef.cell,
-														cell.getContext()
+														cell.getContext(),
 													)}
 												</td>
 											))}

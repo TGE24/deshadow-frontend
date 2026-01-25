@@ -95,19 +95,23 @@ const Users = () => {
 										setOpenEdit(true);
 									},
 								},
-								{
-									label: "Resend User Invite",
-									onClick: () => {
-										resendInvitation({
-											variables: { userUuid: row.original.uuid },
-											onCompleted: () => {
-												toast("Invitation resent successfully", {
-													type: "success",
-												});
+								...(row.original.isActive === false
+									? [
+											{
+												label: "Resend User Invite",
+												onClick: () => {
+													resendInvitation({
+														variables: { userUuid: row.original.uuid },
+														onCompleted: () => {
+															toast("Invitation resent successfully", {
+																type: "success",
+															});
+														},
+													});
+												},
 											},
-										});
-									},
-								},
+										]
+									: []),
 								{
 									label: "Delete User",
 									onClick: () => {

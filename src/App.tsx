@@ -21,6 +21,8 @@ import Attributes from "./pages/attributes";
 import ResellersSale from "./pages/resellersSale";
 import ResellersRecord from "./pages/ResellersRecord";
 import Accessories from "./pages/accessories";
+import ForgotPassword from "./pages/forgot-password";
+import ResetPassword from "./pages/reset-password";
 
 function App() {
 	return (
@@ -29,6 +31,8 @@ function App() {
 				<Route path="/" element={<Login />} />
 				<Route path="/otp" element={<OTP />} />
 				<Route path="complete-invitation" element={<SetPassword />} />
+				<Route path="/forgot-password" element={<ForgotPassword />} />
+				<Route path="/reset-password" element={<ResetPassword />} />
 				<Route
 					path="/*"
 					element={

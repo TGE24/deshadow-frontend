@@ -126,7 +126,7 @@ const Products = () => {
 					const quantity = info.getValue() as number;
 
 					if (quantity === 0) {
-						return <span className="text-red-600 font-semibold">Sold Out</span>;
+						return <span className="text-red-600 font-semibold">0</span>;
 					}
 
 					return quantity;
@@ -230,7 +230,7 @@ const Products = () => {
 		(option: SingleValue<SelectOption>) => {
 			setSelectedCategory(option?.value || "");
 		},
-		[]
+		[],
 	);
 
 	// Pagination handlers
@@ -333,8 +333,8 @@ const Products = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -363,7 +363,7 @@ const Products = () => {
 										>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</td>
 									))}

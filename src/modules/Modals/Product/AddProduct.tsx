@@ -9,6 +9,7 @@ import Input from "../../../components/Input";
 import {
 	Brand,
 	Category,
+	Store,
 	useAssignAttributesToProductMutation,
 	useAttributesLazyQuery,
 	useBrandsLazyQuery,
@@ -16,6 +17,7 @@ import {
 	useCreateProductMutation,
 	useMeQuery,
 	UserRole,
+	useStoresLazyQuery,
 } from "../../../generated/graphql";
 
 interface AddProductModalProps {
@@ -56,6 +58,9 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	const [getBrands, { data: brands }] = useBrandsLazyQuery({
 		fetchPolicy: "network-only",
 	});
+	const [getStores, { data: stores }] = useStoresLazyQuery({
+		fetchPolicy: "network-only",
+	});
 
 	const [createProduct, { loading }] = useCreateProductMutation();
 	const [assignAttributesToProduct] = useAssignAttributesToProductMutation();
@@ -64,7 +69,11 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 		getCategories({ variables: { pagination: { first: 100 } } });
 		getBrands({ variables: { pagination: { first: 100 } } });
 		getAttributes({ variables: { pagination: { first: 100 } } });
-	}, [getCategories, getBrands, getAttributes]);
+		// Only fetch stores for store owners
+		if (meData?.me?.role === UserRole.StoreOwner) {
+			getStores({ variables: { pagination: { first: 100 } } });
+		}
+	}, [getCategories, getBrands, getAttributes, getStores, meData?.me?.role]);
 
 	const {
 		register,
@@ -80,8 +89,8 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			categoryUuid: "",
 			brandUuid: "",
 			name: "",
-			model: "",
-			description: "",
+			// model: "",
+			// description: "",
 			attributeUuids: [],
 		},
 		mode: "onChange",
@@ -122,7 +131,7 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						brandUuid: data.brandUuid,
 						name: data.name,
 						// model: data.model,
-						description: data.description,
+						// description: data.description,
 					},
 				},
 				async onCompleted(res) {
@@ -221,6 +230,35 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 							)}
 						</div>
 					</div>
+					{meData?.me?.role === UserRole.StoreOwner && (
+						<div>
+							<label
+								className="text-[14px] text-black font-semibold mb-[6px] block font-sfpro"
+								htmlFor="storeUuid"
+							>
+								Store
+							</label>
+							<Select
+								options={
+									stores?.stores?.edges?.map((store) => ({
+										value: (store.node as Store).uuid,
+										label: (store.node as Store).name,
+									})) || []
+								}
+								placeholder="Select Store"
+								classNames={selectStyles}
+								onChange={(option) =>
+									setValue("storeUuid", option?.value || "")
+								}
+								name="storeUuid"
+							/>
+							{errors.storeUuid && (
+								<span className="text-red-500 text-sm">
+									{errors.storeUuid.message}
+								</span>
+							)}
+						</div>
+					)}
 					<Input
 						label="Name"
 						placeholder="Enter name"
@@ -235,7 +273,7 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						})}
 						errors={errors.name}
 					/>
-					<Input
+					{/* <Input
 						label="Description"
 						placeholder="Enter description"
 						id="description"
@@ -252,7 +290,7 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 							register={register("model")}
 							errors={errors.model}
 						/>
-					</div>
+					</div> */}
 
 					<div className="w-full">
 						<label

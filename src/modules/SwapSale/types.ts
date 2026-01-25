@@ -27,6 +27,9 @@ export type SwapProductItem = SaleItemInput & {
 	// UUID of the store the selected product item belongs to (optional)
 	storeUuid?: string | null;
 	attributeValues?: Record<string, string>;
+	isAccessory?: boolean;
+	accessoryUuid?: string;
+	quantity?: number;
 };
 
 export type CreateSwapSaleForm = {

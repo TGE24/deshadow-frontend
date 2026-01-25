@@ -2,7 +2,7 @@ import { CreditSaleFormData } from "./types";
 
 export const canProceedToNextStep = (
 	step: number,
-	formData: CreditSaleFormData
+	formData: CreditSaleFormData,
 ): boolean => {
 	switch (step) {
 		case 1:
@@ -13,8 +13,7 @@ export const canProceedToNextStep = (
 				formData.condition &&
 				formData.sellingPrice > 0 &&
 				formData.externalStoreName &&
-				formData.externalStoreContact &&
-				formData.externalStoreAddress
+				formData.externalStoreContact
 			);
 		case 2:
 			// Customer Details validation
