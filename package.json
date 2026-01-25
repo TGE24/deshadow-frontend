@@ -17,6 +17,7 @@
 		"@types/apollo-upload-client": "^18.0.0",
 		"apollo-upload-client": "^18.0.1",
 		"clsx": "^2.1.1",
+		"dotenv": "^17.2.3",
 		"graphql": "^16.11.0",
 		"lodash": "^4.17.21",
 		"qrcode.react": "^4.2.0",

@@ -1,8 +1,11 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const config: CodegenConfig = {
 	overwrite: true,
-	schema: "https://api.de-shadow.com/query",
+	schema: `${process.env.VITE_ENV_GRAPHQL_API_BASE_URL}/query`,
 	documents: "**/*.graphql",
 	generates: {
 		"src/generated/graphql.ts": {
