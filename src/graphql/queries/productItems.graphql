@@ -10,6 +10,7 @@ query ProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
 					costPrice
 					sellingPrice
 					externalStoreName
+					notes
 					store {
 						name
 						uuid

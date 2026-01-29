@@ -1,3 +1,3 @@
-query ConditionSummary {
-	conditionSummary
+query ConditionSummary($startDate: Time, $endDate: Time) {
+	conditionSummary(startDate: $startDate, endDate: $endDate)
 }

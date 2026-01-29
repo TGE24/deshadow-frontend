@@ -7,7 +7,7 @@ export default defineConfig({
 	plugins: [react(), tailwindcss()],
 	server: {
 		host: true, // Allow external connections
-		port: 8080,
+		port: 5173,
 	},
 	preview: {
 		host: true, // Allow external connections in preview mode
