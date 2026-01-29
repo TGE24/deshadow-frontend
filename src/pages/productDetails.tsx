@@ -144,6 +144,11 @@ const ProductDetails = () => {
 				header: () => <h4>Store Name</h4>,
 			},
 			{
+				accessorKey: "notes",
+				cell: (info) => info.getValue() || "—",
+				header: () => <h4>Notes</h4>,
+			},
+			{
 				accessorKey: "condition",
 				cell: (info) => {
 					const condition = info.getValue() as string;

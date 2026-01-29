@@ -10,7 +10,7 @@ import {
 	Sale,
 	SaleStatus,
 	SaleType,
-	useConditionSummaryQuery,
+	useConditionSummaryLazyQuery,
 	useSalesLazyQuery,
 	useSalesReportLazyQuery,
 } from "../generated/graphql";
@@ -33,7 +33,8 @@ const Dashboard = () => {
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
 	const [getSalesReport, { data: salesReport }] = useSalesReportLazyQuery();
-	const { data: conditionSummary } = useConditionSummaryQuery();
+	const [getConditionSummary, { data: conditionSummary }] =
+		useConditionSummaryLazyQuery();
 
 	const salesReportStats = useMemo(() => {
 		if (!salesReport?.salesReport) {
@@ -97,6 +98,15 @@ const Dashboard = () => {
 			},
 		});
 	}, [getSales]);
+
+	useEffect(() => {
+		getConditionSummary({
+			variables: {
+				startDate: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+				endDate: new Date(new Date().setHours(23, 59, 59, 999)).toISOString(),
+			},
+		});
+	}, [getConditionSummary]);
 
 	useEffect(() => {
 		getSalesReport({
