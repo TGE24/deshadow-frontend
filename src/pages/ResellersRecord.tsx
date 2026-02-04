@@ -55,7 +55,7 @@ const ResellersRecord = () => {
 				cell: ({ row }) => {
 					const value = row.original.createdBy;
 					return `${value?.firstName} ${value?.lastName} (${
-						value?.role ?? ""
+						value?.role.replace("_", " ") ?? ""
 					})`;
 				},
 			},
@@ -100,7 +100,7 @@ const ResellersRecord = () => {
 					return (
 						<span
 							className={`px-2 py-1 rounded text-xs font-medium ${getSaleTypeStyles(
-								saleType
+								saleType,
 							)}`}
 						>
 							{getSaleTypeLabel(saleType)}
@@ -132,7 +132,7 @@ const ResellersRecord = () => {
 					return (
 						<span
 							className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
-								status
+								status,
 							)}`}
 						>
 							{status}
@@ -165,7 +165,7 @@ const ResellersRecord = () => {
 			setData(
 				sales.sales.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "Sale") as Sale[]
+					.filter((node) => node.__typename === "Sale") as Sale[],
 			);
 		}
 	}, [sales]);
@@ -244,8 +244,8 @@ const ResellersRecord = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -287,7 +287,7 @@ const ResellersRecord = () => {
 											>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext()
+													cell.getContext(),
 												)}
 											</td>
 										))}
