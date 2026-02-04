@@ -127,7 +127,7 @@ const MenuList = ({
 								<div
 									className={cn(
 										{ "bg-[#FFEBD04D]": isAnySubItemActive },
-										"flex gap-[8px] items-center justify-between px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+										"flex gap-[8px] items-center justify-between px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
 									)}
 									onClick={() => setOpenDropdown(isDropdownOpen ? null : index)}
 								>
@@ -135,7 +135,7 @@ const MenuList = ({
 										<div
 											className={cn(
 												{ "text-[#FFEBD0]": isAnySubItemActive },
-												"size-[18px] text-[#FFEBD099]"
+												"size-[18px] text-[#FFEBD099]",
 											)}
 										>
 											{item.icon}
@@ -143,7 +143,7 @@ const MenuList = ({
 										<p
 											className={cn(
 												{ "font-bold": isAnySubItemActive },
-												"text-[#FFEBD0]"
+												"text-[#FFEBD0]",
 											)}
 										>
 											{item.name}
@@ -152,7 +152,7 @@ const MenuList = ({
 									<svg
 										className={cn(
 											"w-4 h-4 text-[#FFEBD099] transition-transform duration-200",
-											{ "rotate-180": isDropdownOpen }
+											{ "rotate-180": isDropdownOpen },
 										)}
 										fill="none"
 										stroke="currentColor"
@@ -179,13 +179,13 @@ const MenuList = ({
 													<li
 														className={cn(
 															{ "bg-[#FFEBD04D]": isSubActive },
-															"px-[16px] py-[10px] rounded-[6px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+															"px-[16px] py-[10px] rounded-[6px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
 														)}
 													>
 														<p
 															className={cn(
 																{ "font-bold": isSubActive },
-																"text-[#FFEBD0] text-[14px]"
+																"text-[#FFEBD0] text-[14px]",
 															)}
 														>
 															{subItem.name}
@@ -202,13 +202,13 @@ const MenuList = ({
 								<div
 									className={cn(
 										{ "bg-[#FFEBD04D]": isActive },
-										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10"
+										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
 									)}
 								>
 									<div
 										className={cn(
 											{ "text-[#FFEBD0]": isActive },
-											"size-[18px] text-[#FFEBD099]"
+											"size-[18px] text-[#FFEBD099]",
 										)}
 									>
 										{item.icon}
@@ -319,12 +319,17 @@ const Header = ({
 const Layout = ({ children }: LayoutProps) => {
 	const { user } = useUserStore();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+	const isAdmin =
+		user?.role === UserRole.Admin || user?.role === UserRole.SuperAdmin;
+
 	const { data: pendingData, refetch } = useProductItemsQuery({
 		variables: {
 			filter: { status: ProductItemStatus.Pending },
 			pagination: { first: 1 },
 		},
 		fetchPolicy: "network-only",
+		skip: isAdmin,
 	});
 
 	const { data: pendingSalesData, refetch: refetchSales } = useSalesQuery({
@@ -333,6 +338,7 @@ const Layout = ({ children }: LayoutProps) => {
 			pagination: { first: 1 },
 		},
 		fetchPolicy: "network-only",
+		skip: isAdmin,
 	});
 
 	const hasPendingItems =
@@ -362,7 +368,7 @@ const Layout = ({ children }: LayoutProps) => {
 					{
 						"translate-x-0": isMobileMenuOpen,
 						"-translate-x-full": !isMobileMenuOpen,
-					}
+					},
 				)}
 			>
 				<Logo />
@@ -421,19 +427,21 @@ const Layout = ({ children }: LayoutProps) => {
 
 			{/* Main content area */}
 			<div className="flex-1 flex flex-col bg-[#FBFBFF] overflow-hidden">
-				<PendingItemsBanner
-					visible={hasPending}
-					hasPendingItems={hasPendingItems}
-					hasPendingSales={hasPendingSales}
-				/>
+				{!isAdmin && (
+					<PendingItemsBanner
+						visible={hasPending}
+						hasPendingItems={hasPendingItems}
+						hasPendingSales={hasPendingSales}
+					/>
+				)}
 				<Header
 					user={user}
 					onMenuClick={() => setIsMobileMenuOpen(true)}
-					topOffset={hasPending ? "56px" : "0px"}
+					topOffset={!isAdmin && hasPending ? "56px" : "0px"}
 					refetch={refetch}
 					refetchSales={refetchSales}
-					hasPendingItems={hasPendingItems}
-					hasPendingSales={hasPendingSales}
+					hasPendingItems={!isAdmin && hasPendingItems}
+					hasPendingSales={!isAdmin && hasPendingSales}
 				/>
 				<div className="flex-1 overflow-y-auto lg:p-[20px] xl:p-[34px_38px_38px_38px]">
 					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">
