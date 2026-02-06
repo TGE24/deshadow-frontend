@@ -89,8 +89,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			categoryUuid: "",
 			brandUuid: "",
 			name: "",
-			// model: "",
-			// description: "",
 			attributeUuids: [],
 		},
 		mode: "onChange",
@@ -130,8 +128,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
-						// model: data.model,
-						// description: data.description,
 					},
 				},
 				async onCompleted(res) {
@@ -273,24 +269,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						})}
 						errors={errors.name}
 					/>
-					{/* <Input
-						label="Description"
-						placeholder="Enter description"
-						id="description"
-						variant="secondary"
-						register={register("description")}
-						errors={errors.description}
-					/>
-					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Model"
-							placeholder="Enter model"
-							id="model"
-							variant="secondary"
-							register={register("model")}
-							errors={errors.model}
-						/>
-					</div> */}
 
 					<div className="w-full">
 						<label

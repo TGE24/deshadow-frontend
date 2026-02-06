@@ -52,7 +52,9 @@ const Dashboard = () => {
 			};
 		}
 
-		const { inventory, sales } = JSON.parse(conditionSummary.conditionSummary);
+		const { accessories, inventory, sales } = JSON.parse(
+			conditionSummary.conditionSummary,
+		);
 
 		// Helper to sum specific keys from an object
 		const sumValues = (
@@ -83,6 +85,7 @@ const Dashboard = () => {
 		return {
 			inventory: processData(inventory),
 			sales: processData(sales),
+			accessories,
 		};
 	}, [conditionSummary]);
 
@@ -282,24 +285,15 @@ const Dashboard = () => {
 
 	return (
 		<>
-			{/* {import.meta.env.MODE === "development" && <AuthTester />} */}
 			<div className="flex flex-col md:flex-row md:items-center justify-between gap-[10px]">
 				<div>
 					<h2 className="text-[16px] md:text-[20px] font-bold">
-						Activity Report
+						Daily Activity Report
 					</h2>
 					<p className="text-[14px] text-[#6A6A6A]">
 						View your analytic store performance from the reports
 					</p>
 				</div>
-				{/* <Button
-					variant="primary"
-					size="small"
-					icon={<Plus />}
-					onClick={() => setOpen(true)}
-				>
-					Create Invoice
-				</Button> */}
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[20px] mt-[24px]">
 				<StatCard
@@ -311,9 +305,10 @@ const Dashboard = () => {
 				/>
 				<StatCard
 					bgColor="rgba(39,135,131,0.2)"
-					headline={"New Stocks"}
-					stat1={{ copy: "Used Stock", value: stats.inventory.used }}
-					stat2={{ copy: "Brand New Stock", value: stats.inventory.new }}
+					headline={"New Products"}
+					stat1={{ copy: "Used Products", value: stats.inventory.used }}
+					stat2={{ copy: "Brand New Products", value: stats.inventory.new }}
+					stat3={{ copy: "Total Accessories", value: stats.accessories }}
 					bottomStat={
 						stats.inventory.total > 0 ? `${stats.inventory.total} total` : ""
 					}

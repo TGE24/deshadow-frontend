@@ -77,6 +77,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 	const isCreditPending =
 		sale.saleType === SaleType.Credit && sale.saleStatus === SaleStatus.Pending;
 
+	console.log(sale);
 	return (
 		<>
 			<Modal
@@ -107,7 +108,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 						<div className="flex items-center gap-[8px]">
 							<span
 								className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border ${getStatusStyles(
-									sale.saleStatus
+									sale.saleStatus,
 								)}`}
 							>
 								{sale.saleStatus?.charAt(0).toUpperCase() +
@@ -174,7 +175,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 															.replace("_", " ")
 															.toLocaleUpperCase()})`
 													: ""
-										  }`
+											}`
 										: "N/A"}
 								</span>
 							</div>
@@ -222,36 +223,60 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 					<div className="bg-gray-50 p-[16px] rounded-[8px]">
 						<h4 className="font-semibold mb-[12px] text-[16px]">Products</h4>
 						<div className="space-y-[8px]">
-							{sale.items?.map((item, index) => (
-								<div
-									key={item.uuid}
-									className="bg-white p-[12px] rounded-[6px] border border-gray-200"
-								>
-									<div className="flex justify-between items-start">
-										<div className="flex-1">
-											<p className="font-medium text-[14px] text-gray-800">
-												{item.product?.name || "Product not available"}
-											</p>
-											<p className="text-[12px] text-gray-500 mt-[2px]">
-												{item.productItem?.serialNumber
-													? `Serial: ${item.productItem.serialNumber}`
-													: `Item ${index + 1}`}
-											</p>
-											<p className="text-[12px] text-gray-500">
-												Quantity: {item.quantity}
-											</p>
-										</div>
-										<div className="text-right">
-											<p className="text-[14px] font-medium">
-												{formatNaira(item.unitPrice)}
-											</p>
-											<p className="text-[12px] text-gray-500">
-												Total: {formatNaira(item.lineTotal)}
-											</p>
+							{sale.items?.map((item, index) => {
+								return (
+									<div
+										key={item.uuid}
+										className="bg-white p-[12px] rounded-[6px] border border-gray-200"
+									>
+										<div className="flex justify-between items-start">
+											<div className="flex-1">
+												<p className="font-medium text-[14px] text-gray-800">
+													{item.product?.name ||
+														item.accessory?.name ||
+														"Product not available"}
+												</p>
+												<p className="text-[12px] text-gray-500 mt-[2px]">
+													{item.productItem?.serialNumber
+														? `Serial: ${item.productItem.serialNumber}`
+														: item.accessory
+															? `Accessory`
+															: `Item ${index + 1}`}
+												</p>
+												<p className="text-[12px] text-gray-500">
+													Quantity: {item.quantity}
+												</p>{" "}
+												{item.productItem?.attributeValues &&
+													item.productItem.attributeValues.length > 0 && (
+														<div className="mt-[6px] flex flex-wrap gap-[4px]">
+															{item.productItem.attributeValues.map(
+																(attrValue, index) => (
+																	<span
+																		key={index}
+																		className="inline-flex items-center gap-[4px] bg-gray-100 text-gray-700 text-[11px] px-[6px] py-[2px] rounded-[4px]"
+																	>
+																		<span className="font-medium">
+																			{attrValue.attribute?.name}:
+																		</span>
+																		<span>{attrValue.valueText}</span>
+																	</span>
+																),
+															)}
+														</div>
+													)}{" "}
+											</div>
+											<div className="text-right">
+												<p className="text-[14px] font-medium">
+													{formatNaira(item.unitPrice)}
+												</p>
+												<p className="text-[12px] text-gray-500">
+													Total: {formatNaira(item.lineTotal)}
+												</p>
+											</div>
 										</div>
 									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</div>
 
@@ -265,7 +290,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 								<span className="text-[14px]">Subtotal:</span>
 								<span className="text-[14px] font-medium">
 									{formatNaira(
-										(sale.totalAmount || 0) + (sale.discountAmount || 0)
+										(sale.totalAmount || 0) + (sale.discountAmount || 0),
 									)}
 								</span>
 							</div>

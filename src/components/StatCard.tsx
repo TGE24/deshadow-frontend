@@ -11,6 +11,10 @@ interface StatCardProps {
 		copy: string;
 		value: number;
 	};
+	stat3?: {
+		copy: string;
+		value: number;
+	};
 	bottomStat: string;
 	bgColor?: string;
 	className?: string;
@@ -20,6 +24,7 @@ const StatCard: React.FC<StatCardProps> = ({
 	headline,
 	stat1,
 	stat2,
+	stat3,
 	bottomStat,
 	bgColor,
 	className,
@@ -34,18 +39,28 @@ const StatCard: React.FC<StatCardProps> = ({
 			<h3 className="text-[#278783] font-bold text-[14px] mb-[21px]">
 				{headline}
 			</h3>
-			<p className="text-[#003D3A] text-[14px] mb-[14px]">
-				{stat1.copy}:{" "}
-				<span className="text-[16px] font-bold text-[#278783]">
-					{stat1.value}
-				</span>
-			</p>
-			<p className="text-[#003D3A] text-[14px]">
-				{stat2.copy}:{" "}
-				<span className="text-[16px] font-bold text-[#278783]">
-					{stat2.value}
-				</span>
-			</p>
+			<div className="flex flex-col gap-2.5">
+				<p className="text-[#003D3A] text-[14px]">
+					{stat1.copy}:{" "}
+					<span className="text-[16px] font-bold text-[#278783]">
+						{stat1.value}
+					</span>
+				</p>
+				<p className="text-[#003D3A] text-[14px]">
+					{stat2.copy}:{" "}
+					<span className="text-[16px] font-bold text-[#278783]">
+						{stat2.value}
+					</span>
+				</p>
+				{stat3 && (
+					<p className="text-[#003D3A] text-[14px]">
+						{stat3.copy}:{" "}
+						<span className="text-[16px] font-bold text-[#278783]">
+							{stat3.value}
+						</span>
+					</p>
+				)}
+			</div>
 			{bottomStat && (
 				<div className="mt-[30px] flex items-baseline justify-between">
 					<div className="flex items-center gap-[6px]">
