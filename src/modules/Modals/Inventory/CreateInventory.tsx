@@ -56,6 +56,7 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 		useState<Product | null>(selectedProduct || null);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 	const [selectedImages, setSelectedImages] = useState<File[]>([]);
+	const [uploadLoading, setUploadLoading] = useState(false);
 	const [attributeValues, setAttributeValues] = useState<
 		Record<string, string>
 	>({});
@@ -126,16 +127,17 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	const uploadImages = async (productItemUuid: string, images: File[]) => {
 		if (images.length === 0) return [];
 
-		const formData = new FormData();
-
-		// Append all images to the same FormData
-		images.forEach((image) => {
-			formData.append("file", image); // Use 'files' for multiple file upload
-		});
-
-		formData.append("product_item_uuid", productItemUuid);
-
+		setUploadLoading(true);
 		try {
+			const formData = new FormData();
+
+			// Append all images to the same FormData
+			images.forEach((image) => {
+				formData.append("file", image);
+			});
+
+			formData.append("product_item_uuid", productItemUuid);
+
 			const token = localStorage.getItem("accessToken");
 			const response = await fetch(
 				`${
@@ -154,8 +156,11 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 				throw new Error(`Failed to upload images: ${response.statusText}`);
 			}
 
-			return await response.json();
+			const result = await response.json();
+			setUploadLoading(false);
+			return result;
 		} catch (error) {
+			setUploadLoading(false);
 			console.error("Error uploading images:", error);
 			throw error;
 		}
@@ -924,7 +929,7 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 						size="large"
 						className="flex-1 h-[52px] !rounded-[10px] bg-gradient-to-r from-[#278783] to-[#1a5f5c] hover:from-[#1a5f5c] hover:to-[#278783] shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
 						type="submit"
-						disabled={loading}
+						disabled={loading || uploadLoading}
 					>
 						{loading ? (
 							<div className="flex items-center gap-[8px]">
@@ -948,7 +953,9 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 									></path>
 								</svg>
-								<span>Creating...</span>
+								<span>
+									{uploadLoading ? "Uploading images..." : "Creating..."}
+								</span>
 							</div>
 						) : (
 							<div className="flex items-center gap-[8px]">

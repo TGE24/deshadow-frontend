@@ -286,16 +286,6 @@ const ProductDetails = () => {
 		return baseColumns;
 	}, [products?.product?.attributes]);
 
-	// Product Item Action Handlers
-	// const handleEditProductItem = () => {
-	// 	if (selectedProductItem) {
-	// 		// TODO: Implement product item editing
-	// 		console.log("Edit product item:", selectedProductItem);
-	// 		toast("Edit product item functionality coming soon", { type: "info" });
-	// 		setEditProductItemOpen(false);
-	// 	}
-	// };
-
 	const handleDeleteProductItem = () => {
 		if (selectedProductItem) {
 			deleteProductItem({

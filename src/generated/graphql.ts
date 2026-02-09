@@ -1528,7 +1528,7 @@ export type SalesQueryVariables = Exact<{
 }>;
 
 
-export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, productItem?: { __typename?: 'ProductItem', serialNumber: string } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SalesReportQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
@@ -3651,8 +3651,19 @@ export const SalesDocument = gql`
             quantity
             unitPrice
             lineTotal
+            accessory {
+              uuid
+              name
+            }
             productItem {
               serialNumber
+              attributeValues {
+                attribute {
+                  name
+                  uuid
+                }
+                valueText
+              }
             }
             product {
               name

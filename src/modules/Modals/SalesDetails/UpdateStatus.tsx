@@ -98,10 +98,12 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							Status
 						</label>
 						<Select
-							options={Object.values(SaleStatus).map((status) => ({
-								value: status,
-								label: status,
-							}))}
+							options={Object.values(SaleStatus)
+								.filter((status) => status !== SaleStatus.Pending)
+								.map((status) => ({
+									value: status,
+									label: status,
+								}))}
 							placeholder="Select status"
 							classNames={{
 								control: () =>
@@ -116,7 +118,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							onChange={(option) => {
 								setValue(
 									"status",
-									option ? (option.value as SaleStatus) : ("" as SaleStatus)
+									option ? (option.value as SaleStatus) : ("" as SaleStatus),
 								);
 							}}
 							name="status"
@@ -181,7 +183,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 											label: sale?.paymentType
 												?.replace(/_/g, " ")
 												.replace(/\b\w/g, (l) => l.toUpperCase()),
-									  }
+										}
 							}
 							classNames={{
 								control: () =>
@@ -196,7 +198,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							onChange={(option) => {
 								setValue(
 									"paymentType",
-									option ? (option.value as PaymentType) : undefined
+									option ? (option.value as PaymentType) : undefined,
 								);
 							}}
 							name="paymentType"

@@ -13,8 +13,6 @@ import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import Plus from "../components/Icons/Plus";
 
-// Modals
-
 // Modules
 import { Pagination } from "../modules/Pagination";
 
@@ -33,6 +31,8 @@ import AddAccessory from "../modules/Modals/Accessories/AddAccessory";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import { toast } from "react-toastify";
 import EditAccessory from "../modules/Modals/Accessories/EditAccessory";
+import AccessorySale from "../modules/AccessorySale";
+import { Modal } from "react-responsive-modal";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -45,8 +45,9 @@ const Accessories = () => {
 	const [open, setOpen] = useState(false);
 	const [openEdit, setOpenEdit] = useState(false);
 	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [sellOpen, setSellOpen] = useState(false);
 	const [selectedAccessory, setSelectedAccessory] = useState<Accessory | null>(
-		null
+		null,
 	);
 
 	// Filter States
@@ -86,14 +87,16 @@ const Accessories = () => {
 				cell: ({ row }) => (
 					<div className="flex gap-[20px]">
 						<button
-							className="font-medium cursor-pointer"
+							className="font-medium cursor-pointer text-green-600 hover:text-green-800"
 							onClick={() => {
 								setSelectedAccessory(row.original);
-								setOpenEdit(true);
+								setSellOpen(true);
 							}}
+							disabled={row.original.quantity === 0}
 						>
-							Edit
+							Sell
 						</button>
+						<button>Edit</button>
 						<button
 							className="font-medium cursor-pointer"
 							onClick={() => {
@@ -239,8 +242,8 @@ const Accessories = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -268,7 +271,7 @@ const Accessories = () => {
 										>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</td>
 									))}
@@ -316,6 +319,22 @@ const Accessories = () => {
 				}}
 				loading={deleteLoading}
 			/>
+			<Modal
+				open={sellOpen}
+				onClose={() => setSellOpen(false)}
+				center
+				classNames={{
+					modal: "customModal max-w-4xl w-full",
+				}}
+			>
+				{selectedAccessory && (
+					<AccessorySale
+						accessory={selectedAccessory}
+						onClose={() => setSellOpen(false)}
+						refetch={refetch}
+					/>
+				)}
+			</Modal>
 		</>
 	);
 };

@@ -29,8 +29,19 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 						quantity
 						unitPrice
 						lineTotal
+						accessory {
+							uuid
+							name
+						}
 						productItem {
 							serialNumber
+							attributeValues {
+								attribute {
+									name
+									uuid
+								}
+								valueText
+							}
 						}
 						product {
 							name

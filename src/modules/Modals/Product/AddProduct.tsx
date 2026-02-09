@@ -89,8 +89,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 			categoryUuid: "",
 			brandUuid: "",
 			name: "",
-			// model: "",
-			// description: "",
 			attributeUuids: [],
 		},
 		mode: "onChange",
@@ -109,8 +107,12 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	}, [meData, setValue]);
 
 	const handleSubmitForm = async (data: AddProductForm) => {
-		// Validate select fields
-		if (!data.storeUuid) {
+		// Validate select fields (skip store validation for admins)
+		const isAdmin =
+			meData?.me?.role === UserRole.Admin ||
+			meData?.me?.role === UserRole.SuperAdmin;
+
+		if (!data.storeUuid && !isAdmin) {
 			setError("storeUuid", { message: "Please select a store" });
 			return;
 		}
@@ -130,24 +132,29 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						categoryUuid: data.categoryUuid,
 						brandUuid: data.brandUuid,
 						name: data.name,
-						// model: data.model,
-						// description: data.description,
 					},
 				},
 				async onCompleted(res) {
-					if (res.createProduct.uuid) {
-						await assignAttributesToProduct({
-							variables: {
-								attributeUuids: data.attributeUuids,
-								productUuid: res.createProduct.uuid,
-							},
-							onCompleted() {
-								setOpen(false);
-								reset();
-								refetch();
-								toast.success("Product created successfully");
-							},
-						});
+					if (data.attributeUuids.length > 0) {
+						if (res.createProduct.uuid) {
+							await assignAttributesToProduct({
+								variables: {
+									attributeUuids: data.attributeUuids,
+									productUuid: res.createProduct.uuid,
+								},
+								onCompleted() {
+									setOpen(false);
+									reset();
+									refetch();
+									toast.success("Product created successfully");
+								},
+							});
+						}
+					} else {
+						setOpen(false);
+						reset();
+						refetch();
+						toast.success("Product created successfully");
 					}
 				},
 				onError(error) {
@@ -273,24 +280,6 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 						})}
 						errors={errors.name}
 					/>
-					{/* <Input
-						label="Description"
-						placeholder="Enter description"
-						id="description"
-						variant="secondary"
-						register={register("description")}
-						errors={errors.description}
-					/>
-					<div className="flex flex-col md:flex-row gap-[16px]">
-						<Input
-							label="Model"
-							placeholder="Enter model"
-							id="model"
-							variant="secondary"
-							register={register("model")}
-							errors={errors.model}
-						/>
-					</div> */}
 
 					<div className="w-full">
 						<label

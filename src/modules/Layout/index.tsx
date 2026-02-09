@@ -85,12 +85,13 @@ const ADMIN_MENU: MenuItem[] = [
 	{ name: "Brands", link: "/brands", icon: <Brands /> },
 	{ name: "Category", link: "/category", icon: <Category /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
+	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
 ];
 
 // Common components
 const Logo = () => (
 	<div className="h-[87px] border-[#FFEBD099] border-b-[3px] flex items-center">
-		<h1 className="text-[50px] text-[#FFEBD0]">LOGO</h1>
+		<h1 className="text-[40px] text-[#FFEBD0]">DeShadow</h1>
 	</div>
 );
 

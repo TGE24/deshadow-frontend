@@ -6,6 +6,8 @@ import {
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
+	getSortedRowModel,
+	SortingState,
 } from "@tanstack/react-table";
 import { SingleValue } from "react-select";
 
@@ -58,6 +60,9 @@ const Products = () => {
 	const [selectedStore, setSelectedStore] = useState("");
 	const [selectedBrand, setSelectedBrand] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("");
+	const [sorting, setSorting] = useState<SortingState>([
+		{ id: "availableItemsCount", desc: true },
+	]);
 
 	// Debounced search term to prevent excessive API calls
 	const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_DELAY);
@@ -122,6 +127,7 @@ const Products = () => {
 			},
 			{
 				accessorKey: "availableItemsCount",
+				enableSorting: true,
 				cell: (info) => {
 					const quantity = info.getValue() as number;
 
@@ -131,7 +137,18 @@ const Products = () => {
 
 					return quantity;
 				},
-				header: () => <h4>Quantity</h4>,
+				header: ({ column }) => (
+					<h4
+						className="flex items-center gap-1 cursor-pointer select-none"
+						onClick={() => column.toggleSorting()}
+					>
+						Quantity
+						<span className="text-xs">
+							{column.getIsSorted() === "asc" && "↑"}
+							{column.getIsSorted() === "desc" && "↓"}
+						</span>
+					</h4>
+				),
 			},
 		];
 
@@ -204,7 +221,13 @@ const Products = () => {
 	const table = useReactTable({
 		data,
 		columns,
+		state: {
+			sorting,
+		},
+		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
 	});
 
 	// Event Handlers

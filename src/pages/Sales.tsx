@@ -76,7 +76,7 @@ const SalesManagement = () => {
 				cell: ({ row }) => {
 					const value = row.original.createdBy;
 					return `${value?.firstName} ${value?.lastName} (${
-						value?.role ?? ""
+						value?.role.replace("_", " ").toLocaleUpperCase() ?? ""
 					})`;
 				},
 			},
@@ -121,7 +121,7 @@ const SalesManagement = () => {
 					return (
 						<span
 							className={`px-2 py-1 rounded text-xs font-medium ${getSaleTypeStyles(
-								saleType
+								saleType,
 							)}`}
 						>
 							{getSaleTypeLabel(saleType)}
@@ -153,7 +153,7 @@ const SalesManagement = () => {
 					return (
 						<span
 							className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
-								status
+								status,
 							)}`}
 						>
 							{status}
@@ -175,7 +175,7 @@ const SalesManagement = () => {
 			{ value: SaleType.Swap, label: "Swap Sale" },
 			{ value: SaleType.Credit, label: "Credit Sale" },
 		],
-		[]
+		[],
 	);
 
 	const storeOptions = useMemo((): SelectOption[] => {
@@ -200,10 +200,10 @@ const SalesManagement = () => {
 	const handleSaleTypeChange = useCallback(
 		(selectedOptions: SelectOption[] | []) => {
 			setSelectedSaleTypes(
-				selectedOptions.map((option) => option.value as SaleType)
+				selectedOptions.map((option) => option.value as SaleType),
 			);
 		},
-		[]
+		[],
 	);
 
 	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
@@ -214,7 +214,7 @@ const SalesManagement = () => {
 		(newDateRange: { fromDate: string; toDate: string }) => {
 			setDateRange(newDateRange);
 		},
-		[]
+		[],
 	);
 
 	const handleClearFilters = useCallback(() => {
@@ -277,7 +277,7 @@ const SalesManagement = () => {
 			setData(
 				sales.sales.edges
 					.map((edge) => edge.node)
-					.filter((node) => node.__typename === "Sale") as Sale[]
+					.filter((node) => node.__typename === "Sale") as Sale[],
 			);
 		}
 	}, [sales]);
@@ -386,8 +386,8 @@ const SalesManagement = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -433,7 +433,7 @@ const SalesManagement = () => {
 											>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext()
+													cell.getContext(),
 												)}
 											</td>
 										))}
