@@ -107,8 +107,12 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 	}, [meData, setValue]);
 
 	const handleSubmitForm = async (data: AddProductForm) => {
-		// Validate select fields
-		if (!data.storeUuid) {
+		// Validate select fields (skip store validation for admins)
+		const isAdmin =
+			meData?.me?.role === UserRole.Admin ||
+			meData?.me?.role === UserRole.SuperAdmin;
+
+		if (!data.storeUuid && !isAdmin) {
 			setError("storeUuid", { message: "Please select a store" });
 			return;
 		}
@@ -131,19 +135,26 @@ const AddProduct: React.FC<AddProductModalProps> = ({
 					},
 				},
 				async onCompleted(res) {
-					if (res.createProduct.uuid) {
-						await assignAttributesToProduct({
-							variables: {
-								attributeUuids: data.attributeUuids,
-								productUuid: res.createProduct.uuid,
-							},
-							onCompleted() {
-								setOpen(false);
-								reset();
-								refetch();
-								toast.success("Product created successfully");
-							},
-						});
+					if (data.attributeUuids.length > 0) {
+						if (res.createProduct.uuid) {
+							await assignAttributesToProduct({
+								variables: {
+									attributeUuids: data.attributeUuids,
+									productUuid: res.createProduct.uuid,
+								},
+								onCompleted() {
+									setOpen(false);
+									reset();
+									refetch();
+									toast.success("Product created successfully");
+								},
+							});
+						}
+					} else {
+						setOpen(false);
+						reset();
+						refetch();
+						toast.success("Product created successfully");
 					}
 				},
 				onError(error) {

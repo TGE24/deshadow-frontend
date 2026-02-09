@@ -77,7 +77,6 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 	const isCreditPending =
 		sale.saleType === SaleType.Credit && sale.saleStatus === SaleStatus.Pending;
 
-	console.log(sale);
 	return (
 		<>
 			<Modal

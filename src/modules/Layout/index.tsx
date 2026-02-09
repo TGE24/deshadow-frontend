@@ -85,6 +85,7 @@ const ADMIN_MENU: MenuItem[] = [
 	{ name: "Brands", link: "/brands", icon: <Brands /> },
 	{ name: "Category", link: "/category", icon: <Category /> },
 	{ name: "Products", link: "/products", icon: <Products /> },
+	{ name: "Attributes", link: "/attributes", icon: <Attribute /> },
 ];
 
 // Common components
