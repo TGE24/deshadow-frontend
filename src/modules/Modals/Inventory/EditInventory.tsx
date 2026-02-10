@@ -13,6 +13,8 @@ import {
 	useUpdateProductItemMutation,
 	useSetProductItemAttributeValuesMutation,
 	useProductItemLazyQuery,
+	UserRole,
+	useMeQuery,
 } from "../../../generated/graphql";
 import { formatNaira } from "../../../utils/formatters";
 
@@ -47,6 +49,8 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 	});
 
 	const [getProductItem, { data: productItemData }] = useProductItemLazyQuery();
+
+	const { data: userData } = useMeQuery();
 
 	const [createProductItem, { loading }] = useUpdateProductItemMutation();
 	const [setProductItemAttributeValues] =
@@ -500,7 +504,7 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 										message: "Serial number must be at least 3 characters",
 									},
 								})}
-								disabled
+								disabled={userData?.me?.role !== UserRole.StoreOwner}
 								className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] border-[2px] px-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
 							/>
 							{errors.serialNumber && (
