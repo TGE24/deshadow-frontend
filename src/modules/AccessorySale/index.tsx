@@ -160,15 +160,16 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 	};
 
 	const onSubmit = async (data: AccessorySaleForm) => {
-		const assignedStoreUuid =
-			user?.assignedStore?.uuid || user?.ownedStores?.[0]?.uuid;
-
 		// Get store UUID from the first accessory that has a store
 		const accessoryStoreUuid = accessoryItems.find(
 			(item) => item.accessory?.store?.uuid,
 		)?.accessory?.store?.uuid;
 
-		const storeUuid = assignedStoreUuid || accessoryStoreUuid || "";
+		// For store owners, use accessoryStoreUuid; for resellers, use assignedStore
+		const isOwner = user?.ownedStores && user.ownedStores.length > 0;
+		const storeUuid = isOwner
+			? accessoryStoreUuid || ""
+			: user?.assignedStore?.uuid || "";
 
 		try {
 			await createSale({
