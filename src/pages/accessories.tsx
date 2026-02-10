@@ -96,7 +96,15 @@ const Accessories = () => {
 						>
 							Sell
 						</button>
-						<button>Edit</button>
+						<button
+							className="font-medium cursor-pointer"
+							onClick={() => {
+								setSelectedAccessory(row.original);
+								setOpenEdit(true);
+							}}
+						>
+							Edit
+						</button>
 						<button
 							className="font-medium cursor-pointer"
 							onClick={() => {
