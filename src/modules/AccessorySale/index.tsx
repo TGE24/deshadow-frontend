@@ -56,7 +56,7 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 			id: crypto.randomUUID(),
 			accessory: accessory,
 			quantity: 1,
-			unitPrice: accessory.sellingPrice || 0,
+			unitPrice: 0,
 		},
 	]);
 
@@ -86,7 +86,7 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 		formState: { errors },
 	} = useForm<AccessorySaleForm>({
 		defaultValues: {
-			customerName: "N/A",
+			customerName: "",
 			customerEmail: "",
 			customerPhone: "",
 			paymentType: PaymentType.Cash,
@@ -131,12 +131,14 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 
 	const canProceedToNextStep = () => {
 		if (currentStep === 1) {
-			// Check if all accessories are selected and have valid quantities
+			// Check if all accessories are selected and have valid quantities and prices
 			return accessoryItems.every(
 				(item) =>
 					item.accessory &&
 					item.quantity > 0 &&
-					item.quantity <= item.accessory.quantity,
+					item.quantity <= item.accessory.quantity &&
+					item.unitPrice > 0 &&
+					item.unitPrice >= (item.accessory.sellingPrice || 0),
 			);
 		}
 		if (currentStep === 2) {
@@ -160,18 +162,13 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 	const onSubmit = async (data: AccessorySaleForm) => {
 		const assignedStoreUuid =
 			user?.assignedStore?.uuid || user?.ownedStores?.[0]?.uuid;
-		const ownedStoreUuid =
-			user?.ownedStores && user.ownedStores.length > 0
-				? user.ownedStores[0].uuid
-				: "";
 
 		// Get store UUID from the first accessory that has a store
 		const accessoryStoreUuid = accessoryItems.find(
 			(item) => item.accessory?.store?.uuid,
 		)?.accessory?.store?.uuid;
 
-		const storeUuid =
-			assignedStoreUuid || ownedStoreUuid || accessoryStoreUuid || "";
+		const storeUuid = assignedStoreUuid || accessoryStoreUuid || "";
 
 		try {
 			await createSale({
@@ -351,7 +348,7 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 												if (option) {
 													updateAccessoryItem(item.id, {
 														accessory: option.accessory,
-														unitPrice: option.accessory.sellingPrice || 0,
+														unitPrice: 0,
 													});
 												}
 											}}
@@ -401,17 +398,37 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 													</label>
 													<input
 														type="text"
-														value={formatNaira(item.unitPrice)}
+														value={
+															item.unitPrice > 0
+																? formatNaira(item.unitPrice)
+																: ""
+														}
+														placeholder="Enter price"
 														onChange={(e) => {
 															const numericValue = e.target.value
 																.replace(/₦|,/g, "")
 																.replace(/[^0-9.]/g, "");
+															const price = parseFloat(numericValue) || 0;
 															updateAccessoryItem(item.id, {
-																unitPrice: parseFloat(numericValue) || 0,
+																unitPrice: price,
 															});
 														}}
-														className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+														className={cn(
+															"w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500",
+															item.accessory?.sellingPrice &&
+																item.unitPrice &&
+																item.unitPrice < item.accessory.sellingPrice
+																? "border-red-500 focus:border-red-500"
+																: "border-gray-300",
+														)}
 													/>
+													{item.accessory?.sellingPrice &&
+														item.unitPrice > 0 &&
+														item.unitPrice < item.accessory.sellingPrice && (
+															<p className="text-red-500 text-xs mt-1">
+																Unit price cannot be lower than selling price
+															</p>
+														)}
 												</div>
 											</div>
 
@@ -451,16 +468,18 @@ const AccessorySale = ({ accessory, onClose, refetch }: AccessorySaleProps) => {
 						/>
 						<div className="grid grid-cols-2 gap-4">
 							<Input
+								label="Customer Name"
+								placeholder="Enter customer name"
+								{...register("customerName", {
+									required: "Customer name is required",
+								})}
+								errors={errors.customerName}
+							/>
+							<Input
 								label="Email"
 								type="email"
 								placeholder="customer@example.com"
 								{...register("customerEmail")}
-							/>
-							<Input
-								label="Customer Name"
-								placeholder="Enter customer name"
-								{...register("customerName")}
-								errors={errors.customerName}
 							/>
 						</div>
 					</div>
