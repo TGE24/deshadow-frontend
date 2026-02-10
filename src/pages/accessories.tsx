@@ -21,6 +21,8 @@ import {
 	useAccessoriesLazyQuery,
 	Accessory,
 	useDeleteAccessoryMutation,
+	UserRole,
+	useMeQuery,
 } from "../generated/graphql";
 
 // Hooks
@@ -62,6 +64,8 @@ const Accessories = () => {
 	const [deleteAccessory, { loading: deleteLoading }] =
 		useDeleteAccessoryMutation();
 
+	const { data: userData } = useMeQuery();
+
 	const columns = useMemo<ColumnDef<Accessory>[]>(() => {
 		const baseColumns: ColumnDef<Accessory>[] = [
 			{
@@ -96,24 +100,28 @@ const Accessories = () => {
 						>
 							Sell
 						</button>
-						<button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setSelectedAccessory(row.original);
-								setOpenEdit(true);
-							}}
-						>
-							Edit
-						</button>
-						<button
-							className="font-medium cursor-pointer"
-							onClick={() => {
-								setSelectedAccessory(row.original);
-								setDeleteOpen(true);
-							}}
-						>
-							Delete
-						</button>
+						{userData?.me?.role === UserRole.StoreOwner && (
+							<button
+								className="font-medium cursor-pointer"
+								onClick={() => {
+									setSelectedAccessory(row.original);
+									setOpenEdit(true);
+								}}
+							>
+								Edit
+							</button>
+						)}
+						{userData?.me?.role === UserRole.StoreOwner && (
+							<button
+								className="font-medium cursor-pointer"
+								onClick={() => {
+									setSelectedAccessory(row.original);
+									setDeleteOpen(true);
+								}}
+							>
+								Delete
+							</button>
+						)}
 					</div>
 				),
 			},
@@ -122,7 +130,7 @@ const Accessories = () => {
 		// Actions column removed - moved to product details page
 
 		return baseColumns;
-	}, []);
+	}, [userData]);
 
 	// Effects Section
 
