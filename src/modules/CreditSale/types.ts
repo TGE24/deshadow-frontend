@@ -16,16 +16,30 @@ export interface SwapPhoneDetails {
 	attributeValues?: Record<string, string>;
 }
 
+export interface AccessoryItem {
+	id: string;
+	accessoryUuid: string;
+	quantity: number;
+	unitPrice: number;
+}
+
 export interface CreditSaleFormData {
 	// Sale Type
 	creditSaleType: SaleType.Direct | SaleType.Swap;
 
-	// Product Details (sold on credit)
-	productUuid: string;
+	// Item type flag
+	isAccessory: boolean;
+
+	// Product Details (sold on credit) - required if not accessory
+	productUuid?: string;
 	serialNumber: string;
 	condition: ProductCondition | "";
 	costPrice?: number | undefined;
 	sellingPrice: number;
+
+	// Accessory Details - required if isAccessory is true
+	accessoryName?: string;
+	accessoryQuantity?: number;
 
 	// External Store Details
 	externalStoreName: string;

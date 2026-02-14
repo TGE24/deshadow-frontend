@@ -2,9 +2,16 @@ import { create } from "zustand";
 import { User } from "../generated/graphql";
 import { persist } from "zustand/middleware";
 
+export type SelectedStore = {
+	uuid: string;
+	name: string;
+};
+
 export type UserStore = {
 	user: Partial<User> | null;
 	setUser: (user: Partial<User> | null) => void;
+	selectedStore: SelectedStore | null;
+	setSelectedStore: (store: SelectedStore | null) => void;
 };
 
 export const useUserStore = create<UserStore>()(
@@ -18,11 +25,12 @@ export const useUserStore = create<UserStore>()(
 			return {
 				...initialState.state,
 				setUser: (user) => set(() => ({ user })),
+				setSelectedStore: (store) => set(() => ({ selectedStore: store })),
 			};
 		},
 		{
 			name: "userStore",
 			skipHydration: true,
-		}
-	)
+		},
+	),
 );

@@ -14,6 +14,7 @@ import {
 	useCreateSaleMutation,
 	useCreateProductItemMutation,
 	useSetProductItemAttributeValuesMutation,
+	useCreateAccessoryMutation,
 	SaleType,
 	useMeQuery,
 	UserRole,
@@ -44,6 +45,7 @@ const CreditSale: React.FC = () => {
 	const [createProductItem] = useCreateProductItemMutation();
 	const [setProductItemAttributeValues] =
 		useSetProductItemAttributeValuesMutation();
+	const [createAccessory] = useCreateAccessoryMutation();
 	const { data: userData } = useMeQuery();
 
 	const formData = watch();
@@ -96,47 +98,52 @@ const CreditSale: React.FC = () => {
 		setIsSubmitting(true);
 
 		try {
-			// Prepare attribute values for later use
-			const attributeInputs = Object.entries(formData.attributeValues)
-				.filter(([, value]) => value.trim() !== "")
-				.map(([attributeUuid, valueText]) => ({
-					attributeUuid,
-					valueText,
-					productItemUuid: "", // Will be filled after product item creation
-				}));
+			// Prepare data based on isAccessory flag
+			let productItemUuid: string | null = null;
 
-			// Step 1: Create the product item with external store details
-			const productItemResponse = await createProductItem({
-				variables: {
-					input: {
-						productUuid: formData.productUuid,
-						serialNumber: formData.serialNumber,
-						condition: formData.condition as ProductCondition,
-						costPrice: formData.costPrice,
-						sellingPrice: formData.sellingPrice,
-						externalStoreName: formData.externalStoreName,
-						externalStoreContact: formData.externalStoreContact,
-						externalStoreAddress: formData.externalStoreAddress,
+			if (!formData.isAccessory) {
+				// Product Mode: Create product item
+				const attributeInputs = Object.entries(formData.attributeValues)
+					.filter(([, value]) => value.trim() !== "")
+					.map(([attributeUuid, valueText]) => ({
+						attributeUuid,
+						valueText,
+						productItemUuid: "", // Will be filled after product item creation
+					}));
+
+				// Step 1: Create the product item with external store details
+				const productItemResponse = await createProductItem({
+					variables: {
+						input: {
+							productUuid: formData.productUuid!,
+							serialNumber: formData.serialNumber,
+							condition: formData.condition as ProductCondition,
+							costPrice: formData.costPrice,
+							sellingPrice: formData.sellingPrice,
+							externalStoreName: formData.externalStoreName,
+							externalStoreContact: formData.externalStoreContact,
+							externalStoreAddress: formData.externalStoreAddress,
+						},
 					},
-				},
-			});
-
-			if (!productItemResponse.data?.createProductItem) {
-				throw new Error("Failed to create product item");
-			}
-
-			const productItemUuid = productItemResponse.data.createProductItem.uuid;
-
-			// Step 2: Save attribute values if any
-			if (attributeInputs.length > 0) {
-				const attributeInputsWithUuid = attributeInputs.map((input) => ({
-					...input,
-					productItemUuid,
-				}));
-
-				await setProductItemAttributeValues({
-					variables: { inputs: attributeInputsWithUuid },
 				});
+
+				if (!productItemResponse.data?.createProductItem) {
+					throw new Error("Failed to create product item");
+				}
+
+				productItemUuid = productItemResponse.data.createProductItem.uuid;
+
+				// Step 2: Save attribute values if any
+				if (attributeInputs.length > 0) {
+					const attributeInputsWithUuid = attributeInputs.map((input) => ({
+						...input,
+						productItemUuid,
+					}));
+
+					await setProductItemAttributeValues({
+						variables: { inputs: attributeInputsWithUuid },
+					});
+				}
 			}
 
 			// Step 3: Create the sale with or without swap details
@@ -153,13 +160,46 @@ const CreditSale: React.FC = () => {
 				totalAmount: formData.totalAmount,
 				discountAmount: formData.discountAmount || 0,
 				storeUuid,
-				items: [
+			};
+
+			// Add items or accessories based on mode
+			if (formData.isAccessory) {
+				// Accessory mode - create accessory first
+				const accessoryResult = await createAccessory({
+					variables: {
+						input: {
+							name: formData.accessoryName!,
+							quantity: formData.accessoryQuantity!,
+							sellingPrice: formData.sellingPrice,
+							storeUuid,
+						},
+					},
+				});
+
+				const accessoryUuid = accessoryResult.data?.createAccessory.uuid;
+
+				if (!accessoryUuid) {
+					throw new Error("Failed to create accessory");
+				}
+
+				saleInput.items = [];
+				saleInput.accessories = [
+					{
+						productUuid: accessoryUuid,
+						quantity: formData.accessoryQuantity!,
+						unitPrice: formData.sellingPrice,
+					},
+				];
+			} else {
+				// Product mode
+				saleInput.items = [
 					{
 						serialNumber: formData.serialNumber,
 						unitPrice: formData.saleAmount,
 					},
-				],
-			};
+				];
+				saleInput.accessories = [];
+			}
 
 			// Add swap details if it's a swap sale (just reference details, don't create product item)
 			if (
@@ -180,11 +220,11 @@ const CreditSale: React.FC = () => {
 					Object.keys(formData.swapPhoneDetails.attributeValues).length > 0
 				) {
 					saleInput.givenProductAttributeValues = Object.entries(
-						formData.swapPhoneDetails.attributeValues
+						formData.swapPhoneDetails.attributeValues,
 					)
 						.filter(
 							([, v]) =>
-								v !== undefined && v !== null && String(v).trim() !== ""
+								v !== undefined && v !== null && String(v).trim() !== "",
 						)
 						.map(([attributeUuid, value]) => ({
 							attributeUuid,
@@ -212,8 +252,8 @@ const CreditSale: React.FC = () => {
 									: SaleType.Direct,
 							paymentType: formData.paymentType,
 							createdAt: created.createdAt,
-					  }
-					: null
+						}
+					: null,
 			);
 
 			setShowSuccess(true);
@@ -221,7 +261,7 @@ const CreditSale: React.FC = () => {
 			toast.success(
 				formData.creditSaleType === "swap"
 					? "Swap sale created successfully!"
-					: "Direct sale created successfully!"
+					: "Direct sale created successfully!",
 			);
 		} catch (error) {
 			console.error("Error creating credit sale:", error);
@@ -316,7 +356,7 @@ const CreditSale: React.FC = () => {
 									"w-[50px] h-[50px] rounded-full flex items-center justify-center",
 									{
 										"opacity-50 cursor-not-allowed": currentStep === 1,
-									}
+									},
 								)}
 							>
 								←
@@ -331,9 +371,9 @@ const CreditSale: React.FC = () => {
 										{
 											"opacity-50 cursor-not-allowed": !canProceedToNextStep(
 												currentStep,
-												formData
+												formData,
 											),
-										}
+										},
 									)}
 								>
 									→

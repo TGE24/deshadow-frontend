@@ -160,7 +160,7 @@ const CreditSaleSuccess: React.FC<CreditSaleSuccessProps> = ({
 															</span>
 														</div>
 													);
-												}
+												},
 											)}
 										</div>
 									)}
@@ -183,52 +183,83 @@ const CreditSaleSuccess: React.FC<CreditSaleSuccessProps> = ({
 
 					{/* Sold Item(s) */}
 					<div className="border-t border-gray-200 pt-[12px]">
-						<p className="text-[12px] text-gray-500 mb-[8px]">Sold Item</p>
-						<div className="space-y-[8px]">
-							{productItems.map((item, idx) => (
-								<div
-									key={item.id || idx}
-									className="bg-white p-[12px] rounded-[6px] border border-gray-200"
-								>
-									<div className="flex justify-between items-start">
-										<div className="flex-1 text-left">
-											<p className="font-medium text-[14px] text-gray-800">
-												{item.productName || `Item ${idx + 1}`}
-											</p>
-											<p className="text-[12px] text-gray-500 mt-[4px]">
-												Serial:{" "}
-												<span className="font-mono">
-													{item.serialNumber || "—"}
-												</span>
-											</p>
-											{item.attributeValues &&
-												Object.keys(item.attributeValues).length > 0 && (
-													<div className="mt-[8px] space-y-[4px]">
-														{Object.entries(item.attributeValues).map(
-															([attrUuid, val]) => (
-																<p
-																	key={attrUuid}
-																	className="text-[12px] text-gray-600"
-																>
-																	{attrUuid}:{" "}
-																	<span className="font-medium text-gray-800">
-																		{val}
-																	</span>
-																</p>
-															)
-														)}
-													</div>
-												)}
-										</div>
-										<div className="text-right pl-[12px]">
-											<p className="text-[14px] font-medium text-gray-800">
-												{formatNaira(item.unitPrice || 0)}
-											</p>
-										</div>
+						<p className="text-[12px] text-gray-500 mb-[8px]">
+							{formData.isAccessory ? "Sold Accessory" : "Sold Item"}
+						</p>
+
+						{formData.isAccessory ? (
+							/* Accessory Display */
+							<div className="bg-white p-[12px] rounded-[6px] border border-gray-200">
+								<div className="flex justify-between items-start">
+									<div className="flex-1 text-left">
+										<p className="font-medium text-[14px] text-gray-800">
+											{formData.accessoryName}
+										</p>
+										<p className="text-[12px] text-gray-500 mt-[4px]">
+											Quantity: {formData.accessoryQuantity}
+										</p>
+										<p className="text-[12px] text-gray-500">
+											Unit Price: {formatNaira(formData.sellingPrice)}
+										</p>
+									</div>
+									<div className="text-right pl-[12px]">
+										<p className="text-[14px] font-medium text-gray-800">
+											{formatNaira(
+												formData.sellingPrice *
+													(formData.accessoryQuantity || 1),
+											)}
+										</p>
 									</div>
 								</div>
-							))}
-						</div>
+							</div>
+						) : (
+							/* Product Display */
+							<div className="space-y-[8px]">
+								{productItems.map((item, idx) => (
+									<div
+										key={item.id || idx}
+										className="bg-white p-[12px] rounded-[6px] border border-gray-200"
+									>
+										<div className="flex justify-between items-start">
+											<div className="flex-1 text-left">
+												<p className="font-medium text-[14px] text-gray-800">
+													{item.productName || `Item ${idx + 1}`}
+												</p>
+												<p className="text-[12px] text-gray-500 mt-[4px]">
+													Serial:{" "}
+													<span className="font-mono">
+														{item.serialNumber || "—"}
+													</span>
+												</p>
+												{item.attributeValues &&
+													Object.keys(item.attributeValues).length > 0 && (
+														<div className="mt-[8px] space-y-[4px]">
+															{Object.entries(item.attributeValues).map(
+																([attrUuid, val]) => (
+																	<p
+																		key={attrUuid}
+																		className="text-[12px] text-gray-600"
+																	>
+																		{attrUuid}:{" "}
+																		<span className="font-medium text-gray-800">
+																			{val}
+																		</span>
+																	</p>
+																),
+															)}
+														</div>
+													)}
+											</div>
+											<div className="text-right pl-[12px]">
+												<p className="text-[14px] font-medium text-gray-800">
+													{formatNaira(item.unitPrice || 0)}
+												</p>
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

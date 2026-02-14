@@ -26,6 +26,7 @@ import {
 import { formatCurrency } from "../utils/formatters";
 import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
+import { useUserStore } from "../store/userStore";
 
 const Dashboard = () => {
 	const [open, setOpen] = useState(false);
@@ -35,6 +36,7 @@ const Dashboard = () => {
 	const [getSalesReport, { data: salesReport }] = useSalesReportLazyQuery();
 	const [getConditionSummary, { data: conditionSummary }] =
 		useConditionSummaryLazyQuery();
+	const { selectedStore } = useUserStore();
 
 	const salesReportStats = useMemo(() => {
 		if (!salesReport?.salesReport) {
@@ -98,9 +100,13 @@ const Dashboard = () => {
 		getSales({
 			variables: {
 				pagination: { first: 5 },
+				filter:
+					selectedStore?.uuid === "all"
+						? undefined
+						: { storeUuid: selectedStore?.uuid },
 			},
 		});
-	}, [getSales]);
+	}, [getSales, selectedStore?.uuid]);
 
 	useEffect(() => {
 		getConditionSummary({
@@ -327,10 +333,13 @@ const Dashboard = () => {
 			<div className="mt-[48px] flex flex-col gap-[20px]">
 				<div>
 					<div className="w-full mt-[48px] overflow-x-auto">
-						<div>
+						<div className="flex items-center justify-between">
 							<h2 className="text-[16px] md:text-[20px] font-bold mb-[20px]">
 								Recent Sales
 							</h2>
+							<Link to="/sale" className="text-sm text-[#0B7285]">
+								View All
+							</Link>
 						</div>
 						<table className="w-full">
 							<thead className="bg-[#D4E7E6] h-[41px]">

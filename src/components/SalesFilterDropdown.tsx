@@ -16,10 +16,10 @@ interface SalesFilterDropdownProps {
 	saleTypeOptions: SelectOption[];
 	storeOptions: SelectOption[];
 	selectedSaleTypes: string[];
-	selectedStore: string;
+	selectedStore?: string;
 	dateRange: { fromDate: string; toDate: string };
 	onSaleTypeChange: (selectedOptions: SelectOption[]) => void;
-	onStoreChange: (option: SingleValue<SelectOption>) => void;
+	onStoreChange?: (option: SingleValue<SelectOption>) => void;
 	onDateRangeChange: (dateRange: { fromDate: string; toDate: string }) => void;
 	onClearFilters: () => void;
 	onApplyFilters: () => void;
@@ -139,7 +139,7 @@ const SalesFilterDropdown: React.FC<SalesFilterDropdownProps> = ({
 			tempSaleTypes.includes(option.value)
 		);
 		onSaleTypeChange(selectedOptions);
-		onStoreChange(
+		onStoreChange?.(
 			storeOptions.find((option) => option.value === tempStore) || null
 		);
 		onDateRangeChange({

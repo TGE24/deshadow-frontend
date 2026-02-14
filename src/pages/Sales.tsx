@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { SingleValue } from "react-select";
 import {
 	Sale,
 	SaleType,
@@ -23,6 +22,7 @@ import { Pagination } from "../modules/Pagination";
 import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 import Input from "../components/Input";
 import { useDebounce } from "../hooks/useDebounce";
+import { useUserStore } from "../store/userStore";
 
 // Types
 export interface SelectOption {
@@ -39,11 +39,11 @@ const SalesManagement = () => {
 		fetchPolicy: "network-only",
 	});
 	const [data, setData] = useState<Sale[]>([]);
+	const { selectedStore } = useUserStore();
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedSaleTypes, setSelectedSaleTypes] = useState<SaleType[]>([]);
-	const [selectedStore, setSelectedStore] = useState("");
 	const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
 
 	// Stores data
@@ -206,10 +206,6 @@ const SalesManagement = () => {
 		[],
 	);
 
-	const handleStoreChange = useCallback((option: SingleValue<SelectOption>) => {
-		setSelectedStore(option?.value || "");
-	}, []);
-
 	const handleDateRangeChange = useCallback(
 		(newDateRange: { fromDate: string; toDate: string }) => {
 			setDateRange(newDateRange);
@@ -219,7 +215,6 @@ const SalesManagement = () => {
 
 	const handleClearFilters = useCallback(() => {
 		setSelectedSaleTypes([]);
-		setSelectedStore("");
 		setDateRange({ fromDate: "", toDate: "" });
 	}, []);
 
@@ -238,7 +233,8 @@ const SalesManagement = () => {
 			}
 
 			if (selectedStore) {
-				filters.storeUuid = selectedStore;
+				filters.storeUuid =
+					selectedStore?.uuid === "all" ? undefined : selectedStore?.uuid;
 			}
 
 			if (dateRange.fromDate) {
@@ -363,10 +359,8 @@ const SalesManagement = () => {
 					saleTypeOptions={saleTypeOptions}
 					storeOptions={storeOptions}
 					selectedSaleTypes={selectedSaleTypes}
-					selectedStore={selectedStore}
 					dateRange={dateRange}
 					onSaleTypeChange={handleSaleTypeChange}
-					onStoreChange={handleStoreChange}
 					onDateRangeChange={handleDateRangeChange}
 					onClearFilters={handleClearFilters}
 					onApplyFilters={handleApplyFilters}

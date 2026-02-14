@@ -5,17 +5,37 @@ export const canProceedToNextStep = (
 	formData: CreditSaleFormData,
 ): boolean => {
 	switch (step) {
-		case 1:
+		case 1: {
 			// Product Details validation
-			return !!(
-				formData.productUuid &&
-				formData.serialNumber &&
-				formData.condition &&
+			const baseValid = !!(
 				formData.sellingPrice > 0 &&
 				formData.externalStoreName &&
 				formData.externalStoreContact
 			);
-		case 2:
+
+			if (formData.isAccessory) {
+				// Accessory mode validation
+				return (
+					baseValid &&
+					!!(
+						formData.accessoryName &&
+						formData.accessoryQuantity &&
+						formData.accessoryQuantity > 0
+					)
+				);
+			} else {
+				// Product mode validation
+				return (
+					baseValid &&
+					!!(
+						formData.productUuid &&
+						formData.serialNumber &&
+						formData.condition
+					)
+				);
+			}
+		}
+		case 2: {
 			// Customer Details validation
 			// Base validation
 			const baseValid = !!(
@@ -40,6 +60,7 @@ export const canProceedToNextStep = (
 			}
 
 			return baseValid;
+		}
 		case 3:
 			// Review step - always allow to proceed
 			return true;

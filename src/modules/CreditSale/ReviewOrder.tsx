@@ -9,13 +9,13 @@ interface ReviewOrderProps {
 
 const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 	const attributeEntries = Object.entries(formData.attributeValues).filter(
-		([, value]) => value
+		([, value]) => value,
 	);
 
 	// Fetch product to resolve attribute UUID -> friendly name
 	const { data: productData } = useProductQuery({
-		variables: { uuid: formData.productUuid },
-		skip: !formData.productUuid,
+		variables: { uuid: formData.productUuid || "" },
+		skip: !formData.productUuid || formData.isAccessory,
 	});
 
 	const productAttributes = productData?.product?.attributes || [];
@@ -30,7 +30,7 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 				Review & Confirm
 			</h2>
 
-			{/* Product Information */}
+			{/* Item Information - Product or Accessory */}
 			<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
 				<div className="flex items-center gap-[8px] mb-[12px]">
 					<svg
@@ -47,78 +47,120 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 						/>
 					</svg>
 					<label className="text-[14px] text-[#1F2937] font-bold">
-						Product Information
+						{formData.isAccessory
+							? "Accessory Information"
+							: "Product Information"}
 					</label>
 				</div>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] text-[14px]">
-					<div className="bg-white rounded-[8px] p-[12px]">
-						<span className="text-gray-500 font-medium">Serial Number:</span>
-						<p className="text-gray-900 font-semibold mt-[4px]">
-							{formData.serialNumber}
-						</p>
-					</div>
-					<div className="bg-white rounded-[8px] p-[12px]">
-						<span className="text-gray-500 font-medium">Condition:</span>
-						<p className="text-gray-900 font-semibold mt-[4px]">
-							{formData.condition
-								?.replace(/_/g, " ")
-								.replace(/\b\w/g, (l) => l.toUpperCase())}
-						</p>
-					</div>
-					<div className="bg-white rounded-[8px] p-[12px]">
-						<span className="text-gray-500 font-medium">Cost Price:</span>
-						<p className="text-gray-900 font-semibold mt-[4px]">
-							{formatNaira(formData.costPrice)}
-						</p>
-					</div>
-					<div className="bg-white rounded-[8px] p-[12px]">
-						<span className="text-gray-500 font-medium">Selling Price:</span>
-						<p className="text-gray-900 font-semibold mt-[4px]">
-							{formatNaira(formData.sellingPrice)}
-						</p>
-					</div>
-				</div>
-				{/* Attributes */}
-				{attributeEntries.length > 0 && (
-					<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB]">
-						<div className="flex items-center gap-[8px] mb-[12px]">
-							<svg
-								className="w-[18px] h-[18px] text-[#278783]"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-								/>
-							</svg>
-							<label className="text-[14px] text-[#1F2937] font-bold">
-								Product Attributes
-							</label>
-							<span className="ml-auto text-[12px] text-gray-500 bg-white px-[10px] py-[4px] rounded-full">
-								{attributeEntries.length} attribute
-								{attributeEntries.length > 1 ? "s" : ""}
-							</span>
+
+				{formData.isAccessory ? (
+					/* Accessory Mode */
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] text-[14px]">
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Accessory Name:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formData.accessoryName}
+							</p>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
-							{attributeEntries.map(([key, value], idx) => (
-								<div
-									key={`${key}-${idx}`}
-									className="bg-white rounded-[8px] p-[12px]"
-								>
-									<span className="text-gray-500 font-medium">
-										{attributeNameByUuid[key] || key}:
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Quantity:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formData.accessoryQuantity}
+							</p>
+						</div>
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Unit Price:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formatNaira(formData.sellingPrice)}
+							</p>
+						</div>
+						<div className="bg-white rounded-[8px] p-[12px]">
+							<span className="text-gray-500 font-medium">Total:</span>
+							<p className="text-gray-900 font-semibold mt-[4px]">
+								{formatNaira(
+									formData.sellingPrice * (formData.accessoryQuantity || 1),
+								)}
+							</p>
+						</div>
+					</div>
+				) : (
+					/* Product Mode */
+					<>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-[12px] text-[14px]">
+							<div className="bg-white rounded-[8px] p-[12px]">
+								<span className="text-gray-500 font-medium">
+									Serial Number:
+								</span>
+								<p className="text-gray-900 font-semibold mt-[4px]">
+									{formData.serialNumber}
+								</p>
+							</div>
+							<div className="bg-white rounded-[8px] p-[12px]">
+								<span className="text-gray-500 font-medium">Condition:</span>
+								<p className="text-gray-900 font-semibold mt-[4px]">
+									{formData.condition
+										?.replace(/_/g, " ")
+										.replace(/\b\w/g, (l) => l.toUpperCase())}
+								</p>
+							</div>
+							<div className="bg-white rounded-[8px] p-[12px]">
+								<span className="text-gray-500 font-medium">Cost Price:</span>
+								<p className="text-gray-900 font-semibold mt-[4px]">
+									{formatNaira(formData.costPrice)}
+								</p>
+							</div>
+							<div className="bg-white rounded-[8px] p-[12px]">
+								<span className="text-gray-500 font-medium">
+									Selling Price:
+								</span>
+								<p className="text-gray-900 font-semibold mt-[4px]">
+									{formatNaira(formData.sellingPrice)}
+								</p>
+							</div>
+						</div>
+						{/* Attributes */}
+						{attributeEntries.length > 0 && (
+							<div className="rounded-[12px] p-[16px] border-[2px] border-[#E5E7EB] mt-[12px]">
+								<div className="flex items-center gap-[8px] mb-[12px]">
+									<svg
+										className="w-[18px] h-[18px] text-[#278783]"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+										/>
+									</svg>
+									<label className="text-[14px] text-[#1F2937] font-bold">
+										Product Attributes
+									</label>
+									<span className="ml-auto text-[12px] text-gray-500 bg-white px-[10px] py-[4px] rounded-full">
+										{attributeEntries.length} attribute
+										{attributeEntries.length > 1 ? "s" : ""}
 									</span>
-									<p className="text-gray-900 font-semibold mt-[4px]">
-										{value}
-									</p>
 								</div>
-							))}
-						</div>
-					</div>
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-[12px] text-[14px]">
+									{attributeEntries.map(([key, value], idx) => (
+										<div
+											key={`${key}-${idx}`}
+											className="bg-white rounded-[8px] p-[12px]"
+										>
+											<span className="text-gray-500 font-medium">
+												{attributeNameByUuid[key] || key}:
+											</span>
+											<p className="text-gray-900 font-semibold mt-[4px]">
+												{value}
+											</p>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</>
 				)}
 			</div>
 
@@ -195,7 +237,7 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 														"-"}
 												</p>
 											</div>
-										)
+										),
 									)}
 								</div>
 							</div>
@@ -320,7 +362,7 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 						<>
 							<div className="flex justify-between items-center">
 								<span className="text-[14px] text-[#1F2937] font-medium">
-									Products Subtotal:
+									{formData.isAccessory ? "Accessory Price:" : "Product Price:"}
 								</span>
 								<span className="text-[16px] font-semibold text-gray-700">
 									{formatNaira(formData.saleAmount)}
@@ -365,7 +407,7 @@ const ReviewOrder: React.FC<ReviewOrderProps> = ({ formData }) => {
 						<>
 							<div className="flex justify-between items-center">
 								<span className="text-[14px] text-[#1F2937] font-medium">
-									Sale Amount:
+									{formData.isAccessory ? "Accessory Price:" : "Product Price:"}
 								</span>
 								<span className="text-[16px] font-semibold text-gray-700">
 									{formatNaira(formData.saleAmount)}

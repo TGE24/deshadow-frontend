@@ -29,6 +29,7 @@ const SwapSale: React.FC<{
 }> = ({ setOpen }) => {
 	const { setProductItem } = useProductStore();
 	const [currentStep, setCurrentStep] = useState(1);
+	const [stepsVisible, setStepsVisible] = useState(false);
 	const [createSale, { loading: isCreatingSale }] = useCreateSaleMutation();
 	const { data: meData } = useMeQuery();
 	const [saleCompleted, setSaleCompleted] = useState(false);
@@ -129,7 +130,7 @@ const SwapSale: React.FC<{
 				setCurrentStep(step);
 			}
 		},
-		[currentStep, formData, productItems]
+		[currentStep, formData, productItems],
 	);
 
 	const onSubmit = async (data: SwapSaleFormData) => {
@@ -142,7 +143,7 @@ const SwapSale: React.FC<{
 			const storeUuid = storeFromProduct || fallbackUserStore;
 			if (!storeUuid) {
 				console.error(
-					"No store found for sale (neither product nor user store)"
+					"No store found for sale (neither product nor user store)",
 				);
 				return;
 			}
@@ -180,7 +181,7 @@ const SwapSale: React.FC<{
 					? Object.entries(data.swapPhoneDetails.attributeValues)
 							.filter(
 								([, v]) =>
-									v !== undefined && v !== null && String(v).trim() !== ""
+									v !== undefined && v !== null && String(v).trim() !== "",
 							)
 							.map(([attributeUuid, value]) => ({
 								attributeUuid,
@@ -251,8 +252,8 @@ const SwapSale: React.FC<{
 						onUpdateProduct={(id, updates) => {
 							setProductItems((prev) =>
 								prev.map((item) =>
-									item.id === id ? { ...item, ...updates } : item
-								)
+									item.id === id ? { ...item, ...updates } : item,
+								),
 							);
 						}}
 						onViewProductDetails={(id) => {
@@ -266,12 +267,12 @@ const SwapSale: React.FC<{
 							if (details.selectedProduct !== undefined)
 								form.setValue(
 									"swapPhoneDetails.selectedProduct",
-									details.selectedProduct
+									details.selectedProduct,
 								);
 							if (details.serialNumber !== undefined)
 								form.setValue(
 									"swapPhoneDetails.serialNumber",
-									details.serialNumber
+									details.serialNumber,
 								);
 							if (details.brand !== undefined)
 								form.setValue("swapPhoneDetails.brand", details.brand);
@@ -289,13 +290,13 @@ const SwapSale: React.FC<{
 							) {
 								form.setValue(
 									"swapPhoneDetails.estimatedValue",
-									details.estimatedValue
+									details.estimatedValue,
 								);
 							}
 							if (details.attributeValues !== undefined)
 								form.setValue(
 									"swapPhoneDetails.attributeValues",
-									details.attributeValues
+									details.attributeValues,
 								);
 						}}
 					/>
@@ -318,7 +319,7 @@ const SwapSale: React.FC<{
 	// Show success screen if sale is completed
 	if (saleCompleted && completedSaleData) {
 		return (
-			<div className="py-[32px]">
+			<div className="py-4 sm:py-6 md:py-[32px]">
 				<div className="bg-white rounded-[10px] w-full">
 					<SwapSaleSuccess
 						saleData={completedSaleData}
@@ -333,16 +334,45 @@ const SwapSale: React.FC<{
 	}
 
 	return (
-		<div className="py-[32px]">
-			<div className="flex">
-				<StepNavigation
-					steps={SWAP_SALE_STEPS}
-					currentStep={currentStep}
-					onStepClick={handleStepClick}
-				/>
+		<div className="py-4 sm:py-6 md:py-[32px]">
+			<div className="flex flex-col lg:flex-row relative">
+				{stepsVisible && (
+					<div className="hidden lg:block">
+						<StepNavigation
+							steps={SWAP_SALE_STEPS}
+							currentStep={currentStep}
+							onStepClick={handleStepClick}
+						/>
+					</div>
+				)}
+
+				{/* Toggle Button */}
+				<button
+					type="button"
+					onClick={() => setStepsVisible(!stepsVisible)}
+					className="hidden lg:flex absolute top-0 left-0 z-10 items-center justify-center w-8 h-8 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-50 transition-all"
+					style={{ left: stepsVisible ? "calc(280px + 0.5rem)" : "0.5rem" }}
+				>
+					<svg
+						className="w-4 h-4 text-gray-600"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						style={{
+							transform: stepsVisible ? "rotate(0deg)" : "rotate(180deg)",
+						}}
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+				</button>
 
 				{/* Content - Right Side */}
-				<div className="flex-1 bg-white rounded-r-[10px] p-[32px] pt-0">
+				<div className="flex-1 bg-white rounded-[10px] lg:rounded-r-[10px] p-4 sm:p-6 md:p-[32px] md:pt-0">
 					<form
 						onSubmit={(e) => {
 							// Only allow submission if it's the last step
@@ -363,17 +393,17 @@ const SwapSale: React.FC<{
 						<div className="flex-1">{renderCurrentStep()}</div>
 
 						{/* Navigation Buttons */}
-						<div className="flex justify-between pt-[32px] border-t border-gray-200">
+						<div className="flex justify-between pt-4 sm:pt-6 md:pt-[32px] border-t border-gray-200 gap-2">
 							<Button
 								type="button"
 								variant="secondary"
 								onClick={handlePrevious}
 								disabled={currentStep === 1}
 								className={cn(
-									"w-[50px] h-[50px] rounded-full flex items-center justify-center",
+									"w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] rounded-full flex items-center justify-center text-sm sm:text-base",
 									{
 										"opacity-50 cursor-not-allowed": currentStep === 1,
-									}
+									},
 								)}
 							>
 								←
@@ -386,14 +416,14 @@ const SwapSale: React.FC<{
 										!canProceedToNextStep(currentStep, formData, productItems)
 									}
 									className={cn(
-										"w-[50px] h-[50px] rounded-full flex items-center justify-center",
+										"w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] rounded-full flex items-center justify-center text-sm sm:text-base",
 										{
 											"opacity-50 cursor-not-allowed": !canProceedToNextStep(
 												currentStep,
 												formData,
-												productItems
+												productItems,
 											),
-										}
+										},
 									)}
 								>
 									→
@@ -406,17 +436,20 @@ const SwapSale: React.FC<{
 										!canProceedToNextStep(
 											currentStep,
 											formData,
-											productItems
+											productItems,
 										) || isCreatingSale
 									}
-									className={cn("w-[150px] px-[16px] h-[50px] rounded-full", {
-										"opacity-50 cursor-not-allowed":
-											!canProceedToNextStep(
-												currentStep,
-												formData,
-												productItems
-											) || isCreatingSale,
-									})}
+									className={cn(
+										"w-auto min-w-[120px] sm:w-[150px] px-3 sm:px-[16px] h-[40px] sm:h-[50px] rounded-full text-sm sm:text-base",
+										{
+											"opacity-50 cursor-not-allowed":
+												!canProceedToNextStep(
+													currentStep,
+													formData,
+													productItems,
+												) || isCreatingSale,
+										},
+									)}
 								>
 									{isCreatingSale ? "Creating Sale..." : "Complete Sale"}
 								</Button>

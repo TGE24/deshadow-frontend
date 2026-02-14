@@ -13,7 +13,10 @@ export interface Step {
 
 export const INITIAL_CREDIT_SALE_FORM_DATA: CreditSaleFormData = {
 	creditSaleType: "" as SaleType.Direct | SaleType.Swap,
+	isAccessory: false,
 	productUuid: "",
+	accessoryName: "",
+	accessoryQuantity: 1,
 	serialNumber: "",
 	condition: "" as ProductCondition | "",
 	costPrice: undefined,
