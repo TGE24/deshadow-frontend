@@ -1,4 +1,4 @@
-import { ReactNode, useState, useRef, useEffect } from "react";
+import { ReactNode, useState, useRef, useEffect, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { cn } from "../../utils/cn";
@@ -11,6 +11,7 @@ import {
 	ProductItemStatus,
 	useSalesQuery,
 	SaleStatus,
+	useStoresQuery,
 } from "../../generated/graphql";
 import PendingItemsIndicator from "../../components/PendingItemsIndicator";
 import NotificationDrawer from "../../components/NotificationDrawer";
@@ -317,6 +318,157 @@ const Header = ({
 	);
 };
 
+const StoreDropdown = () => {
+	const { selectedStore, setSelectedStore } = useUserStore();
+	const [isOpen, setIsOpen] = useState(false);
+	const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+	const { data: storesData, loading } = useStoresQuery({
+		variables: {
+			pagination: { first: 100 },
+		},
+		fetchPolicy: "network-only",
+	});
+
+	const stores = useMemo(() => {
+		if (!storesData?.stores?.edges) return [];
+		return storesData.stores.edges
+			.map((edge) => edge.node)
+			.filter(
+				(node): node is Extract<typeof node, { __typename?: "Store" }> =>
+					node.__typename === "Store",
+			);
+	}, [storesData]);
+
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(e.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		};
+		const handleEsc = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setIsOpen(false);
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		document.addEventListener("keydown", handleEsc);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+			document.removeEventListener("keydown", handleEsc);
+		};
+	}, []);
+
+	// Set "All Stores" as default if none selected
+	useEffect(() => {
+		if (!selectedStore && stores.length > 0) {
+			setSelectedStore({ uuid: "all", name: "All Stores" });
+		}
+	}, [stores, selectedStore, setSelectedStore]);
+
+	const handleStoreSelect = (store: { uuid: string; name: string }) => {
+		setSelectedStore(store);
+		setIsOpen(false);
+	};
+
+	if (loading) {
+		return (
+			<div className="mt-auto mb-4 px-[16px]">
+				<div className="h-[48px] bg-[#FFEBD01A] rounded-[8px] animate-pulse" />
+			</div>
+		);
+	}
+
+	if (!stores || stores.length === 0) return null;
+
+	return (
+		<div ref={dropdownRef} className="mt-auto mb-4 px-[16px] relative">
+			<div
+				onClick={() => setIsOpen(!isOpen)}
+				className="bg-[#FFEBD01A] rounded-[8px] px-[16px] py-[12px] cursor-pointer hover:bg-[#FFEBD033] transition-all duration-200 border border-[#FFEBD033]"
+			>
+				<div className="flex items-center justify-between">
+					<div className="flex-1 min-w-0">
+						<p className="text-[#FFEBD099] text-[12px] font-medium mb-1">
+							Current Store
+						</p>
+						<p className="text-[#FFEBD0] text-[14px] font-semibold truncate">
+							{selectedStore?.name || "All Stores"}
+						</p>
+					</div>
+					<svg
+						className={cn(
+							"w-4 h-4 text-[#FFEBD099] transition-transform duration-200 flex-shrink-0 ml-2",
+							{ "rotate-180": isOpen },
+						)}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M19 9l-7 7-7-7"
+						/>
+					</svg>
+				</div>
+			</div>
+
+			{isOpen && (
+				<div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-[8px] shadow-lg border border-gray-200 max-h-[300px] overflow-y-auto z-50">
+					{/* All Stores Option */}
+					<div
+						onClick={() =>
+							handleStoreSelect({ uuid: "all", name: "All Stores" })
+						}
+						className={cn(
+							"px-[16px] py-[12px] cursor-pointer hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200",
+							{
+								"bg-[#2787831A]":
+									selectedStore?.uuid === "all" || !selectedStore,
+							},
+						)}
+					>
+						<p className="text-[#278783] text-[14px] font-bold truncate">
+							All Stores
+						</p>
+						<p className="text-[#6A6A6A] text-[12px] truncate mt-1">
+							View data from all stores
+						</p>
+					</div>
+
+					{stores.map((store) => (
+						<div
+							key={store.uuid}
+							onClick={() =>
+								handleStoreSelect({ uuid: store.uuid, name: store.name })
+							}
+							className={cn(
+								"px-[16px] py-[12px] cursor-pointer hover:bg-gray-50 transition-colors duration-150",
+								{
+									"bg-[#2787831A]": selectedStore?.uuid === store.uuid,
+								},
+							)}
+						>
+							<p className="text-[#278783] text-[14px] font-medium truncate">
+								{store.name}
+							</p>
+							{store.address && (
+								<p className="text-[#6A6A6A] text-[12px] truncate mt-1">
+									{store.address}
+								</p>
+							)}
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	);
+};
+
 const Layout = ({ children }: LayoutProps) => {
 	const { user } = useUserStore();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -365,7 +517,7 @@ const Layout = ({ children }: LayoutProps) => {
 			{/* Mobile Drawer */}
 			<section
 				className={cn(
-					"bg-[#278783] w-[265px] px-[14px] overflow-y-auto flex-shrink-0 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:hidden",
+					"bg-[#278783] w-[265px] px-[14px] overflow-y-auto flex-shrink-0 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:hidden flex flex-col",
 					{
 						"translate-x-0": isMobileMenuOpen,
 						"-translate-x-full": !isMobileMenuOpen,
@@ -401,10 +553,12 @@ const Layout = ({ children }: LayoutProps) => {
 						/>
 					</div>
 				)}
+
+				{user?.role === UserRole.StoreOwner && <StoreDropdown />}
 			</section>
 
 			{/* Desktop Sidebar */}
-			<section className="bg-[#278783] w-[265px] px-[14px] hidden lg:block overflow-y-auto flex-shrink-0">
+			<section className="bg-[#278783] w-[265px] px-[14px] hidden lg:flex lg:flex-col overflow-y-auto flex-shrink-0">
 				<Logo />
 				{user?.role === UserRole.StoreOwner && (
 					<>
@@ -424,6 +578,8 @@ const Layout = ({ children }: LayoutProps) => {
 						<MenuList items={ADMIN_MENU} />
 					</div>
 				)}
+
+				{user?.role === UserRole.StoreOwner && <StoreDropdown />}
 			</section>
 
 			{/* Main content area */}

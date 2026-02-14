@@ -35,17 +35,17 @@ const Invoice = () => {
 			{/* Tab Navigation */}
 			<div className="bg-white rounded-[15px] overflow-hidden">
 				<div className="border-b border-[#E5E7EB]">
-					<div className="flex gap-4">
+					<div className="flex gap-2 sm:gap-4 overflow-x-auto">
 						{tabs.map((tab) => (
 							<button
 								key={tab.id}
 								onClick={() => setActiveTab(tab.id)}
 								className={cn(
-									"cursor-pointer px-[46px] py-[10px] text-[16px] font-medium text-[#6D7E95]",
+									"cursor-pointer px-4 sm:px-8 md:px-[46px] py-[10px] text-[14px] sm:text-[16px] font-medium text-[#6D7E95] whitespace-nowrap flex-shrink-0",
 									{
 										"text-[#000000] border-b-2 border-[#278783]":
 											activeTab === tab.id,
-									}
+									},
 								)}
 							>
 								{tab.label}
@@ -55,7 +55,9 @@ const Invoice = () => {
 				</div>
 
 				{/* Tab Content */}
-				<div className="min-h-[400px] max-w-[1000px]">{renderTabContent()}</div>
+				<div className="min-h-[400px] w-full max-w-full lg:max-w-[1000px]">
+					{renderTabContent()}
+				</div>
 			</div>
 			<ViewProduct open={open} setOpen={setOpen} />
 			<PurchaseOverview open={overviewOpen} setOpen={setOverviewOpen} />

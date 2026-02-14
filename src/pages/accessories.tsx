@@ -35,6 +35,7 @@ import { toast } from "react-toastify";
 import EditAccessory from "../modules/Modals/Accessories/EditAccessory";
 import AccessorySale from "../modules/AccessorySale";
 import { Modal } from "react-responsive-modal";
+import { useUserStore } from "../store/userStore";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -51,6 +52,7 @@ const Accessories = () => {
 	const [selectedAccessory, setSelectedAccessory] = useState<Accessory | null>(
 		null,
 	);
+	const { selectedStore } = useUserStore();
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
@@ -142,6 +144,8 @@ const Accessories = () => {
 			if (debouncedSearchTerm.trim()) {
 				filters.search = debouncedSearchTerm.trim();
 			}
+			filters.storeUuid =
+				selectedStore?.uuid === "all" ? undefined : selectedStore?.uuid;
 
 			return Object.keys(filters).length > 0 ? filters : undefined;
 		};
@@ -155,7 +159,7 @@ const Accessories = () => {
 
 		// Reset page when filters change
 		setPage(1);
-	}, [getAccessories, debouncedSearchTerm]);
+	}, [getAccessories, debouncedSearchTerm, selectedStore?.uuid]);
 
 	// Process products data
 	useEffect(() => {
@@ -165,8 +169,12 @@ const Accessories = () => {
 				.filter((node) => node.__typename === "Accessory") as Accessory[];
 
 			setData(processedData);
+		} else if (!accessories) {
+			// Clear data if query returns but with no edges (failed or empty)
+			setData([]);
 		}
 	}, [accessories]);
+
 	// Table Configuration
 	const table = useReactTable({
 		data,

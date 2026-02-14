@@ -39,6 +39,7 @@ const DirectSale = ({
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
 	const [currentStep, setCurrentStep] = useState(1);
+	const [stepsVisible, setStepsVisible] = useState(false);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
 		createNewProductItem(),
 	]);
@@ -108,7 +109,7 @@ const DirectSale = ({
 
 	const updateProductItem = (id: string, updates: Partial<ProductItem>) => {
 		const updatedItems = productItems.map((item) =>
-			item.id === id ? { ...item, ...updates } : item
+			item.id === id ? { ...item, ...updates } : item,
 		);
 		setProductItems(updatedItems);
 	};
@@ -127,12 +128,12 @@ const DirectSale = ({
 					(item) =>
 						item.sellingPrice &&
 						item.unitPrice &&
-						item.unitPrice < item.sellingPrice
+						item.unitPrice < item.sellingPrice,
 				);
 
 				if (hasInvalidPrice) {
 					toast.error(
-						"Please ensure all unit prices meet or exceed the minimum selling price before proceeding."
+						"Please ensure all unit prices meet or exceed the minimum selling price before proceeding.",
 					);
 				}
 			}
@@ -174,12 +175,12 @@ const DirectSale = ({
 				(item) =>
 					item.sellingPrice &&
 					item.unitPrice &&
-					item.unitPrice < item.sellingPrice
+					item.unitPrice < item.sellingPrice,
 			);
 
 			if (hasInvalidPrice) {
 				toast.error(
-					"Cannot complete sale: Some products have unit prices lower than their selling prices."
+					"Cannot complete sale: Some products have unit prices lower than their selling prices.",
 				);
 				return;
 			}
@@ -193,7 +194,7 @@ const DirectSale = ({
 
 		// Prefer storeUuid from a selected product item when available
 		const productItemStoreUuid = productItems.find(
-			(it) => it.storeUuid
+			(it) => it.storeUuid,
 		)?.storeUuid;
 		const storeUuid =
 			productItemStoreUuid || assignedStoreUuid || ownedStoreUuid || "";
@@ -240,7 +241,7 @@ const DirectSale = ({
 			},
 			onError(error) {
 				toast.error(
-					error.message || "Failed to complete sale. Please try again."
+					error.message || "Failed to complete sale. Please try again.",
 				);
 			},
 		});
@@ -300,7 +301,7 @@ const DirectSale = ({
 	// Show success screen if sale is completed
 	if (saleCompleted && completedSaleData) {
 		return (
-			<div className="py-[32px]">
+			<div className="py-4 sm:py-6 md:py-[32px]">
 				<div className="bg-white rounded-[10px] w-full">
 					<SaleSuccess
 						saleData={completedSaleData}
@@ -315,18 +316,47 @@ const DirectSale = ({
 	}
 
 	return (
-		<div className="py-[32px]">
-			<div className="flex">
+		<div className="py-4 sm:py-6 md:py-[32px]">
+			<div className="flex flex-col lg:flex-row relative">
+				{showSteps && stepsVisible && (
+					<div className="hidden lg:block">
+						<StepNavigation
+							steps={steps}
+							currentStep={currentStep}
+							onStepClick={setCurrentStep}
+						/>
+					</div>
+				)}
+
+				{/* Toggle Button */}
 				{showSteps && (
-					<StepNavigation
-						steps={steps}
-						currentStep={currentStep}
-						onStepClick={setCurrentStep}
-					/>
+					<button
+						type="button"
+						onClick={() => setStepsVisible(!stepsVisible)}
+						className="hidden lg:flex absolute top-0 left-0 z-10 items-center justify-center w-8 h-8 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-50 transition-all"
+						style={{ left: stepsVisible ? "calc(280px + 0.5rem)" : "0.5rem" }}
+					>
+						<svg
+							className="w-4 h-4 text-gray-600"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							style={{
+								transform: stepsVisible ? "rotate(0deg)" : "rotate(180deg)",
+							}}
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 19l-7-7 7-7"
+							/>
+						</svg>
+					</button>
 				)}
 
 				{/* Content - Right Side */}
-				<div className="flex-1 bg-white rounded-r-[10px] p-[32px] pt-0">
+				<div className="flex-1 bg-white rounded-[10px] lg:rounded-r-[10px] p-4 sm:p-6 md:p-[32px] md:pt-0">
 					<form
 						onSubmit={(e) => {
 							// Only allow submission if it's the last step
@@ -347,17 +377,17 @@ const DirectSale = ({
 						<div className="flex-1">{renderStepContent()}</div>
 
 						{/* Navigation Buttons */}
-						<div className="flex justify-between pt-[32px] border-t border-gray-200">
+						<div className="flex justify-between pt-4 sm:pt-6 md:pt-[32px] border-t border-gray-200 gap-2">
 							<Button
 								type="button"
 								variant="secondary"
 								onClick={prevStep}
 								disabled={currentStep === 1}
 								className={cn(
-									"w-[50px] h-[50px] rounded-full flex items-center justify-center",
+									"w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] rounded-full flex items-center justify-center text-sm sm:text-base",
 									{
 										"opacity-50 cursor-not-allowed": currentStep === 1,
-									}
+									},
 								)}
 							>
 								←
@@ -368,10 +398,10 @@ const DirectSale = ({
 									onClick={nextStep}
 									disabled={!canProceed()}
 									className={cn(
-										"w-[50px] h-[50px] rounded-full flex items-center justify-center",
+										"w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] rounded-full flex items-center justify-center text-sm sm:text-base",
 										{
 											"opacity-50 cursor-not-allowed": !canProceed(),
-										}
+										},
 									)}
 								>
 									→
@@ -381,9 +411,12 @@ const DirectSale = ({
 								<Button
 									type="submit"
 									disabled={!canProceed()}
-									className={cn("w-[150px] px-[16px] h-[50px] rounded-full", {
-										"opacity-50 cursor-not-allowed": !canProceed(),
-									})}
+									className={cn(
+										"w-auto min-w-[120px] sm:w-[150px] px-3 sm:px-[16px] h-[40px] sm:h-[50px] rounded-full text-sm sm:text-base",
+										{
+											"opacity-50 cursor-not-allowed": !canProceed(),
+										},
+									)}
 								>
 									{loading ? "Processing..." : "Complete Sale"}
 								</Button>

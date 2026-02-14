@@ -28,6 +28,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const logout = useCallback(() => {
 		clearTokens();
+		// Clear selected store from localStorage
+		const userStoreData = localStorage.getItem("userStore");
+		if (userStoreData) {
+			try {
+				const parsed = JSON.parse(userStoreData);
+				if (parsed.state) {
+					parsed.state.selectedStore = null;
+					localStorage.setItem("userStore", JSON.stringify(parsed));
+				}
+			} catch (e) {
+				// Ignore parse errors
+			}
+		}
 		window.location.href = "/";
 	}, []);
 
@@ -69,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 				return null;
 			}
 		},
-		[refreshTokenMutation, logout]
+		[refreshTokenMutation, logout],
 	);
 
 	// Public refresh function
@@ -95,9 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			if (savedAccessToken && savedRefreshToken) {
 				if (isTokenExpired(savedAccessToken)) {
 					setRefreshToken(savedRefreshToken);
-					const newAccessToken = await refreshAccessTokenInternal(
-						savedRefreshToken
-					);
+					const newAccessToken =
+						await refreshAccessTokenInternal(savedRefreshToken);
 					if (!newAccessToken) {
 						clearTokens();
 					}

@@ -16,7 +16,7 @@ const StepNavigation = ({
 	const isStepActive = (stepId: number) => stepId === currentStep;
 
 	return (
-		<div className="w-[30%] h-fit bg-white border-1 border-[#D9D9D9] rounded-[10px] p-[24px]">
+		<div className="h-fit bg-white border-1 border-[#D9D9D9] rounded-[10px] p-[24px] xl:min-w-[280px]">
 			<div className="space-y-[16px]">
 				{steps.map((step) => (
 					<div
@@ -24,7 +24,7 @@ const StepNavigation = ({
 						className={cn(
 							`p-[10px] rounded-[8px] cursor-pointer transition-all text-gray-400 hover:bg-gray-100`,
 							{ "text-[#016630]": isStepActive(step.id) },
-							{ "bg-[#d0f0ee7a] text-green-800": isStepCompleted(step.id) }
+							{ "bg-[#d0f0ee7a] text-green-800": isStepCompleted(step.id) },
 						)}
 						onClick={() => onStepClick(step.id)}
 					>
@@ -37,7 +37,7 @@ const StepNavigation = ({
 									},
 									{
 										"bg-[#008139] text-white": isStepCompleted(step.id),
-									}
+									},
 								)}
 							>
 								{isStepCompleted(step.id) ? "✓" : ""}
