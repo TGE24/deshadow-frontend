@@ -472,6 +472,68 @@ const EditInventory: React.FC<CreateInventoryModalProps> = ({
 						)}
 					</div>
 
+					{/* Store Display Section for Store Owners */}
+					{userData?.me?.role === UserRole.StoreOwner &&
+						selectedProductItem?.store && (
+							<div className="rounded-[12px] p-[20px] border-[2px] border-[#E5E7EB] bg-gray-50">
+								<div className="flex items-center gap-[8px] mb-[12px]">
+									<svg
+										className="w-[18px] h-[18px] text-[#278783]"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+										/>
+									</svg>
+									<label className="text-[14px] text-[#1F2937] font-bold">
+										Assigned Store
+									</label>
+									<span className="ml-auto px-[8px] py-[2px] bg-blue-100 text-blue-700 text-[11px] font-semibold rounded-full">
+										Read Only
+									</span>
+								</div>
+								<div className="flex items-center gap-[12px] p-[14px] bg-white rounded-[10px] border-[2px] border-[#E5E7EB]">
+									<svg
+										className="w-[20px] h-[20px] text-[#278783] flex-shrink-0"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+										/>
+									</svg>
+									<div className="flex-1">
+										<p className="text-[14px] text-[#1F2937] font-semibold">
+											{selectedProductItem.store.name}
+										</p>
+									</div>
+								</div>
+								<p className="text-[12px] text-gray-500 mt-[8px] flex items-center gap-[4px]">
+									<svg
+										className="w-[12px] h-[12px]"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fillRule="evenodd"
+											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+											clipRule="evenodd"
+										/>
+									</svg>
+									Store assignment cannot be changed after creation
+								</p>
+							</div>
+						)}
+
 					{/* Serial Number & Condition Row */}
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
 						<div className="rounded-[12px] p-[20px] border-[2px] border-[#E5E7EB] hover:border-[#278783]/30 transition-all">

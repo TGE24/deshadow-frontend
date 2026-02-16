@@ -10,6 +10,7 @@ import {
 	Sale,
 	SaleStatus,
 	SaleType,
+	useAccessoriesQuery,
 	useConditionSummaryLazyQuery,
 	useSalesLazyQuery,
 	useSalesReportLazyQuery,
@@ -37,6 +38,14 @@ const Dashboard = () => {
 	const [getConditionSummary, { data: conditionSummary }] =
 		useConditionSummaryLazyQuery();
 	const { selectedStore } = useUserStore();
+	const { data: accessoriesData } = useAccessoriesQuery({
+		variables: {
+			filter:
+				selectedStore?.uuid === "all"
+					? undefined
+					: { storeUuid: selectedStore?.uuid },
+		},
+	});
 
 	const salesReportStats = useMemo(() => {
 		if (!salesReport?.salesReport) {
@@ -54,9 +63,7 @@ const Dashboard = () => {
 			};
 		}
 
-		const { accessories, inventory, sales } = JSON.parse(
-			conditionSummary.conditionSummary,
-		);
+		const { inventory, sales } = JSON.parse(conditionSummary.conditionSummary);
 
 		// Helper to sum specific keys from an object
 		const sumValues = (
@@ -87,7 +94,6 @@ const Dashboard = () => {
 		return {
 			inventory: processData(inventory),
 			sales: processData(sales),
-			accessories,
 		};
 	}, [conditionSummary]);
 
@@ -122,6 +128,7 @@ const Dashboard = () => {
 			variables: {
 				startDate: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
 				endDate: new Date(new Date().setHours(23, 59, 59, 999)).toISOString(),
+				// storeId: selectedStore?.uuid === "all" ? 0 : selectedStore?.uuid,
 			},
 		});
 	}, [getSalesReport]);
@@ -314,7 +321,10 @@ const Dashboard = () => {
 					headline={"New Products"}
 					stat1={{ copy: "Used Products", value: stats.inventory.used }}
 					stat2={{ copy: "Brand New Products", value: stats.inventory.new }}
-					stat3={{ copy: "Total Accessories", value: stats.accessories }}
+					stat3={{
+						copy: "Total Accessories",
+						value: accessoriesData?.accessories.totalCount ?? 0,
+					}}
 					bottomStat={
 						stats.inventory.total > 0 ? `${stats.inventory.total} total` : ""
 					}

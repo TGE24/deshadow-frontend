@@ -34,6 +34,7 @@ query Sales($pagination: PaginationInput, $filter: SaleFilter) {
 							name
 						}
 						productItem {
+							status
 							serialNumber
 							attributeValues {
 								attribute {
