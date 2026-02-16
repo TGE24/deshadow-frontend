@@ -31,6 +31,7 @@ import {
 // Hooks
 import { formatCurrency } from "../utils/formatters";
 import { useDebounce } from "../hooks/useDebounce";
+import { useUserStore } from "../store/userStore";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -40,6 +41,7 @@ const Inventory = () => {
 	// State Management
 	const [page, setPage] = useState(1);
 	const [data, setData] = useState<ProductItem[]>([]);
+	const { selectedStore } = useUserStore();
 
 	// Filter States
 	const [searchTerm, setSearchTerm] = useState("");
@@ -55,7 +57,7 @@ const Inventory = () => {
 					.replace(/\b\w/g, (char) => char.toUpperCase()),
 				value: c,
 			})),
-		[]
+		[],
 	);
 
 	// Debounced search term to prevent excessive API calls
@@ -87,11 +89,15 @@ const Inventory = () => {
 							selectedConditions && selectedConditions.length > 0
 								? selectedConditions
 								: undefined,
+						storeUuid:
+							selectedStore?.uuid && selectedStore?.uuid !== "all"
+								? selectedStore.uuid
+								: undefined,
 					},
 				},
 			});
 		},
-		[getProductItems, debouncedSearchTerm, selectedConditions]
+		[getProductItems, debouncedSearchTerm, selectedConditions, selectedStore],
 	);
 
 	// Run on mount, when pathname changes, or when filters/search change
@@ -183,7 +189,7 @@ const Inventory = () => {
 					return (
 						<span
 							className={`px-2 py-1 rounded text-xs font-medium uppercase ${getConditionStyles(
-								condition
+								condition,
 							)}`}
 						>
 							{condition.replace(/_/g, " ")}
@@ -336,9 +342,9 @@ const Inventory = () => {
 							setSelectedConditions(
 								(opts as { label: string; value: ProductCondition }[] | null)
 									? (opts as { label: string; value: ProductCondition }[]).map(
-											(o) => o.value
-									  )
-									: []
+											(o) => o.value,
+										)
+									: [],
 							)
 						}
 					/>
@@ -359,8 +365,8 @@ const Inventory = () => {
 											? null
 											: flexRender(
 													header.column.columnDef.header,
-													header.getContext()
-											  )}
+													header.getContext(),
+												)}
 									</th>
 								))}
 							</tr>
@@ -388,7 +394,7 @@ const Inventory = () => {
 										>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</td>
 									))}

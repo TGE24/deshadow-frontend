@@ -10,6 +10,11 @@ query ProductItem($uuid: UUID, $serialNumber: String) {
 		product {
 			name
 		}
+		store {
+			uuid
+			name
+			address
+		}
 		images {
 			uuid
 			imageUrl

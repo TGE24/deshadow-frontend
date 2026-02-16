@@ -1,0 +1,11 @@
+mutation UpdateSaleItemFulfillmentStatus(
+	$saleItemUuid: UUID!
+	$status: SaleItemFulfillmentStatus!
+) {
+	updateSaleItemFulfillmentStatus(
+		saleItemUuid: $saleItemUuid
+		status: $status
+	) {
+		uuid
+	}
+}

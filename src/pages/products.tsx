@@ -29,6 +29,7 @@ import {
 	useProductsLazyQuery,
 	useBrandsLazyQuery,
 	useCategoriesLazyQuery,
+	ProductSortField,
 } from "../generated/graphql";
 
 // Hooks
@@ -185,6 +186,8 @@ const Products = () => {
 			if (selectedCategory) {
 				filters.categoryUuid = selectedCategory;
 			}
+
+			filters.sortBy = ProductSortField.ItemsCount;
 
 			return Object.keys(filters).length > 0 ? filters : undefined;
 		};

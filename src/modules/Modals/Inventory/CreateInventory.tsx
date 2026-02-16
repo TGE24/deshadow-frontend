@@ -11,8 +11,11 @@ import {
 	useCreateProductItemMutation,
 	useProductsQuery,
 	useSetProductItemAttributeValuesMutation,
+	useStoresQuery,
+	UserRole,
 } from "../../../generated/graphql";
 import { formatNaira } from "../../../utils/formatters";
+import { useUserStore } from "../../../store/userStore";
 
 interface CreateInventoryModalProps {
 	open: boolean;
@@ -34,6 +37,7 @@ interface CreateInventoryForm {
 	externalStoreContact?: string;
 	images?: FileList;
 	attributeValues?: Record<string, string>;
+	storeUuid?: string;
 }
 
 const CreateInventory: React.FC<CreateInventoryModalProps> = ({
@@ -43,8 +47,13 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 	selectedProduct,
 	externalProduct = false,
 }) => {
+	const { user } = useUserStore();
 	const { data: products } = useProductsQuery({
 		variables: { pagination: { first: 100 } },
+	});
+	const { data: storesData } = useStoresQuery({
+		variables: { pagination: { first: 100 } },
+		skip: user?.role !== UserRole.StoreOwner,
 	});
 
 	const [createProductItem, { loading }] = useCreateProductItemMutation();
@@ -71,6 +80,21 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 			})) || [],
 		[products?.products.edges],
 	);
+
+	// Memoized store options for store owners
+	const storeOptions = useMemo(() => {
+		if (!storesData?.stores?.edges) return [];
+		return storesData.stores.edges
+			.map((edge) => edge.node)
+			.filter(
+				(node): node is Extract<typeof node, { __typename?: "Store" }> =>
+					node.__typename === "Store",
+			)
+			.map((store) => ({
+				value: store.uuid,
+				label: store.name,
+			}));
+	}, [storesData]);
 
 	// Helper function to extract numeric value from formatted currency
 	const extractNumericValue = (formattedValue: string) => {
@@ -182,12 +206,20 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 			condition: undefined,
 			costPrice: "",
 			sellingPrice: "",
+			storeUuid: "",
 		},
 		mode: "onChange",
 	});
 
 	const handleSubmitForm = async (data: CreateInventoryForm) => {
 		try {
+			// Validate store selection for store owners
+			if (user?.role === UserRole.StoreOwner && !data.storeUuid) {
+				setValue("storeUuid", "", { shouldValidate: true });
+				toast.error("Please select a store");
+				return;
+			}
+
 			// Build the base input object
 			const baseInput = {
 				productUuid: selectedProduct?.uuid || data.productUuid,
@@ -198,6 +230,7 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 				sellingPrice: data.sellingPrice
 					? parseFloat(data.sellingPrice)
 					: undefined,
+				storeUuid: data.storeUuid || undefined,
 			};
 
 			// Add external store fields if needed
@@ -388,6 +421,67 @@ const CreateInventory: React.FC<CreateInventoryModalProps> = ({
 							</div>
 						)}
 					</div>
+
+					{/* Store Selection for Store Owners */}
+					{user?.role === UserRole.StoreOwner && storeOptions.length > 0 && (
+						<div className="rounded-[12px] p-[20px] border-[2px] border-[#E5E7EB] hover:border-[#278783]/30 transition-all">
+							<div className="flex items-center gap-[8px] mb-[12px]">
+								<svg
+									className="w-[18px] h-[18px] text-[#278783]"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+									/>
+								</svg>
+								<label className="text-[14px] text-[#1F2937] font-bold">
+									Store <span className="text-red-500">*</span>
+								</label>
+							</div>
+							<Select
+								options={storeOptions}
+								placeholder="Select a store..."
+								classNames={{
+									control: () =>
+										"h-[50px] !rounded-[10px] !border-[#E5E7EB] border-[2px] hover:!border-[#278783] cursor-pointer outline-none focus:outline-none text-[14px] !shadow-sm",
+									container: () => "w-full",
+									indicatorSeparator: () => "hidden",
+									menu: () => "!rounded-[10px] !shadow-xl !border-[#E5E7EB]",
+									option: () => "!text-[14px] hover:!bg-[#278783]/10",
+								}}
+								onChange={(option) => {
+									setValue("storeUuid", option?.value || "", {
+										shouldValidate: true,
+									});
+								}}
+								name="storeUuid"
+							/>
+							<p className="text-[12px] text-gray-500 mt-[8px]">
+								Select the store where this product will be assigned.
+							</p>
+							{errors.storeUuid && (
+								<div className="flex items-center gap-[6px] mt-[8px] text-red-500 text-[13px]">
+									<svg
+										className="w-[14px] h-[14px]"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fillRule="evenodd"
+											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+											clipRule="evenodd"
+										/>
+									</svg>
+									{errors.storeUuid.message}
+								</div>
+							)}
+						</div>
+					)}
 
 					{/* Serial Number & Condition Row */}
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">

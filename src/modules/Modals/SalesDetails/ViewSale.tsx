@@ -5,10 +5,12 @@ import {
 	PaymentType,
 	SaleType,
 	SaleStatus,
+	SaleItem,
 } from "../../../generated/graphql";
 import { formatNaira, formatDateTime } from "../../../utils/formatters";
 import Button from "../../../components/Button";
 import UpdateStatus from "./UpdateStatus";
+import UpdateItemFulfillment from "./UpdateItemFulfillment";
 
 interface ViewSaleProps {
 	open: boolean;
@@ -24,6 +26,11 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 	refetch,
 }) => {
 	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
+	const [updateItemFulfillmentOpen, setUpdateItemFulfillmentOpen] =
+		useState(false);
+	const [selectedSaleItem, setSelectedSaleItem] = useState<SaleItem | null>(
+		null,
+	);
 	// Helper function to format payment type for display
 	const formatPaymentType = (paymentType: PaymentType) => {
 		switch (paymentType) {
@@ -222,60 +229,146 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 					<div className="bg-gray-50 p-[16px] rounded-[8px]">
 						<h4 className="font-semibold mb-[12px] text-[16px]">Products</h4>
 						<div className="space-y-[8px]">
-							{sale.items?.map((item, index) => {
-								return (
-									<div
-										key={item.uuid}
-										className="bg-white p-[12px] rounded-[6px] border border-gray-200"
-									>
-										<div className="flex justify-between items-start">
-											<div className="flex-1">
-												<p className="font-medium text-[14px] text-gray-800">
-													{item.product?.name ||
-														item.accessory?.name ||
-														"Product not available"}
-												</p>
-												<p className="text-[12px] text-gray-500 mt-[2px]">
-													{item.productItem?.serialNumber
-														? `Serial: ${item.productItem.serialNumber}`
-														: item.accessory
-															? `Accessory`
-															: `Item ${index + 1}`}
-												</p>
-												<p className="text-[12px] text-gray-500">
-													Quantity: {item.quantity}
-												</p>{" "}
-												{item.productItem?.attributeValues &&
-													item.productItem.attributeValues.length > 0 && (
-														<div className="mt-[6px] flex flex-wrap gap-[4px]">
-															{item.productItem.attributeValues.map(
-																(attrValue, index) => (
-																	<span
-																		key={index}
-																		className="inline-flex items-center gap-[4px] bg-gray-100 text-gray-700 text-[11px] px-[6px] py-[2px] rounded-[4px]"
-																	>
-																		<span className="font-medium">
-																			{attrValue.attribute?.name}:
-																		</span>
-																		<span>{attrValue.valueText}</span>
-																	</span>
-																),
-															)}
+							{sale.items
+								?.filter(
+									(item) =>
+										item.productItem?.status !== "available" ||
+										!item.productItem,
+								)
+								.map((item, index) => {
+									const isCredit = sale.saleType === SaleType.Credit;
+									const hasMultipleItems = (sale.items?.length || 0) > 1;
+									const isSalePending = sale.saleStatus === SaleStatus.Pending;
+									const isClickable =
+										isCredit && hasMultipleItems && isSalePending;
+
+									const getItemStatusColor = (status: string) => {
+										switch (status?.toLowerCase()) {
+											case "delivered":
+												return "bg-green-100 text-green-800 border-green-200";
+											case "pending":
+												return "bg-yellow-100 text-yellow-800 border-yellow-200";
+											case "returned":
+												return "bg-red-100 text-red-800 border-red-200";
+											default:
+												return "bg-gray-100 text-gray-800 border-gray-200";
+										}
+									};
+
+									return (
+										<div
+											key={item.uuid}
+											className={`bg-white p-[12px] rounded-[6px] border ${
+												isClickable
+													? "border-[#278783] cursor-pointer hover:shadow-md hover:border-[#278783] transition-all"
+													: "border-gray-200"
+											}`}
+											onClick={() => {
+												if (isClickable) {
+													setSelectedSaleItem(item);
+													setUpdateItemFulfillmentOpen(true);
+												}
+											}}
+										>
+											<div className="flex justify-between items-start">
+												<div className="flex-1">
+													{" "}
+													{isClickable && (
+														<div className="flex items-center gap-[8px] mb-[8px]">
+															<span
+																className={`px-[6px] py-[2px] rounded-[4px] text-[10px] font-medium border ${getItemStatusColor(
+																	item.fulfillmentStatus,
+																)}`}
+															>
+																{item.fulfillmentStatus?.toUpperCase()}
+															</span>
+															<span className="text-[10px] text-[#278783] font-medium flex items-center gap-[2px]">
+																<svg
+																	className="w-[12px] h-[12px]"
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth={2}
+																		d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+																	/>
+																</svg>
+																Click to update
+															</span>
 														</div>
 													)}{" "}
-											</div>
-											<div className="text-right">
-												<p className="text-[14px] font-medium">
-													{formatNaira(item.unitPrice)}
-												</p>
-												<p className="text-[12px] text-gray-500">
-													Total: {formatNaira(item.lineTotal)}
-												</p>
+													<p className="font-medium text-[14px] text-gray-800">
+														{item.product?.name ||
+															item.accessory?.name ||
+															"Product not available"}
+													</p>
+													<p className="text-[12px] text-gray-500 mt-[2px]">
+														{item.productItem?.serialNumber
+															? `Serial: ${item.productItem.serialNumber}`
+															: item.accessory
+																? `Accessory`
+																: `Item ${index + 1}`}
+													</p>
+													{item.productItem?.status && (
+														<p className="text-[12px] text-gray-500">
+															Item Status:{" "}
+															<span
+																className={`inline-block px-[6px] py-[2px] rounded-[4px] text-[10px] font-medium uppercase ${
+																	item.productItem.status === "available"
+																		? "bg-green-100 text-green-800"
+																		: item.productItem.status === "sold"
+																			? "bg-red-100 text-red-800"
+																			: item.productItem.status === "reserved"
+																				? "bg-blue-100 text-blue-800"
+																				: item.productItem.status === "returned"
+																					? "bg-yellow-100 text-yellow-800"
+																					: item.productItem.status ===
+																						  "damaged"
+																						? "bg-gray-100 text-gray-800"
+																						: "bg-gray-100 text-gray-800"
+																}`}
+															>
+																{item.productItem.status.replace("_", " ")}
+															</span>
+														</p>
+													)}
+													<p className="text-[12px] text-gray-500">
+														Quantity: {item.quantity}
+													</p>{" "}
+													{item.productItem?.attributeValues &&
+														item.productItem.attributeValues.length > 0 && (
+															<div className="mt-[6px] flex flex-wrap gap-[4px]">
+																{item.productItem.attributeValues.map(
+																	(attrValue, index) => (
+																		<span
+																			key={index}
+																			className="inline-flex items-center gap-[4px] bg-gray-100 text-gray-700 text-[11px] px-[6px] py-[2px] rounded-[4px]"
+																		>
+																			<span className="font-medium">
+																				{attrValue.attribute?.name}:
+																			</span>
+																			<span>{attrValue.valueText}</span>
+																		</span>
+																	),
+																)}
+															</div>
+														)}{" "}
+												</div>
+												<div className="text-right">
+													<p className="text-[14px] font-medium">
+														{formatNaira(item.unitPrice)}
+													</p>
+													<p className="text-[12px] text-gray-500">
+														Total: {formatNaira(item.lineTotal)}
+													</p>
+												</div>
 											</div>
 										</div>
-									</div>
-								);
-							})}
+									);
+								})}
 						</div>
 					</div>
 
@@ -415,6 +508,14 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 				refetch={refetch || (() => {})}
 				setDetailsOpen={setOpen}
 			/>
+			{selectedSaleItem && (
+				<UpdateItemFulfillment
+					open={updateItemFulfillmentOpen}
+					setOpen={setUpdateItemFulfillmentOpen}
+					saleItem={selectedSaleItem}
+					refetch={refetch}
+				/>
+			)}
 		</>
 	);
 };
