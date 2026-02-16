@@ -47,6 +47,8 @@ const Dashboard = () => {
 		},
 	});
 
+	console.log(accessoriesData);
+
 	const salesReportStats = useMemo(() => {
 		if (!salesReport?.salesReport) {
 			return null;
