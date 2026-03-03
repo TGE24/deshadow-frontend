@@ -1,0 +1,24 @@
+query CreditProfiles($pagination: PaginationInput) {
+	creditProfiles(pagination: $pagination) {
+		edges {
+			node {
+				__typename
+				... on CreditProfile {
+					uuid
+					customerName
+					customerEmail
+					customerPhone
+					createdAt
+					updatedAt
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

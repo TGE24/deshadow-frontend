@@ -1,0 +1,65 @@
+query CreditProfile($profileUUID: UUID!) {
+	creditProfile(profileUUID: $profileUUID) {
+		profile {
+			uuid
+			customerName
+			customerEmail
+			customerPhone
+		}
+		pendingSales {
+			uuid
+			saleType
+			paymentType
+			discountAmount
+			invoices {
+				uuid
+				filePath
+				invoiceNumber
+			}
+			store {
+				name
+			}
+			saleDate
+			saleStatus
+			createdAt
+			updatedAt
+			totalAmount
+			paymentStatus
+			customerName
+			customerEmail
+			customerPhone
+			items {
+				uuid
+				quantity
+				unitPrice
+				lineTotal
+				accessory {
+					uuid
+					name
+				}
+				productItem {
+					status
+					serialNumber
+					attributeValues {
+						attribute {
+							name
+							uuid
+						}
+						valueText
+					}
+				}
+				product {
+					name
+				}
+			}
+			createdBy {
+				role
+				firstName
+				lastName
+				assignedStore {
+					name
+				}
+			}
+		}
+	}
+}

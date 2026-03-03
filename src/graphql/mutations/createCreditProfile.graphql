@@ -1,0 +1,8 @@
+mutation CreateCreditProfile($input: CreateCreditProfileInput!) {
+	createCreditProfile(input: $input) {
+		uuid
+		customerName
+		customerEmail
+		customerPhone
+	}
+}

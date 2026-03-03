@@ -23,6 +23,7 @@ import ResellersRecord from "./pages/ResellersRecord";
 import Accessories from "./pages/accessories";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
+import CreditProfileDetails from "./pages/creditProfileDetails";
 
 function App() {
 	return (
@@ -58,6 +59,10 @@ function App() {
 									<Route path="/stores" element={<Stores />} />
 									<Route path="/sale" element={<SalesManagement />} />
 									<Route path="/accessories" element={<Accessories />} />
+									<Route
+										path="/credit-profile/:id"
+										element={<CreditProfileDetails />}
+									/>
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

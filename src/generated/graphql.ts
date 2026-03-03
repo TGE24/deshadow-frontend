@@ -150,6 +150,48 @@ export type CompleteInvitationInput = {
   password: Scalars['String']['input'];
 };
 
+export type CreateCreditProfileInput = {
+  customerEmail?: InputMaybe<Scalars['String']['input']>;
+  customerName: Scalars['String']['input'];
+  customerPhone: Scalars['String']['input'];
+};
+
+export type CreditProfile = {
+  __typename?: 'CreditProfile';
+  createdAt: Scalars['Time']['output'];
+  customerEmail?: Maybe<Scalars['String']['output']>;
+  customerName: Scalars['String']['output'];
+  customerPhone?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['Time']['output'];
+  uuid: Scalars['UUID']['output'];
+};
+
+export type CreditProfileConnection = {
+  __typename?: 'CreditProfileConnection';
+  edges: Array<CreditProfileEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type CreditProfileDetail = {
+  __typename?: 'CreditProfileDetail';
+  pendingSales: Array<Sale>;
+  profile: CreditProfile;
+  totalPendingAmount: Scalars['Float']['output'];
+};
+
+export type CreditProfileEdge = {
+  __typename?: 'CreditProfileEdge';
+  cursor: Scalars['String']['output'];
+  node: CreditProfile;
+};
+
+export type CreditProfileSearchResult = {
+  __typename?: 'CreditProfileSearchResult';
+  profiles: Array<CreditProfile>;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type EarningsTransaction = {
   __typename?: 'EarningsTransaction';
   amount: Scalars['Float']['output'];
@@ -188,6 +230,11 @@ export type Invoice = {
   invoiceNumber: Scalars['String']['output'];
   sale: Sale;
   uuid: Scalars['UUID']['output'];
+};
+
+export type ItemAllocationInput = {
+  amount: Scalars['Float']['input'];
+  saleItemUuid: Scalars['UUID']['input'];
 };
 
 export enum ListingStatus {
@@ -234,6 +281,7 @@ export type Mutation = {
   createAttribute: Attribute;
   createBrand: Brand;
   createCategory: Category;
+  createCreditProfile: CreditProfile;
   createProduct: Product;
   createProductItem: ProductItem;
   createReturn: Return;
@@ -253,6 +301,7 @@ export type Mutation = {
   loginWith2FA: AuthPayload;
   processRefund: Refund;
   processReturn: Return;
+  recordManualPayment: PaymentTransaction;
   refreshToken: AuthPayload;
   requestPasswordReset: PasswordResetResponse;
   resendInvitation: PasswordResetResponse;
@@ -318,6 +367,11 @@ export type MutationCreateCategoryArgs = {
 };
 
 
+export type MutationCreateCreditProfileArgs = {
+  input: CreateCreditProfileInput;
+};
+
+
 export type MutationCreateProductArgs = {
   input: ProductInput;
 };
@@ -331,6 +385,7 @@ export type MutationCreateProductItemArgs = {
 export type MutationCreateReturnArgs = {
   productUuid: Scalars['UUID']['input'];
   reason: Scalars['String']['input'];
+  saleItemUuid?: InputMaybe<Scalars['UUID']['input']>;
   saleUuid: Scalars['UUID']['input'];
 };
 
@@ -416,6 +471,11 @@ export type MutationProcessReturnArgs = {
   refundAmount?: InputMaybe<Scalars['Float']['input']>;
   status: ReturnStatus;
   uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationRecordManualPaymentArgs = {
+  input: RecordManualPaymentInput;
 };
 
 
@@ -550,6 +610,11 @@ export type PasswordResetResponse = {
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
 };
+
+export enum PaymentAllocationType {
+  AllItems = 'ALL_ITEMS',
+  Items = 'ITEMS'
+}
 
 export enum PaymentStatus {
   Paid = 'paid',
@@ -753,6 +818,8 @@ export type Query = {
   categories: PaginatedResponse;
   category?: Maybe<Category>;
   conditionSummary: Scalars['JSON']['output'];
+  creditProfile?: Maybe<CreditProfileDetail>;
+  creditProfiles: CreditProfileConnection;
   financialDashboard: Scalars['JSON']['output'];
   invoice?: Maybe<Invoice>;
   invoiceStats: Scalars['JSON']['output'];
@@ -776,6 +843,7 @@ export type Query = {
   sale?: Maybe<Sale>;
   sales: PaginatedResponse;
   salesReport: Scalars['JSON']['output'];
+  searchCreditProfiles: CreditProfileSearchResult;
   store?: Maybe<Store>;
   storeEarnings?: Maybe<StoreEarnings>;
   stores: PaginatedResponse;
@@ -828,6 +896,16 @@ export type QueryCategoryArgs = {
 export type QueryConditionSummaryArgs = {
   endDate?: InputMaybe<Scalars['Time']['input']>;
   startDate?: InputMaybe<Scalars['Time']['input']>;
+};
+
+
+export type QueryCreditProfileArgs = {
+  profileUUID: Scalars['UUID']['input'];
+};
+
+
+export type QueryCreditProfilesArgs = {
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 
@@ -935,6 +1013,13 @@ export type QuerySalesReportArgs = {
 };
 
 
+export type QuerySearchCreditProfilesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryStoreArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -958,6 +1043,17 @@ export type QueryUserArgs = {
 export type QueryUsersArgs = {
   pagination?: InputMaybe<PaginationInput>;
   role?: InputMaybe<UserRole>;
+};
+
+export type RecordManualPaymentInput = {
+  allocationType: PaymentAllocationType;
+  amount: Scalars['Float']['input'];
+  customerEmail?: InputMaybe<Scalars['String']['input']>;
+  customerPhone?: InputMaybe<Scalars['String']['input']>;
+  itemAllocations?: InputMaybe<Array<ItemAllocationInput>>;
+  manualReference?: InputMaybe<Scalars['String']['input']>;
+  paymentMethod: Scalars['String']['input'];
+  saleUuid: Scalars['UUID']['input'];
 };
 
 export type Refund = {
@@ -1048,6 +1144,7 @@ export type Sale = {
 };
 
 export type SaleFilter = {
+  creditProfileUuid?: InputMaybe<Scalars['UUID']['input']>;
   fromDate?: InputMaybe<Scalars['Time']['input']>;
   paymentStatus?: InputMaybe<PaymentStatus>;
   saleStatus?: InputMaybe<SaleStatus>;
@@ -1059,6 +1156,7 @@ export type SaleFilter = {
 
 export type SaleInput = {
   accessories?: InputMaybe<Array<AccessorySaleInput>>;
+  creditProfileUuid?: InputMaybe<Scalars['UUID']['input']>;
   customerEmail?: InputMaybe<Scalars['String']['input']>;
   customerName: Scalars['String']['input'];
   customerPhone?: InputMaybe<Scalars['String']['input']>;
@@ -1251,6 +1349,13 @@ export type CreateCategoryMutationVariables = Exact<{
 
 
 export type CreateCategoryMutation = { __typename?: 'Mutation', createCategory: { __typename?: 'Category', uuid: any, name: string, parent?: { __typename?: 'Category', name: string } | null, products: Array<{ __typename?: 'Product', name: string }> } };
+
+export type CreateCreditProfileMutationVariables = Exact<{
+  input: CreateCreditProfileInput;
+}>;
+
+
+export type CreateCreditProfileMutation = { __typename?: 'Mutation', createCreditProfile: { __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null } };
 
 export type CreateProductMutationVariables = Exact<{
   input: ProductInput;
@@ -1519,6 +1624,20 @@ export type ConditionSummaryQueryVariables = Exact<{
 
 export type ConditionSummaryQuery = { __typename?: 'Query', conditionSummary: any };
 
+export type CreditProfileQueryVariables = Exact<{
+  profileUUID: Scalars['UUID']['input'];
+}>;
+
+
+export type CreditProfileQuery = { __typename?: 'Query', creditProfile?: { __typename?: 'CreditProfileDetail', profile: { __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null }, pendingSales: Array<{ __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', status: ProductItemStatus, serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }> } | null };
+
+export type CreditProfilesQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type CreditProfilesQuery = { __typename?: 'Query', creditProfiles: { __typename?: 'CreditProfileConnection', totalCount: number, edges: Array<{ __typename?: 'CreditProfileEdge', node: { __typename: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, createdAt: any, updatedAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
 export type FinancialDashboardQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -1585,6 +1704,15 @@ export type SalesReportQueryVariables = Exact<{
 
 
 export type SalesReportQuery = { __typename?: 'Query', salesReport: any };
+
+export type SearchCreditProfilesQueryVariables = Exact<{
+  query?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchCreditProfilesQuery = { __typename?: 'Query', searchCreditProfiles: { __typename?: 'CreditProfileSearchResult', totalCount: number, profiles: Array<{ __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null }> } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1857,6 +1985,42 @@ export function useCreateCategoryMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateCategoryMutationHookResult = ReturnType<typeof useCreateCategoryMutation>;
 export type CreateCategoryMutationResult = Apollo.MutationResult<CreateCategoryMutation>;
 export type CreateCategoryMutationOptions = Apollo.BaseMutationOptions<CreateCategoryMutation, CreateCategoryMutationVariables>;
+export const CreateCreditProfileDocument = gql`
+    mutation CreateCreditProfile($input: CreateCreditProfileInput!) {
+  createCreditProfile(input: $input) {
+    uuid
+    customerName
+    customerEmail
+    customerPhone
+  }
+}
+    `;
+export type CreateCreditProfileMutationFn = Apollo.MutationFunction<CreateCreditProfileMutation, CreateCreditProfileMutationVariables>;
+
+/**
+ * __useCreateCreditProfileMutation__
+ *
+ * To run a mutation, you first call `useCreateCreditProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCreditProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCreditProfileMutation, { data, loading, error }] = useCreateCreditProfileMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateCreditProfileMutation(baseOptions?: Apollo.MutationHookOptions<CreateCreditProfileMutation, CreateCreditProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCreditProfileMutation, CreateCreditProfileMutationVariables>(CreateCreditProfileDocument, options);
+      }
+export type CreateCreditProfileMutationHookResult = ReturnType<typeof useCreateCreditProfileMutation>;
+export type CreateCreditProfileMutationResult = Apollo.MutationResult<CreateCreditProfileMutation>;
+export type CreateCreditProfileMutationOptions = Apollo.BaseMutationOptions<CreateCreditProfileMutation, CreateCreditProfileMutationVariables>;
 export const CreateProductDocument = gql`
     mutation CreateProduct($input: ProductInput!) {
   createProduct(input: $input) {
@@ -3235,6 +3399,165 @@ export type ConditionSummaryQueryHookResult = ReturnType<typeof useConditionSumm
 export type ConditionSummaryLazyQueryHookResult = ReturnType<typeof useConditionSummaryLazyQuery>;
 export type ConditionSummarySuspenseQueryHookResult = ReturnType<typeof useConditionSummarySuspenseQuery>;
 export type ConditionSummaryQueryResult = Apollo.QueryResult<ConditionSummaryQuery, ConditionSummaryQueryVariables>;
+export const CreditProfileDocument = gql`
+    query CreditProfile($profileUUID: UUID!) {
+  creditProfile(profileUUID: $profileUUID) {
+    profile {
+      uuid
+      customerName
+      customerEmail
+      customerPhone
+    }
+    pendingSales {
+      uuid
+      saleType
+      paymentType
+      discountAmount
+      invoices {
+        uuid
+        filePath
+        invoiceNumber
+      }
+      store {
+        name
+      }
+      saleDate
+      saleStatus
+      createdAt
+      updatedAt
+      totalAmount
+      paymentStatus
+      customerName
+      customerEmail
+      customerPhone
+      items {
+        uuid
+        quantity
+        unitPrice
+        lineTotal
+        accessory {
+          uuid
+          name
+        }
+        productItem {
+          status
+          serialNumber
+          attributeValues {
+            attribute {
+              name
+              uuid
+            }
+            valueText
+          }
+        }
+        product {
+          name
+        }
+      }
+      createdBy {
+        role
+        firstName
+        lastName
+        assignedStore {
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useCreditProfileQuery__
+ *
+ * To run a query within a React component, call `useCreditProfileQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditProfileQuery({
+ *   variables: {
+ *      profileUUID: // value for 'profileUUID'
+ *   },
+ * });
+ */
+export function useCreditProfileQuery(baseOptions: Apollo.QueryHookOptions<CreditProfileQuery, CreditProfileQueryVariables> & ({ variables: CreditProfileQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditProfileQuery, CreditProfileQueryVariables>(CreditProfileDocument, options);
+      }
+export function useCreditProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditProfileQuery, CreditProfileQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditProfileQuery, CreditProfileQueryVariables>(CreditProfileDocument, options);
+        }
+export function useCreditProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditProfileQuery, CreditProfileQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditProfileQuery, CreditProfileQueryVariables>(CreditProfileDocument, options);
+        }
+export type CreditProfileQueryHookResult = ReturnType<typeof useCreditProfileQuery>;
+export type CreditProfileLazyQueryHookResult = ReturnType<typeof useCreditProfileLazyQuery>;
+export type CreditProfileSuspenseQueryHookResult = ReturnType<typeof useCreditProfileSuspenseQuery>;
+export type CreditProfileQueryResult = Apollo.QueryResult<CreditProfileQuery, CreditProfileQueryVariables>;
+export const CreditProfilesDocument = gql`
+    query CreditProfiles($pagination: PaginationInput) {
+  creditProfiles(pagination: $pagination) {
+    edges {
+      node {
+        __typename
+        ... on CreditProfile {
+          uuid
+          customerName
+          customerEmail
+          customerPhone
+          createdAt
+          updatedAt
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useCreditProfilesQuery__
+ *
+ * To run a query within a React component, call `useCreditProfilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditProfilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditProfilesQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useCreditProfilesQuery(baseOptions?: Apollo.QueryHookOptions<CreditProfilesQuery, CreditProfilesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditProfilesQuery, CreditProfilesQueryVariables>(CreditProfilesDocument, options);
+      }
+export function useCreditProfilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditProfilesQuery, CreditProfilesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditProfilesQuery, CreditProfilesQueryVariables>(CreditProfilesDocument, options);
+        }
+export function useCreditProfilesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditProfilesQuery, CreditProfilesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditProfilesQuery, CreditProfilesQueryVariables>(CreditProfilesDocument, options);
+        }
+export type CreditProfilesQueryHookResult = ReturnType<typeof useCreditProfilesQuery>;
+export type CreditProfilesLazyQueryHookResult = ReturnType<typeof useCreditProfilesLazyQuery>;
+export type CreditProfilesSuspenseQueryHookResult = ReturnType<typeof useCreditProfilesSuspenseQuery>;
+export type CreditProfilesQueryResult = Apollo.QueryResult<CreditProfilesQuery, CreditProfilesQueryVariables>;
 export const FinancialDashboardDocument = gql`
     query FinancialDashboard($storeId: Int) {
   financialDashboard(storeId: $storeId)
@@ -3851,6 +4174,54 @@ export type SalesReportQueryHookResult = ReturnType<typeof useSalesReportQuery>;
 export type SalesReportLazyQueryHookResult = ReturnType<typeof useSalesReportLazyQuery>;
 export type SalesReportSuspenseQueryHookResult = ReturnType<typeof useSalesReportSuspenseQuery>;
 export type SalesReportQueryResult = Apollo.QueryResult<SalesReportQuery, SalesReportQueryVariables>;
+export const SearchCreditProfilesDocument = gql`
+    query SearchCreditProfiles($query: String, $limit: Int, $offset: Int) {
+  searchCreditProfiles(query: $query, limit: $limit, offset: $offset) {
+    profiles {
+      uuid
+      customerName
+      customerEmail
+      customerPhone
+    }
+    totalCount
+  }
+}
+    `;
+
+/**
+ * __useSearchCreditProfilesQuery__
+ *
+ * To run a query within a React component, call `useSearchCreditProfilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchCreditProfilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchCreditProfilesQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useSearchCreditProfilesQuery(baseOptions?: Apollo.QueryHookOptions<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>(SearchCreditProfilesDocument, options);
+      }
+export function useSearchCreditProfilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>(SearchCreditProfilesDocument, options);
+        }
+export function useSearchCreditProfilesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>(SearchCreditProfilesDocument, options);
+        }
+export type SearchCreditProfilesQueryHookResult = ReturnType<typeof useSearchCreditProfilesQuery>;
+export type SearchCreditProfilesLazyQueryHookResult = ReturnType<typeof useSearchCreditProfilesLazyQuery>;
+export type SearchCreditProfilesSuspenseQueryHookResult = ReturnType<typeof useSearchCreditProfilesSuspenseQuery>;
+export type SearchCreditProfilesQueryResult = Apollo.QueryResult<SearchCreditProfilesQuery, SearchCreditProfilesQueryVariables>;
 export const StoresDocument = gql`
     query Stores($pagination: PaginationInput) {
   stores(pagination: $pagination) {

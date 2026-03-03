@@ -1,0 +1,11 @@
+query SearchCreditProfiles($query: String, $limit: Int, $offset: Int) {
+	searchCreditProfiles(query: $query, limit: $limit, offset: $offset) {
+		profiles {
+			uuid
+			customerName
+			customerEmail
+			customerPhone
+		}
+		totalCount
+	}
+}

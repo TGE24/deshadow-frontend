@@ -98,12 +98,10 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							Status
 						</label>
 						<Select
-							options={Object.values(SaleStatus)
-								.filter((status) => status !== SaleStatus.Pending)
-								.map((status) => ({
-									value: status,
-									label: status,
-								}))}
+							options={Object.values(SaleStatus).map((status) => ({
+								value: status,
+								label: status,
+							}))}
 							placeholder="Select status"
 							classNames={{
 								control: () =>
