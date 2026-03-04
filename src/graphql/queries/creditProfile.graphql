@@ -7,59 +7,70 @@ query CreditProfile($profileUUID: UUID!) {
 			customerPhone
 		}
 		pendingSales {
-			uuid
-			saleType
-			paymentType
-			discountAmount
-			invoices {
+			sale {
 				uuid
-				filePath
-				invoiceNumber
-			}
-			store {
-				name
-			}
-			saleDate
-			saleStatus
-			createdAt
-			updatedAt
-			totalAmount
-			paymentStatus
-			customerName
-			customerEmail
-			customerPhone
-			items {
-				uuid
-				quantity
-				unitPrice
-				lineTotal
-				accessory {
+				saleType
+				paymentType
+				discountAmount
+				invoices {
 					uuid
+					filePath
+					invoiceNumber
+				}
+				store {
 					name
 				}
-				productItem {
-					status
-					serialNumber
-					attributeValues {
-						attribute {
-							name
-							uuid
+				saleDate
+				saleStatus
+				createdAt
+				updatedAt
+				totalAmount
+				paymentStatus
+				customerName
+				customerEmail
+				customerPhone
+				items {
+					uuid
+					quantity
+					unitPrice
+					lineTotal
+					fulfillmentStatus
+					createdAt
+					updatedAt
+					accessory {
+						uuid
+						name
+					}
+					productItem {
+						status
+						serialNumber
+						attributeValues {
+							attribute {
+								name
+								uuid
+							}
+							valueText
 						}
-						valueText
+					}
+					product {
+						name
 					}
 				}
-				product {
-					name
+				createdBy {
+					role
+					firstName
+					lastName
+					assignedStore {
+						name
+					}
 				}
 			}
-			createdBy {
-				role
-				firstName
-				lastName
-				assignedStore {
-					name
-				}
-			}
+			paidAmount
+			pendingAmount
+			originalAmount
 		}
+		totalPendingAmount
+		totalOriginalAmount
+		totalPaidAmount
 	}
 }

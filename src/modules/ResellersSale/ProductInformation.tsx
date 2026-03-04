@@ -27,9 +27,7 @@ const ProductInformation = ({
 	onViewProductDetails,
 	discountAmount,
 	onDiscountChange,
-	saleType,
 }: ProductInformationProps) => {
-	const isCreditSale = saleType === SaleType.Credit;
 	const [getAccessories, { data: accessoriesData }] = useAccessoriesLazyQuery({
 		fetchPolicy: "network-only",
 	});
@@ -44,7 +42,7 @@ const ProductInformation = ({
 					accessory: node,
 				};
 			}) || [],
-		[accessoriesData?.accessories?.edges]
+		[accessoriesData?.accessories?.edges],
 	);
 
 	// Load accessories on component mount
@@ -63,7 +61,7 @@ const ProductInformation = ({
 						"bg-gray-50 p-[16px] rounded-[8px] border border-gray-100",
 						{
 							"mb-[16px]": index < productItems.length - 1,
-						}
+						},
 					)}
 				>
 					<div className="flex justify-end">
@@ -113,8 +111,8 @@ const ProductInformation = ({
 									value={
 										item.accessoryUuid
 											? accessoriesOptions.find(
-													(opt) => opt.value === item.accessoryUuid
-											  )
+													(opt) => opt.value === item.accessoryUuid,
+												)
 											: null
 									}
 									onChange={(option) => {
@@ -230,7 +228,7 @@ const ProductInformation = ({
 
 						<div className="w-full">
 							<Input
-								label={`Unit Price ${isCreditSale ? "(Optional)" : ""}`}
+								label="Unit Price"
 								type="text"
 								placeholder="₦0.00"
 								value={item.unitPrice ? formatNaira(item.unitPrice) : ""}
@@ -253,9 +251,9 @@ const ProductInformation = ({
 										item.unitPrice &&
 										item.unitPrice < item.sellingPrice
 										? "border-red-500 focus:border-red-500"
-										: ""
+										: "",
 								)}
-								required={!isCreditSale}
+								required
 							/>
 							{!!item.sellingPrice &&
 								!!item.unitPrice &&
@@ -264,11 +262,6 @@ const ProductInformation = ({
 										Unit price cannot be lower than selling price
 									</p>
 								)}
-							{isCreditSale && (
-								<p className="text-gray-500 text-xs mt-1">
-									Unit price is optional for credit sales
-								</p>
-							)}
 						</div>
 
 						{item.productName && item.unitPrice > 0 && (
@@ -279,7 +272,7 @@ const ProductInformation = ({
 										{formatNaira(
 											item.isAccessory
 												? (item.unitPrice || 0) * (item.quantity || 1)
-												: item.unitPrice
+												: item.unitPrice,
 										)}
 									</span>
 								</div>
@@ -327,7 +320,7 @@ const ProductInformation = ({
 									const price = item.unitPrice || 0;
 									const quantity = item.isAccessory ? item.quantity || 1 : 1;
 									return total + price * quantity;
-								}, 0) - (discountAmount || 0)
+								}, 0) - (discountAmount || 0),
 							)}
 						</span>
 					</div>

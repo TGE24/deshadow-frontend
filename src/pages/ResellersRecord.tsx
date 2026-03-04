@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import {
 	useCreditProfilesLazyQuery,
 	CreditProfile,
-	SaleType,
 } from "../generated/graphql";
 import {
 	ColumnDef,
@@ -17,8 +16,7 @@ import { Pagination } from "../modules/Pagination";
 import Button from "../components/Button";
 import Plus from "../components/Icons/Plus";
 import { useNavigate } from "react-router-dom";
-import Modal from "react-responsive-modal";
-import ResellersSale from "../modules/ResellersSale";
+import CreateCreditProfileModal from "../modules/Modals/CreditProfile/CreateCreditProfileModal";
 
 const ResellersRecord = () => {
 	const navigate = useNavigate();
@@ -208,7 +206,7 @@ const ResellersRecord = () => {
 					onClick={() => setCreditDeviceModalOpen(true)}
 					className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
 				>
-					Add Credit Device
+					Add Credit Profile
 				</Button>
 			</div>
 
@@ -285,20 +283,11 @@ const ResellersRecord = () => {
 					onPrevPage={prevPage}
 				/>
 			</div>
-			<Modal
+			<CreateCreditProfileModal
 				open={creditDeviceModalOpen}
-				onClose={() => setCreditDeviceModalOpen(false)}
-				center
-				classNames={{
-					modal: "customModal w-[90vw] max-w-[1200px]",
-				}}
-			>
-				<ResellersSale
-					saleType={SaleType.Credit}
-					showSteps={false}
-					refetch={refetch}
-				/>
-			</Modal>
+				setOpen={setCreditDeviceModalOpen}
+				refetch={refetch}
+			/>
 		</>
 	);
 };

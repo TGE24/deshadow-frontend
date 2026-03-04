@@ -3,7 +3,7 @@ import Button from "../../components/Button";
 import { CreateSaleForm, ProductItem } from "./types";
 import { formatNaira, formatDateTime } from "../../utils/formatters";
 import { calculateSubtotal } from "../../utils/helpers";
-import { SaleType, PaymentType } from "../../generated/graphql";
+import { SaleType } from "../../generated/graphql";
 
 interface SaleSuccessProps {
 	saleData: {
@@ -11,7 +11,7 @@ interface SaleSuccessProps {
 		customerName: string;
 		totalAmount: number;
 		saleType: SaleType;
-		paymentType: PaymentType;
+		// paymentType: PaymentType;
 		createdAt: string;
 		invoices?: Array<{
 			uuid: string;
@@ -32,26 +32,6 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 	onNewSale,
 	onViewSale,
 }) => {
-	// Helper function to format payment type for display
-	const formatPaymentType = (paymentType: PaymentType) => {
-		switch (paymentType) {
-			case PaymentType.Cash:
-				return "Cash";
-			case PaymentType.Transfer:
-				return "Transfer";
-			case PaymentType.Pos:
-				return "POS";
-			case PaymentType.CashTransfer:
-				return "Cash + Transfer";
-			case PaymentType.PosCash:
-				return "POS + Cash";
-			case PaymentType.PosTransfer:
-				return "POS + Transfer";
-			default:
-				return "Not specified";
-		}
-	};
-
 	// Helper function to format sale type for display
 	const formatSaleType = (saleType: SaleType) => {
 		switch (saleType) {
@@ -118,21 +98,13 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 						<div>
 							<p className="text-[12px] text-gray-500 mb-[4px]">Total Amount</p>
 							<p className="text-[18px] font-bold text-green-600">
-								{formatNaira(saleData.totalAmount)}
+								{formatNaira(formData.totalAmount || 0)}
 							</p>
 						</div>
 					</div>
 
 					{/* Payment & Sale Type */}
 					<div className="grid grid-cols-2 gap-[16px]">
-						<div>
-							<p className="text-[12px] text-gray-500 mb-[4px]">
-								Payment Method
-							</p>
-							<p className="text-[14px] font-medium text-gray-800">
-								{formatPaymentType(saleData.paymentType)}
-							</p>
-						</div>
 						<div>
 							<p className="text-[12px] text-gray-500 mb-[4px]">Sale Type</p>
 							<p className="text-[14px] font-medium text-gray-800">
@@ -194,11 +166,6 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 												<p className="font-medium text-gray-800">
 													{formatNaira(item.unitPrice)}
 												</p>
-												{item.sellingPrice && (
-													<p className="text-[12px] text-gray-500">
-														Min: {formatNaira(item.sellingPrice)}
-													</p>
-												)}
 											</div>
 										</div>
 
@@ -332,15 +299,9 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 				</div>
 				<div className="text-center">
 					<p className="text-[16px] font-bold text-green-600">
-						{formatNaira(saleData.totalAmount)}
+						{formatNaira(formData.totalAmount)}
 					</p>
 					<p className="text-[12px] text-gray-500">Revenue</p>
-				</div>
-				<div className="text-center">
-					<p className="text-[14px] font-bold text-blue-600">
-						{formatPaymentType(saleData.paymentType)}
-					</p>
-					<p className="text-[12px] text-gray-500">Payment</p>
 				</div>
 			</div>
 		</div>

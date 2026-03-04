@@ -82,7 +82,8 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 	};
 
 	const isCreditPending =
-		sale.saleType === SaleType.Credit && sale.saleStatus === SaleStatus.Pending;
+		sale?.saleType === SaleType.Credit &&
+		sale?.saleStatus === SaleStatus.Pending;
 
 	return (
 		<>
@@ -114,11 +115,11 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 						<div className="flex items-center gap-[8px]">
 							<span
 								className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border ${getStatusStyles(
-									sale.saleStatus,
+									sale?.saleStatus,
 								)}`}
 							>
-								{sale.saleStatus?.charAt(0).toUpperCase() +
-									sale.saleStatus?.slice(1)}
+								{sale?.saleStatus?.charAt(0).toUpperCase() +
+									sale?.saleStatus?.slice(1)}
 							</span>
 							<Button
 								type="button"
@@ -142,7 +143,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Type:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{formatSaleType(sale.saleType)}
+									{formatSaleType(sale?.saleType)}
 								</span>
 							</div>
 							<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px]">
@@ -150,7 +151,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Payment:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{formatPaymentType(sale.paymentType)}
+									{formatPaymentType(sale?.paymentType)}
 								</span>
 							</div>
 							<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px]">
@@ -158,7 +159,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Date:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{formatDateTime(sale.saleDate)}
+									{formatDateTime(sale?.saleDate)}
 								</span>
 							</div>
 							<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px]">
@@ -166,7 +167,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Store:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{sale.store?.name || "N/A"}
+									{sale?.store?.name || "N/A"}
 								</span>
 							</div>
 							<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px] col-span-2">
@@ -174,10 +175,10 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Created By:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{sale.createdBy
-										? `${sale.createdBy.firstName} ${sale.createdBy.lastName}${
-												sale.createdBy.role
-													? ` (${sale.createdBy.role
+									{sale?.createdBy
+										? `${sale?.createdBy.firstName} ${sale?.createdBy.lastName}${
+												sale?.createdBy.role
+													? ` (${sale?.createdBy.role
 															.replace("_", " ")
 															.toLocaleUpperCase()})`
 													: ""
@@ -199,10 +200,10 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									Name:
 								</span>
 								<span className="text-[14px] text-gray-800">
-									{sale.customerName || "Not provided"}
+									{sale?.customerName || "Not provided"}
 								</span>
 							</div>
-							{sale.customerEmail && (
+							{sale?.customerEmail && (
 								<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px]">
 									<span className="text-[14px] font-medium text-gray-700">
 										Email:
@@ -212,7 +213,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 									</span>
 								</div>
 							)}
-							{sale.customerPhone && (
+							{sale?.customerPhone && (
 								<div className="flex justify-between items-center py-[6px] px-[8px] bg-white rounded-[4px]">
 									<span className="text-[14px] font-medium text-gray-700">
 										Phone:
@@ -229,7 +230,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 					<div className="bg-gray-50 p-[16px] rounded-[8px]">
 						<h4 className="font-semibold mb-[12px] text-[16px]">Products</h4>
 						<div className="space-y-[8px]">
-							{sale.items
+							{sale?.items
 								?.filter(
 									(item) =>
 										item.productItem?.status !== "available" ||
@@ -382,15 +383,15 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 								<span className="text-[14px]">Subtotal:</span>
 								<span className="text-[14px] font-medium">
 									{formatNaira(
-										(sale.totalAmount || 0) + (sale.discountAmount || 0),
+										(sale?.totalAmount || 0) + (sale?.discountAmount || 0),
 									)}
 								</span>
 							</div>
-							{sale.discountAmount > 0 && (
+							{sale?.discountAmount > 0 && (
 								<div className="flex justify-between items-center py-[6px]">
 									<span className="text-[14px]">Discount:</span>
 									<span className="text-[14px] font-medium text-red-600">
-										-{formatNaira(sale.discountAmount)}
+										-{formatNaira(sale?.discountAmount)}
 									</span>
 								</div>
 							)}
@@ -400,7 +401,7 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 										Total Amount:
 									</span>
 									<span className="text-[18px] font-bold">
-										{formatNaira(sale.totalAmount)}
+										{formatNaira(sale?.totalAmount)}
 									</span>
 								</div>
 							</div>
@@ -408,11 +409,11 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 					</div>
 
 					{/* Notes Section */}
-					{sale.notes && (
+					{sale?.notes && (
 						<div className="bg-gray-50 p-[16px] rounded-[8px]">
 							<h4 className="font-semibold mb-[12px] text-[16px]">Notes</h4>
 							<p className="text-[14px] text-gray-700 whitespace-pre-wrap">
-								{sale.notes}
+								{sale?.notes}
 							</p>
 						</div>
 					)}
@@ -421,21 +422,21 @@ const ViewSale: React.FC<ViewSaleProps> = ({
 					<div className="grid grid-cols-3 gap-[12px]">
 						<div className="bg-gray-100 p-[12px] rounded-[6px] text-center">
 							<p className="text-[20px] font-bold text-gray-800">
-								{sale.items?.length || 0}
+								{sale?.items?.length || 0}
 							</p>
 							<p className="text-[12px] text-gray-600">
-								Product{(sale.items?.length || 0) !== 1 ? "s" : ""}
+								Product{(sale?.items?.length || 0) !== 1 ? "s" : ""}
 							</p>
 						</div>
 						<div className="bg-gray-100 p-[12px] rounded-[6px] text-center">
 							<p className="text-[16px] font-bold text-gray-800">
-								{formatNaira(sale.totalAmount)}
+								{formatNaira(sale?.totalAmount)}
 							</p>
 							<p className="text-[12px] text-gray-600">Total Amount</p>
 						</div>
 						<div className="bg-gray-100 p-[12px] rounded-[6px] text-center">
 							<p className="text-[14px] font-bold text-gray-800">
-								{formatDateTime(sale.createdAt)}
+								{formatDateTime(sale?.createdAt)}
 							</p>
 							<p className="text-[12px] text-gray-600">Created</p>
 						</div>

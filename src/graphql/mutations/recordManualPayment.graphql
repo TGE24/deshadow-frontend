@@ -1,0 +1,5 @@
+mutation RecordManualPayment($input: RecordManualPaymentInput!) {
+	recordManualPayment(input: $input) {
+		uuid
+	}
+}

@@ -7,7 +7,6 @@ import {
 	useCreateSaleMutation,
 	useProductItemLazyQuery,
 	ProductItem as ProductItemType,
-	useCreateCreditProfileMutation,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 import { toast } from "react-toastify";
@@ -19,9 +18,7 @@ import { steps } from "./constants";
 // Import components
 import StepNavigation from "./StepNavigation";
 import ProductInformation from "./ProductInformation";
-import CustomerDetails from "./CustomerDetails";
 import ReviewOrder from "./ReviewOrder";
-import PaymentDetails from "./PaymentDetails";
 import SaleSuccess from "./SaleSuccess";
 
 // Import utilities
@@ -29,16 +26,17 @@ import { canProceedToNextStep } from "./validation";
 import { calculateSubtotal, createNewProductItem } from "../../utils/helpers";
 import { useProductStore } from "../../store/productStore";
 import { useUserStore } from "../../store/userStore";
+import { useParams } from "react-router-dom";
 
 const DirectSale = ({
 	saleType = SaleType.Direct,
 	showSteps = true,
 	refetch,
 }: DirectSaleProps) => {
+	const { id } = useParams<{ id: string }>();
 	const { setProductItem } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
-	const [createCreditProfile] = useCreateCreditProfileMutation();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [stepsVisible, setStepsVisible] = useState(false);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
@@ -50,7 +48,6 @@ const DirectSale = ({
 		customerName: string;
 		totalAmount: number;
 		saleType: SaleType;
-		paymentType: PaymentType;
 		createdAt: string;
 		invoices?: Array<{
 			uuid: string;
@@ -75,12 +72,11 @@ const DirectSale = ({
 		}
 	}, [data, setProductItem]);
 
-	const { register, handleSubmit, setValue, watch } = useForm<CreateSaleForm>({
+	const { handleSubmit, setValue, watch } = useForm<CreateSaleForm>({
 		defaultValues: {
 			storeUuid: "",
+			creditProfileUuid: id,
 			customerName: "",
-			customerEmail: "",
-			customerPhone: "",
 			saleType: saleType,
 			paymentType: PaymentType.Cash,
 			totalAmount: 0,
@@ -97,6 +93,13 @@ const DirectSale = ({
 	}, [saleType, setValue]);
 
 	const formData = watch();
+
+	useEffect(() => {
+		const computedTotalAmount =
+			calculateSubtotal(productItems) - (formData.discountAmount || 0);
+
+		setValue("totalAmount", computedTotalAmount > 0 ? computedTotalAmount : 0);
+	}, [productItems, formData.discountAmount, setValue]);
 
 	const addProductItem = () => {
 		setProductItems([...productItems, createNewProductItem()]);
@@ -155,18 +158,10 @@ const DirectSale = ({
 		setCurrentStep(1);
 		setProductItems([createNewProductItem()]);
 		// Reset form values to defaults
-		setValue("customerName", "");
-		setValue("customerEmail", "");
-		setValue("customerPhone", "");
 		setValue("totalAmount", 0);
 		setValue("discountAmount", 0);
 		setValue("notes", "");
 	};
-
-	// const handleCloseSale = () => {
-	// 	// Close the entire DirectSale component
-	// 	setOpen(false);
-	// };
 
 	const onSubmit = async (data: CreateSaleForm) => {
 		// Validate that no product has a unit price lower than selling price
@@ -202,46 +197,21 @@ const DirectSale = ({
 
 		const subtotal = calculateSubtotal(productItems);
 		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);
+		setValue(
+			"totalAmount",
+			totalAmountAfterDiscount > 0 ? totalAmountAfterDiscount : 0,
+		);
 
 		// Separate gadgets and accessories into distinct arrays
 		const gadgets = productItems.filter((item) => !item.isAccessory);
 		const accessories = productItems.filter((item) => item.isAccessory);
 		// Handle credit profile for credit sales
-		let creditProfileUuid = data.creditProfileUuid;
-
-		// If this is a credit sale and no profile was selected, create a new one
-		if (data.saleType === SaleType.Credit && !creditProfileUuid) {
-			try {
-				const profileResult = await createCreditProfile({
-					variables: {
-						input: {
-							customerName: data.customerName,
-							customerPhone: data.customerPhone,
-							customerEmail: data.customerEmail || null,
-						},
-					},
-				});
-
-				if (profileResult.data?.createCreditProfile) {
-					creditProfileUuid = profileResult.data.createCreditProfile.uuid;
-					toast.success("Credit profile created successfully!");
-				} else {
-					toast.error("Failed to create credit profile. Please try again.");
-					return;
-				}
-			} catch (error) {
-				console.error("Error creating credit profile:", error);
-				toast.error("Failed to create credit profile. Please try again.");
-				return;
-			}
-		}
-
 		await createSale({
 			variables: {
 				input: {
 					...data,
 					totalAmount: totalAmountAfterDiscount,
-					creditProfileUuid: creditProfileUuid || undefined,
+					creditProfileUuid: id || undefined,
 					items: gadgets.map((item) => ({
 						serialNumber: item.serialNumber || "",
 						unitPrice: item.unitPrice,
@@ -262,7 +232,6 @@ const DirectSale = ({
 						customerName: sale.customerName,
 						totalAmount: sale.totalAmount,
 						saleType: data.saleType,
-						paymentType: data.paymentType,
 						createdAt: sale.createdAt,
 						invoices: sale.invoices || [],
 					});
@@ -288,7 +257,6 @@ const DirectSale = ({
 						onRemoveProduct={removeProductItem}
 						onUpdateProduct={updateProductItem}
 						onViewProductDetails={(id) => {
-							// setOpen(true);
 							handleViewProductDetails(id);
 						}}
 						discountAmount={formData.discountAmount}
@@ -297,19 +265,7 @@ const DirectSale = ({
 					/>
 				);
 			case 2:
-				return (
-					<CustomerDetails
-						register={register}
-						setValue={setValue}
-						watch={watch}
-					/>
-				);
-			case 3:
 				return <ReviewOrder productItems={productItems} formData={formData} />;
-			case 4:
-				return (
-					<PaymentDetails register={register} productItems={productItems} />
-				);
 			default:
 				return (
 					<ProductInformation

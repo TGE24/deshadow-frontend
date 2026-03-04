@@ -6,13 +6,8 @@ export const steps: Step[] = [
 		title: "Product Information",
 		description: "Select product and price",
 	},
-	{
-		id: 2,
-		title: "Customer Details",
-		description: "Enter customer information",
-	},
-	{ id: 3, title: "Review", description: "Review your order details" },
-	// { id: 4, title: "Payment", description: "Set payment details" },
+	{ id: 2, title: "Review", description: "Review your order details" },
+	// { id: 3, title: "Payment", description: "Set payment details" },
 ];
 
 export const selectStyles = {

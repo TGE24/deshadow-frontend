@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
 	useCreditProfileLazyQuery,
-	Sale,
 	SaleType,
-	SaleStatus,
+	Sale,
+	SaleItem,
 } from "../generated/graphql";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -16,7 +16,13 @@ import { formatNaira, formatDateTime } from "../utils/formatters";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import Button from "../components/Button";
-import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
+// import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
+import Modal from "react-responsive-modal";
+import ResellersSale from "../modules/ResellersSale";
+import Plus from "../components/Icons/Plus";
+import RepaymentModal from "../modules/Modals/CreditProfile/RepaymentModal";
+import ReturnItemModal from "../modules/Modals/CreditProfile/ReturnItemModal";
+import ViewSaleItem from "../modules/Modals/SalesDetails/ViewSaleItem";
 
 const CreditProfileDetails = () => {
 	const [getCreditProfile, { data: creditProfile, loading, refetch }] =
@@ -25,7 +31,15 @@ const CreditProfileDetails = () => {
 		});
 	const { id } = useParams<{ id: string }>();
 	const [open, setOpen] = useState(false);
-	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
+	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
+	const [selectedSaleItem, setSelectedSaleItem] = useState<SaleItem>(
+		{} as SaleItem,
+	);
+	const [data, setData] = useState<Sale[]>([]);
+	const [returnModalOpen, setReturnModalOpen] = useState(false);
+	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+
+	const profile = creditProfile?.creditProfile?.profile;
 
 	useEffect(() => {
 		if (id) {
@@ -35,40 +49,46 @@ const CreditProfileDetails = () => {
 		}
 	}, [getCreditProfile, id]);
 
-	const profile = creditProfile?.creditProfile?.profile;
+	useEffect(() => {
+		if (creditProfile?.creditProfile?.pendingSales) {
+			setData(
+				creditProfile?.creditProfile?.pendingSales.map(
+					(item) => item.sale,
+				) as Sale[],
+			);
+		}
+	}, [creditProfile]);
+
 	const pendingSales = useMemo(
 		() => creditProfile?.creditProfile?.pendingSales || [],
 		[creditProfile?.creditProfile?.pendingSales],
 	);
 
-	// Calculate total outstanding amount
-	const totalOutstanding = useMemo(() => {
-		return pendingSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
-	}, [pendingSales]);
-
-	const columns = useMemo<ColumnDef<Sale>[]>(() => {
-		const baseColumns: ColumnDef<Sale>[] = [
+	const columns = useMemo<ColumnDef<SaleItem>[]>(() => {
+		const baseColumns: ColumnDef<SaleItem>[] = [
 			{
-				accessorKey: "customerName",
-				cell: (info) => info.getValue(),
-				header: () => <h4>Customer Name</h4>,
+				accessorKey: "product.name",
+				cell: (info) => {
+					const row = info.row.original;
+					return row.product?.name || row.accessory?.name || "N/A";
+				},
+				header: () => <h4>Product Name</h4>,
 			},
 			{
-				accessorKey: "totalAmount",
+				accessorKey: "productItem.serialNumber",
+				cell: (info) => {
+					const row = info.row.original;
+					return row.productItem?.serialNumber || "N/A";
+				},
+				header: () => <h4>Serial Number</h4>,
+			},
+			{
+				accessorKey: "lineTotal",
 				cell: (info) => {
 					const value = info.getValue() as number;
 					return formatNaira(value);
 				},
 				header: () => <h4>Total Amount</h4>,
-			},
-			{
-				header: "Created By",
-				cell: ({ row }) => {
-					const value = row.original.createdBy;
-					return `${value?.firstName} ${value?.lastName} (${
-						value?.role.replace("_", " ") ?? ""
-					})`;
-				},
 			},
 			{
 				accessorKey: "createdAt",
@@ -79,60 +99,15 @@ const CreditProfileDetails = () => {
 				header: () => <h4>Created At</h4>,
 			},
 			{
-				accessorKey: "saleType",
-				cell: (info) => {
-					const saleType = info.getValue() as SaleType;
-					const getSaleTypeStyles = (type: SaleType) => {
-						switch (type) {
-							case SaleType.Direct:
-								return "bg-blue-100 text-blue-800";
-							case SaleType.Swap:
-								return "bg-green-100 text-green-800";
-							case SaleType.Credit:
-								return "bg-orange-100 text-orange-800";
-							default:
-								return "bg-gray-100 text-gray-800";
-						}
-					};
-
-					const getSaleTypeLabel = (type: SaleType) => {
-						switch (type) {
-							case SaleType.Direct:
-								return "Direct Sale";
-							case SaleType.Swap:
-								return "Swap Sale";
-							case SaleType.Credit:
-								return "Credit Sale";
-							default:
-								return type;
-						}
-					};
-
-					return (
-						<span
-							className={`px-2 py-1 rounded text-xs font-medium ${getSaleTypeStyles(
-								saleType,
-							)}`}
-						>
-							{getSaleTypeLabel(saleType)}
-						</span>
-					);
-				},
-				header: () => <h4>Sale Type</h4>,
-			},
-
-			{
-				accessorKey: "saleStatus",
+				accessorKey: "fulfillmentStatus",
 				cell: (info) => {
 					const status = info.getValue() as string;
 					const getStatusStyles = (status: string) => {
 						switch (status?.toLowerCase()) {
-							case "completed":
+							case "delivered":
 								return "bg-green-100 text-green-800 border-green-200";
 							case "pending":
 								return "bg-yellow-100 text-yellow-800 border-yellow-200";
-							case "cancelled":
-								return "bg-red-100 text-red-800 border-red-200";
 							case "returned":
 								return "bg-gray-100 text-gray-800 border-gray-200";
 							default:
@@ -152,13 +127,44 @@ const CreditProfileDetails = () => {
 				},
 				header: () => <h4>Sale Status</h4>,
 			},
+			{
+				accessorKey: "actions",
+				header: () => <h4>Actions</h4>,
+				cell: ({ row }) => {
+					const saleItem = row.original;
+					return (
+						<div className="flex gap-2">
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									setSelectedSaleItem(saleItem);
+									setReturnModalOpen(true);
+								}}
+								className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors"
+							>
+								Return
+							</button>
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									setSelectedSaleItem(saleItem);
+									setPaymentModalOpen(true);
+								}}
+								className="px-3 py-1 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded transition-colors"
+							>
+								Pay
+							</button>
+						</div>
+					);
+				},
+			},
 		];
 
 		return baseColumns;
 	}, []);
 
 	const table = useReactTable({
-		data: pendingSales,
+		data: pendingSales[0]?.sale.items as SaleItem[],
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});
@@ -171,30 +177,12 @@ const CreditProfileDetails = () => {
 		);
 	}
 
-	if (!profile) {
-		return (
-			<div className="flex items-center justify-center min-h-screen">
-				<div className="text-center">
-					<h2 className="text-2xl font-semibold text-gray-900 mb-2">
-						Profile Not Found
-					</h2>
-					<p className="text-gray-600 mb-4">
-						The credit profile you're looking for doesn't exist.
-					</p>
-					<Link to="/resellers-record">
-						<Button variant="primary">Back to Credit Profiles</Button>
-					</Link>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<>
 			<div className="container mx-auto p-6">
 				{/* Header Section */}
 				<div className="mb-6">
-					<div className="flex items-center justify-between">
+					<div className="flex items-center justify-between w-full">
 						<div>
 							<Link
 								to="/resellers-record"
@@ -206,6 +194,14 @@ const CreditProfileDetails = () => {
 								Credit Profile Details
 							</h1>
 						</div>
+						<Button
+							size="small"
+							icon={<Plus color="#060606" />}
+							onClick={() => setCreditDeviceModalOpen(true)}
+							className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+						>
+							Add Credit Device
+						</Button>
 					</div>
 				</div>
 
@@ -218,10 +214,10 @@ const CreditProfileDetails = () => {
 						<div>
 							<p className="text-sm text-gray-600 mb-1">Name</p>
 							<p className="text-base font-medium text-gray-900">
-								{profile.customerName}
+								{profile?.customerName}
 							</p>
 						</div>
-						{profile.customerEmail && (
+						{profile?.customerEmail && (
 							<div>
 								<p className="text-sm text-gray-600 mb-1">Email</p>
 								<p className="text-base font-medium text-gray-900">
@@ -229,7 +225,7 @@ const CreditProfileDetails = () => {
 								</p>
 							</div>
 						)}
-						{profile.customerPhone && (
+						{profile?.customerPhone && (
 							<div>
 								<p className="text-sm text-gray-600 mb-1">Phone</p>
 								<p className="text-base font-medium text-gray-900">
@@ -245,7 +241,9 @@ const CreditProfileDetails = () => {
 					<h2 className="text-lg font-medium mb-2">
 						Total Outstanding Balance
 					</h2>
-					<p className="text-4xl font-bold">{formatNaira(totalOutstanding)}</p>
+					<p className="text-4xl font-bold">
+						{formatNaira(creditProfile?.creditProfile?.totalPendingAmount)}
+					</p>
 					<p className="text-sm mt-2 opacity-90">
 						{pendingSales.length} pending{" "}
 						{pendingSales.length === 1 ? "sale" : "sales"}
@@ -283,7 +281,7 @@ const CreditProfileDetails = () => {
 							</thead>
 							{loading ? (
 								<TableLoader columns={columns.length} />
-							) : pendingSales.length === 0 ? (
+							) : data.length === 0 ? (
 								<TableEmptyState
 									title="No Sales Found"
 									description="There are no sales records to display. Sales will appear here once they are created."
@@ -293,20 +291,13 @@ const CreditProfileDetails = () => {
 								<tbody>
 									{table.getRowModel().rows.map((row) => {
 										const sale = row.original;
-										const isCreditPending =
-											sale.saleType === SaleType.Credit &&
-											sale.saleStatus === SaleStatus.Pending;
 
 										return (
 											<tr
 												key={row.id}
-												className={`border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-[#F9F9F9] ${
-													isCreditPending
-														? "bg-orange-50 hover:bg-orange-100 border-orange-200"
-														: ""
-												}`}
+												className={`border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-[#F9F9F9]`}
 												onClick={() => {
-													setSelectedSale(sale);
+													setSelectedSaleItem(sale);
 													setOpen(true);
 												}}
 											>
@@ -330,12 +321,39 @@ const CreditProfileDetails = () => {
 					</div>
 				</div>
 			</div>
-			<ViewSale
-				open={open}
-				setOpen={setOpen}
-				sale={selectedSale}
+			<ViewSaleItem open={open} setOpen={setOpen} saleItem={selectedSaleItem} />
+
+			<ReturnItemModal
+				open={returnModalOpen}
+				setOpen={setReturnModalOpen}
 				refetch={refetch}
+				data={selectedSaleItem}
+				profileId={id ?? ""}
 			/>
+
+			{/* Payment Modal */}
+			<RepaymentModal
+				open={paymentModalOpen}
+				setOpen={setPaymentModalOpen}
+				refetch={refetch}
+				data={selectedSaleItem}
+				profileId={id ?? ""}
+			/>
+
+			<Modal
+				open={creditDeviceModalOpen}
+				onClose={() => setCreditDeviceModalOpen(false)}
+				center
+				classNames={{
+					modal: "customModal w-[90vw] max-w-[1200px]",
+				}}
+			>
+				<ResellersSale
+					saleType={SaleType.Credit}
+					showSteps={false}
+					refetch={refetch}
+				/>
+			</Modal>
 		</>
 	);
 };

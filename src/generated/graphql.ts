@@ -175,8 +175,10 @@ export type CreditProfileConnection = {
 
 export type CreditProfileDetail = {
   __typename?: 'CreditProfileDetail';
-  pendingSales: Array<Sale>;
+  pendingSales: Array<CreditProfilePendingSale>;
   profile: CreditProfile;
+  totalOriginalAmount: Scalars['Float']['output'];
+  totalPaidAmount: Scalars['Float']['output'];
   totalPendingAmount: Scalars['Float']['output'];
 };
 
@@ -186,10 +188,23 @@ export type CreditProfileEdge = {
   node: CreditProfile;
 };
 
+export type CreditProfilePendingSale = {
+  __typename?: 'CreditProfilePendingSale';
+  originalAmount: Scalars['Float']['output'];
+  paidAmount: Scalars['Float']['output'];
+  pendingAmount: Scalars['Float']['output'];
+  sale: Sale;
+};
+
 export type CreditProfileSearchResult = {
   __typename?: 'CreditProfileSearchResult';
   profiles: Array<CreditProfile>;
   totalCount: Scalars['Int']['output'];
+};
+
+export type CreditSaleReturnItemInput = {
+  reason: Scalars['String']['input'];
+  saleItemUuid: Scalars['UUID']['input'];
 };
 
 export type EarningsTransaction = {
@@ -307,6 +322,7 @@ export type Mutation = {
   resendInvitation: PasswordResetResponse;
   resendOTP: PasswordResetResponse;
   resetPassword: PasswordResetResponse;
+  returnCreditSaleItem: Sale;
   setProductItemAttributeValues: ProductItemAttributeValue;
   unassignAttributeFromProduct: Scalars['Boolean']['output'];
   unassignResellerFromStore: Scalars['Boolean']['output'];
@@ -501,6 +517,12 @@ export type MutationResendOtpArgs = {
 
 export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
+};
+
+
+export type MutationReturnCreditSaleItemArgs = {
+  creditProfileUuid: Scalars['UUID']['input'];
+  items: Array<CreditSaleReturnItemInput>;
 };
 
 
@@ -820,6 +842,7 @@ export type Query = {
   conditionSummary: Scalars['JSON']['output'];
   creditProfile?: Maybe<CreditProfileDetail>;
   creditProfiles: CreditProfileConnection;
+  creditSaleItemsForReturn: Array<SaleItem>;
   financialDashboard: Scalars['JSON']['output'];
   invoice?: Maybe<Invoice>;
   invoiceStats: Scalars['JSON']['output'];
@@ -840,7 +863,7 @@ export type Query = {
   refund?: Maybe<Refund>;
   refundStats: Scalars['JSON']['output'];
   refundsByReturn: PaginatedResponse;
-  sale?: Maybe<Sale>;
+  sale: Sale;
   sales: PaginatedResponse;
   salesReport: Scalars['JSON']['output'];
   searchCreditProfiles: CreditProfileSearchResult;
@@ -906,6 +929,11 @@ export type QueryCreditProfileArgs = {
 
 export type QueryCreditProfilesArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryCreditSaleItemsForReturnArgs = {
+  creditProfileUuid: Scalars['UUID']['input'];
 };
 
 
@@ -1463,6 +1491,13 @@ export type LoginWith2FaMutationVariables = Exact<{
 
 export type LoginWith2FaMutation = { __typename?: 'Mutation', loginWith2FA: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, challengeToken?: string | null } };
 
+export type RecordManualPaymentMutationVariables = Exact<{
+  input: RecordManualPaymentInput;
+}>;
+
+
+export type RecordManualPaymentMutation = { __typename?: 'Mutation', recordManualPayment: { __typename?: 'PaymentTransaction', uuid: any } };
+
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
 }>;
@@ -1497,6 +1532,14 @@ export type ResetPasswordMutationVariables = Exact<{
 
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'PasswordResetResponse', success: boolean, message: string } };
+
+export type ReturnCreditSaleItemMutationVariables = Exact<{
+  creditProfileUuid: Scalars['UUID']['input'];
+  items: Array<CreditSaleReturnItemInput> | CreditSaleReturnItemInput;
+}>;
+
+
+export type ReturnCreditSaleItemMutation = { __typename?: 'Mutation', returnCreditSaleItem: { __typename?: 'Sale', uuid: any } };
 
 export type SetProductItemAttributeValuesMutationVariables = Exact<{
   inputs: Array<ProductItemAttributeValueInput> | ProductItemAttributeValueInput;
@@ -1629,7 +1672,7 @@ export type CreditProfileQueryVariables = Exact<{
 }>;
 
 
-export type CreditProfileQuery = { __typename?: 'Query', creditProfile?: { __typename?: 'CreditProfileDetail', profile: { __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null }, pendingSales: Array<{ __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', status: ProductItemStatus, serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }> } | null };
+export type CreditProfileQuery = { __typename?: 'Query', creditProfile?: { __typename?: 'CreditProfileDetail', totalPendingAmount: number, totalOriginalAmount: number, totalPaidAmount: number, profile: { __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null }, pendingSales: Array<{ __typename?: 'CreditProfilePendingSale', paidAmount: number, pendingAmount: number, originalAmount: number, sale: { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, fulfillmentStatus: SaleItemFulfillmentStatus, createdAt: any, updatedAt: any, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', status: ProductItemStatus, serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } }> } | null };
 
 export type CreditProfilesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -2537,6 +2580,39 @@ export function useLoginWith2FaMutation(baseOptions?: Apollo.MutationHookOptions
 export type LoginWith2FaMutationHookResult = ReturnType<typeof useLoginWith2FaMutation>;
 export type LoginWith2FaMutationResult = Apollo.MutationResult<LoginWith2FaMutation>;
 export type LoginWith2FaMutationOptions = Apollo.BaseMutationOptions<LoginWith2FaMutation, LoginWith2FaMutationVariables>;
+export const RecordManualPaymentDocument = gql`
+    mutation RecordManualPayment($input: RecordManualPaymentInput!) {
+  recordManualPayment(input: $input) {
+    uuid
+  }
+}
+    `;
+export type RecordManualPaymentMutationFn = Apollo.MutationFunction<RecordManualPaymentMutation, RecordManualPaymentMutationVariables>;
+
+/**
+ * __useRecordManualPaymentMutation__
+ *
+ * To run a mutation, you first call `useRecordManualPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecordManualPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recordManualPaymentMutation, { data, loading, error }] = useRecordManualPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRecordManualPaymentMutation(baseOptions?: Apollo.MutationHookOptions<RecordManualPaymentMutation, RecordManualPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecordManualPaymentMutation, RecordManualPaymentMutationVariables>(RecordManualPaymentDocument, options);
+      }
+export type RecordManualPaymentMutationHookResult = ReturnType<typeof useRecordManualPaymentMutation>;
+export type RecordManualPaymentMutationResult = Apollo.MutationResult<RecordManualPaymentMutation>;
+export type RecordManualPaymentMutationOptions = Apollo.BaseMutationOptions<RecordManualPaymentMutation, RecordManualPaymentMutationVariables>;
 export const RefreshTokenDocument = gql`
     mutation RefreshToken($refreshToken: String!) {
   refreshToken(refreshToken: $refreshToken) {
@@ -2717,6 +2793,40 @@ export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOption
 export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
 export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
 export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
+export const ReturnCreditSaleItemDocument = gql`
+    mutation ReturnCreditSaleItem($creditProfileUuid: UUID!, $items: [CreditSaleReturnItemInput!]!) {
+  returnCreditSaleItem(creditProfileUuid: $creditProfileUuid, items: $items) {
+    uuid
+  }
+}
+    `;
+export type ReturnCreditSaleItemMutationFn = Apollo.MutationFunction<ReturnCreditSaleItemMutation, ReturnCreditSaleItemMutationVariables>;
+
+/**
+ * __useReturnCreditSaleItemMutation__
+ *
+ * To run a mutation, you first call `useReturnCreditSaleItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReturnCreditSaleItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [returnCreditSaleItemMutation, { data, loading, error }] = useReturnCreditSaleItemMutation({
+ *   variables: {
+ *      creditProfileUuid: // value for 'creditProfileUuid'
+ *      items: // value for 'items'
+ *   },
+ * });
+ */
+export function useReturnCreditSaleItemMutation(baseOptions?: Apollo.MutationHookOptions<ReturnCreditSaleItemMutation, ReturnCreditSaleItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReturnCreditSaleItemMutation, ReturnCreditSaleItemMutationVariables>(ReturnCreditSaleItemDocument, options);
+      }
+export type ReturnCreditSaleItemMutationHookResult = ReturnType<typeof useReturnCreditSaleItemMutation>;
+export type ReturnCreditSaleItemMutationResult = Apollo.MutationResult<ReturnCreditSaleItemMutation>;
+export type ReturnCreditSaleItemMutationOptions = Apollo.BaseMutationOptions<ReturnCreditSaleItemMutation, ReturnCreditSaleItemMutationVariables>;
 export const SetProductItemAttributeValuesDocument = gql`
     mutation SetProductItemAttributeValues($inputs: [ProductItemAttributeValueInput!]!) {
   setProductItemAttributeValues(inputs: $inputs) {
@@ -3409,60 +3519,71 @@ export const CreditProfileDocument = gql`
       customerPhone
     }
     pendingSales {
-      uuid
-      saleType
-      paymentType
-      discountAmount
-      invoices {
+      sale {
         uuid
-        filePath
-        invoiceNumber
-      }
-      store {
-        name
-      }
-      saleDate
-      saleStatus
-      createdAt
-      updatedAt
-      totalAmount
-      paymentStatus
-      customerName
-      customerEmail
-      customerPhone
-      items {
-        uuid
-        quantity
-        unitPrice
-        lineTotal
-        accessory {
+        saleType
+        paymentType
+        discountAmount
+        invoices {
           uuid
+          filePath
+          invoiceNumber
+        }
+        store {
           name
         }
-        productItem {
-          status
-          serialNumber
-          attributeValues {
-            attribute {
-              name
-              uuid
+        saleDate
+        saleStatus
+        createdAt
+        updatedAt
+        totalAmount
+        paymentStatus
+        customerName
+        customerEmail
+        customerPhone
+        items {
+          uuid
+          quantity
+          unitPrice
+          lineTotal
+          fulfillmentStatus
+          createdAt
+          updatedAt
+          accessory {
+            uuid
+            name
+          }
+          productItem {
+            status
+            serialNumber
+            attributeValues {
+              attribute {
+                name
+                uuid
+              }
+              valueText
             }
-            valueText
+          }
+          product {
+            name
           }
         }
-        product {
-          name
+        createdBy {
+          role
+          firstName
+          lastName
+          assignedStore {
+            name
+          }
         }
       }
-      createdBy {
-        role
-        firstName
-        lastName
-        assignedStore {
-          name
-        }
-      }
+      paidAmount
+      pendingAmount
+      originalAmount
     }
+    totalPendingAmount
+    totalOriginalAmount
+    totalPaidAmount
   }
 }
     `;

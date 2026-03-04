@@ -1,0 +1,8 @@
+mutation ReturnCreditSaleItem(
+	$creditProfileUuid: UUID!
+	$items: [CreditSaleReturnItemInput!]!
+) {
+	returnCreditSaleItem(creditProfileUuid: $creditProfileUuid, items: $items) {
+		uuid
+	}
+}

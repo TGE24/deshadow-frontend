@@ -34,6 +34,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 		reset,
 		setValue,
 		register,
+		watch,
 	} = useForm<{
 		uuid: string;
 		status: SaleStatus;
@@ -41,13 +42,15 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 		paymentType?: PaymentType;
 	}>({
 		defaultValues: {
-			uuid: sale.uuid,
+			uuid: sale?.uuid,
 			status: "" as SaleStatus,
-			totalAmount: sale.totalAmount,
+			totalAmount: sale?.totalAmount,
 			paymentType:
-				sale.saleType === SaleType.Credit ? undefined : sale.paymentType,
+				sale?.saleType === SaleType.Credit ? undefined : sale?.paymentType,
 		},
 	});
+
+	const selectedStatus = watch("status");
 
 	const onSubmit = async (data: {
 		uuid: string;
@@ -57,7 +60,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 	}) => {
 		await updateSale({
 			variables: {
-				uuid: sale.uuid,
+				uuid: sale?.uuid,
 				status: data.status,
 				totalAmount: data.totalAmount,
 				paymentType: data.paymentType,
@@ -127,36 +130,40 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							</span>
 						)}
 					</div>
-					<div className="mt-4">
-						<Input
-							label="Total Amount"
-							type="text"
-							placeholder="₦0.00"
-							defaultValue={
-								sale.totalAmount ? formatNaira(sale.totalAmount) : ""
-							}
-							register={register("totalAmount", {
-								setValueAs: (value: string | number) => {
-									// Convert to string if it's a number
-									const strValue =
-										typeof value === "number" ? value.toString() : value || "";
-									// Remove currency symbol and commas, keep only numbers and decimal
-									const numericValue = strValue
+					{selectedStatus === SaleStatus.Completed && (
+						<div className="mt-4">
+							<Input
+								label="Total Amount"
+								type="text"
+								placeholder="₦0.00"
+								defaultValue={
+									sale?.totalAmount ? formatNaira(sale?.totalAmount) : ""
+								}
+								register={register("totalAmount", {
+									setValueAs: (value: string | number) => {
+										// Convert to string if it's a number
+										const strValue =
+											typeof value === "number"
+												? value.toString()
+												: value || "";
+										// Remove currency symbol and commas, keep only numbers and decimal
+										const numericValue = strValue
+											.replace(/₦|,/g, "")
+											.replace(/[^0-9.]/g, "");
+										return parseFloat(numericValue) || 0;
+									},
+								})}
+								onChange={(e) => {
+									// Format the input value for display
+									const numericValue = e.target.value
 										.replace(/₦|,/g, "")
 										.replace(/[^0-9.]/g, "");
-									return parseFloat(numericValue) || 0;
-								},
-							})}
-							onChange={(e) => {
-								// Format the input value for display
-								const numericValue = e.target.value
-									.replace(/₦|,/g, "")
-									.replace(/[^0-9.]/g, "");
-								const parsedValue = parseFloat(numericValue) || 0;
-								e.target.value = formatNaira(parsedValue);
-							}}
-						/>
-					</div>
+									const parsedValue = parseFloat(numericValue) || 0;
+									e.target.value = formatNaira(parsedValue);
+								}}
+							/>
+						</div>
+					)}
 
 					<div className="mt-4">
 						<label
@@ -174,7 +181,7 @@ const UpdateStatus: React.FC<UpdateSaleProps> = ({
 							}))}
 							placeholder="Select payment type"
 							defaultValue={
-								sale.saleType === SaleType.Credit
+								sale?.saleType === SaleType.Credit
 									? null
 									: {
 											value: sale?.paymentType,
