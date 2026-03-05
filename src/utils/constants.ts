@@ -1,3 +1,5 @@
+import { PaymentType } from "../generated/graphql";
+
 export const selectStyles = {
 	control: () =>
 		"h-[48px] !rounded-[10px] !border-[#F0F0FF] border-[1px] cursor-pointer outline-none focus:outline-none text-[14px]",
@@ -13,3 +15,12 @@ export const CONDITION_STYLES = {
 	damaged: "bg-red-100 text-red-800 border-red-200",
 	default: "bg-gray-100 text-gray-800 border-gray-200",
 } as const;
+
+export const PaymentTypeOptions = [
+	{ value: PaymentType.Cash, label: "Cash" },
+	{ value: PaymentType.Transfer, label: "Transfer" },
+	{ value: PaymentType.Pos, label: "POS" },
+	{ value: PaymentType.CashTransfer, label: "Cash + Transfer" },
+	{ value: PaymentType.PosCash, label: "POS + Cash" },
+	{ value: PaymentType.PosTransfer, label: "POS + Transfer" },
+];

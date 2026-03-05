@@ -6,6 +6,7 @@ import {
 } from "../../../generated/graphql";
 import { formatNaira } from "../../../utils/formatters";
 import Button from "../../../components/Button";
+import { toast } from "react-toastify";
 
 interface ModalProps {
 	open: boolean;
@@ -34,6 +35,9 @@ const ReturnItemModal: React.FC<ModalProps> = ({
 				onCompleted() {
 					setOpen(false);
 					refetch();
+				},
+				onError(error) {
+					toast.error(error.message);
 				},
 			});
 		} catch (error) {

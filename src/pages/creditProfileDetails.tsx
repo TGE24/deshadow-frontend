@@ -4,6 +4,8 @@ import {
 	SaleType,
 	Sale,
 	SaleItem,
+	CreditProfilePendingSale,
+	CreditProfile,
 } from "../generated/graphql";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -16,13 +18,13 @@ import { formatNaira, formatDateTime } from "../utils/formatters";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
 import Button from "../components/Button";
-// import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import Modal from "react-responsive-modal";
 import ResellersSale from "../modules/ResellersSale";
 import Plus from "../components/Icons/Plus";
 import RepaymentModal from "../modules/Modals/CreditProfile/RepaymentModal";
 import ReturnItemModal from "../modules/Modals/CreditProfile/ReturnItemModal";
 import ViewSaleItem from "../modules/Modals/SalesDetails/ViewSaleItem";
+import RepayAllModal from "../modules/Modals/CreditProfile/RepayAllModal";
 
 const CreditProfileDetails = () => {
 	const [getCreditProfile, { data: creditProfile, loading, refetch }] =
@@ -38,6 +40,8 @@ const CreditProfileDetails = () => {
 	const [data, setData] = useState<Sale[]>([]);
 	const [returnModalOpen, setReturnModalOpen] = useState(false);
 	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+	const [payAllModalOpen, setPayAllModalOpen] = useState(false);
+	const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
 	const profile = creditProfile?.creditProfile?.profile;
 
@@ -64,8 +68,69 @@ const CreditProfileDetails = () => {
 		[creditProfile?.creditProfile?.pendingSales],
 	);
 
+	const selectedItemsData = useMemo(() => {
+		if (!pendingSales[0]?.sale.items) return { items: [], total: 0 };
+
+		const selected = pendingSales[0].sale.items.filter((item) =>
+			selectedItems.has(item.uuid),
+		);
+		const total = selected.reduce(
+			(sum, item) => sum + (item.lineTotal || 0),
+			0,
+		);
+
+		return { items: selected, total };
+	}, [selectedItems, pendingSales]);
+
 	const columns = useMemo<ColumnDef<SaleItem>[]>(() => {
 		const baseColumns: ColumnDef<SaleItem>[] = [
+			{
+				id: "select",
+				header: () => {
+					const isAllSelected =
+						selectedItems.size > 0 &&
+						selectedItems.size === (pendingSales[0]?.sale.items?.length || 0);
+
+					return (
+						<input
+							type="checkbox"
+							checked={isAllSelected}
+							onChange={(e) => {
+								if (e.target.checked) {
+									const newSelected = new Set<string>();
+									pendingSales[0]?.sale.items?.forEach((item) => {
+										newSelected.add(item.uuid);
+									});
+									setSelectedItems(newSelected);
+								} else {
+									setSelectedItems(new Set());
+								}
+							}}
+							className="w-4 h-4 cursor-pointer"
+						/>
+					);
+				},
+				cell: ({ row }) => {
+					const saleItem = row.original;
+					return (
+						<input
+							type="checkbox"
+							checked={selectedItems.has(saleItem.uuid)}
+							onChange={() => {
+								const newSelected = new Set(selectedItems);
+								if (newSelected.has(saleItem.uuid)) {
+									newSelected.delete(saleItem.uuid);
+								} else {
+									newSelected.add(saleItem.uuid);
+								}
+								setSelectedItems(newSelected);
+							}}
+							onClick={(e) => e.stopPropagation()}
+							className="w-4 h-4 cursor-pointer"
+						/>
+					);
+				},
+			},
 			{
 				accessorKey: "product.name",
 				cell: (info) => {
@@ -161,7 +226,7 @@ const CreditProfileDetails = () => {
 		];
 
 		return baseColumns;
-	}, []);
+	}, [selectedItems, pendingSales]);
 
 	const table = useReactTable({
 		data: pendingSales[0]?.sale.items as SaleItem[],
@@ -237,24 +302,62 @@ const CreditProfileDetails = () => {
 				</div>
 
 				{/* Outstanding Balance Card */}
-				<div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-md p-6 mb-6 text-white">
-					<h2 className="text-lg font-medium mb-2">
-						Total Outstanding Balance
-					</h2>
-					<p className="text-4xl font-bold">
-						{formatNaira(creditProfile?.creditProfile?.totalPendingAmount)}
-					</p>
-					<p className="text-sm mt-2 opacity-90">
-						{pendingSales.length} pending{" "}
-						{pendingSales.length === 1 ? "sale" : "sales"}
-					</p>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+					<div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
+						<h2 className="text-lg font-medium mb-2 text-red-900">
+							Total Outstanding Balance
+						</h2>
+						<p className="text-4xl font-bold text-red-700">
+							{formatNaira(creditProfile?.creditProfile?.totalPendingAmount)}
+						</p>
+					</div>
+
+					<div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+						<h2 className="text-lg font-medium mb-2 text-green-900">
+							Total Amount Paid
+						</h2>
+						<p className="text-4xl font-bold text-green-700">
+							{formatNaira(creditProfile?.creditProfile?.totalPaidAmount)}
+						</p>
+					</div>
 				</div>
 
 				{/* Pending Sales Table */}
 				<div className="bg-white rounded-lg shadow-md p-6">
-					<h2 className="text-xl font-semibold text-gray-900 mb-4">
-						Pending Sales
-					</h2>
+					<div className="flex justify-between items-center mb-4">
+						<h2 className="text-xl font-semibold text-gray-900">
+							Pending Sales
+						</h2>
+						{pendingSales.length > 0 && (
+							<div className="flex items-center gap-4">
+								{selectedItems.size > 0 && (
+									<div className="text-sm text-gray-600">
+										<span className="font-medium">{selectedItems.size}</span>{" "}
+										item
+										{selectedItems.size !== 1 ? "s" : ""} selected •{" "}
+										<span className="font-medium">
+											{formatNaira(selectedItemsData.total)}
+										</span>
+									</div>
+								)}
+								<Button
+									size="small"
+									onClick={() => setPayAllModalOpen(true)}
+									disabled={selectedItems.size === 0}
+									className={`${
+										selectedItems.size === 0
+											? "bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed"
+											: "bg-green-600 text-white border-green-600 hover:bg-green-700"
+									}`}
+								>
+									Pay For{" "}
+									{selectedItems.size > 0 ? selectedItems.size : "Selected"}{" "}
+									Item
+									{selectedItems.size !== 1 ? "s" : ""}
+								</Button>
+							</div>
+						)}
+					</div>
 					<div className="w-full mt-[48px] overflow-x-auto">
 						<table className="w-full min-w-[800px]">
 							<thead className="bg-[#D4E7E6] h-[41px]">
@@ -337,7 +440,18 @@ const CreditProfileDetails = () => {
 				setOpen={setPaymentModalOpen}
 				refetch={refetch}
 				data={selectedSaleItem}
-				profileId={id ?? ""}
+				saleUuid={pendingSales[0]?.sale.uuid ?? ""}
+			/>
+
+			{/* Pay All Modal */}
+			<RepayAllModal
+				open={payAllModalOpen}
+				setOpen={setPayAllModalOpen}
+				refetch={refetch}
+				profile={profile as CreditProfile}
+				pendingSales={pendingSales[0] as CreditProfilePendingSale}
+				selectedItems={selectedItemsData.items as SaleItem[]}
+				totalAmount={selectedItemsData.total}
 			/>
 
 			<Modal

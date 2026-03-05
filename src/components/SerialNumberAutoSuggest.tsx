@@ -58,7 +58,9 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const [getProductItems] = useProductItemsLazyQuery();
+	const [getProductItems] = useProductItemsLazyQuery({
+		fetchPolicy: "network-only",
+	});
 
 	// Search for product items when debounced input changes
 	useEffect(() => {
@@ -114,13 +116,13 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 			case "ArrowDown":
 				e.preventDefault();
 				setSelectedIndex((prev) =>
-					prev < suggestions.length - 1 ? prev + 1 : 0
+					prev < suggestions.length - 1 ? prev + 1 : 0,
 				);
 				break;
 			case "ArrowUp":
 				e.preventDefault();
 				setSelectedIndex((prev) =>
-					prev > 0 ? prev - 1 : suggestions.length - 1
+					prev > 0 ? prev - 1 : suggestions.length - 1,
 				);
 				break;
 			case "Enter":
@@ -252,7 +254,7 @@ const SerialNumberAutoSuggest: React.FC<SerialNumberAutoSuggestProps> = ({
 							</div>
 						))}
 					</div>,
-					document.body
+					document.body,
 				)}
 		</div>
 	);

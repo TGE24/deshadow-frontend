@@ -1,30 +1,70 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal from "react-responsive-modal";
-import { SaleItem } from "../../../generated/graphql";
+import {
+	PaymentAllocationType,
+	PaymentType,
+	SaleItem,
+	useRecordManualPaymentMutation,
+} from "../../../generated/graphql";
 import { formatNaira } from "../../../utils/formatters";
 import Button from "../../../components/Button";
+import { PaymentTypeOptions } from "../../../utils/constants";
+import Select, { SingleValue } from "react-select";
 
 interface ModalProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	refetch: () => void;
 	data: SaleItem;
-	profileId: string;
+	saleUuid: string;
 }
 
 const RepaymentModal: React.FC<ModalProps> = ({
 	open,
 	setOpen,
-	// refetch,
+	refetch,
 	data,
+	saleUuid,
 }) => {
+	const [payAllPaymentType, setPayAllPaymentType] = useState<PaymentType>(
+		PaymentType.Cash,
+	);
+	const [payAllAmount, setPayAllAmount] = useState<number>(data.lineTotal || 0);
+	const [recordPayment, { loading: repaymentLoading }] =
+		useRecordManualPaymentMutation();
+
+	const handleSubmit = async () => {
+		const itemsAllocations = [
+			{ saleItemUuid: data.uuid, amount: Number(data.lineTotal) },
+		];
+
+		try {
+			await recordPayment({
+				variables: {
+					input: {
+						saleUuid: saleUuid,
+						amount: payAllAmount,
+						paymentMethod: payAllPaymentType,
+						allocationType: PaymentAllocationType.Items,
+						itemAllocations: itemsAllocations,
+					},
+				},
+				onCompleted: () => {
+					refetch();
+					setOpen(false);
+				},
+			});
+		} catch (error) {
+			console.error("Error recording payment:", error);
+		}
+	};
 	return (
 		<Modal
 			open={open}
 			onClose={() => setOpen(false)}
 			center
 			classNames={{
-				modal: "customModal w-[90vw] max-w-[500px]",
+				modal: "customModal w-[90vw] max-w-[600px]",
 			}}
 		>
 			<div className="p-6">
@@ -65,29 +105,84 @@ const RepaymentModal: React.FC<ModalProps> = ({
 						</p>
 					)}
 				</div>
+
+				<div className="mb-6">
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Payment Type
+					</label>
+					<Select
+						value={PaymentTypeOptions.find(
+							(option) => option.value === payAllPaymentType,
+						)}
+						onChange={(
+							selectedOption: SingleValue<{
+								value: PaymentType;
+								label: string;
+							}>,
+						) => {
+							if (selectedOption) {
+								setPayAllPaymentType(selectedOption.value);
+							}
+						}}
+						options={PaymentTypeOptions}
+						className="text-sm"
+						placeholder="Select payment type..."
+						menuPortalTarget={document.body}
+						menuPosition="fixed"
+						styles={{
+							control: (base) => ({
+								...base,
+								minHeight: "48px",
+								borderColor: "#d1d5db",
+								borderRadius: "8px",
+								"&:hover": {
+									borderColor: "#9ca3af",
+								},
+							}),
+							option: (base, state) => ({
+								...base,
+								backgroundColor: state.isSelected
+									? "#3b82f6"
+									: state.isFocused
+										? "#eff6ff"
+										: "white",
+							}),
+							menuPortal: (base) => ({
+								...base,
+								zIndex: 9999,
+							}),
+						}}
+					/>
+				</div>
 				<div className="mb-6">
 					<label className="block text-sm font-medium text-gray-700 mb-2">
 						Payment Amount
 					</label>
 					<input
-						type="number"
-						placeholder="Enter amount"
+						type="text"
+						placeholder="₦0.00"
+						value={payAllAmount ? formatNaira(payAllAmount) : ""}
+						onChange={(e) => {
+							// Remove currency symbol and commas, keep only numbers and decimal
+							const numericValue = e.target.value
+								.replace(/₦|,/g, "")
+								.replace(/[^0-9.]/g, "");
+
+							// Parse the numeric value
+							const parsedValue = parseFloat(numericValue) || 0;
+							setPayAllAmount(parsedValue);
+						}}
 						className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
 				<div className="flex gap-3 justify-end">
-					<Button variant="secondary" onClick={() => setOpen(false)}>
-						Cancel
-					</Button>
 					<Button
 						variant="primary"
-						onClick={() => {
-							// TODO: Implement payment functionality
-							// console.log("Process payment for:", data.id);
-							setOpen(false);
-						}}
+						size="large"
+						className="w-full"
+						onClick={handleSubmit}
 					>
-						Process Payment
+						{repaymentLoading ? "Processing..." : "Process Payment"}
 					</Button>
 				</div>
 			</div>

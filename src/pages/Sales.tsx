@@ -19,7 +19,7 @@ import ViewSale from "../modules/Modals/SalesDetails/ViewSale";
 import SalesFilterDropdown from "../components/SalesFilterDropdown";
 import { formatToISODateTime } from "../utils/helpers";
 import { Pagination } from "../modules/Pagination";
-import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
+// import UpdateStatus from "../modules/Modals/SalesDetails/UpdateStatus";
 import Input from "../components/Input";
 import { useDebounce } from "../hooks/useDebounce";
 import { useUserStore } from "../store/userStore";
@@ -32,10 +32,10 @@ export interface SelectOption {
 
 const SalesManagement = () => {
 	const [open, setOpen] = useState(false);
-	const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
+	// const [updateStatusOpen, setUpdateStatusOpen] = useState(false);
 	const [selectedSale, setSelectedSale] = useState<Sale>({} as Sale);
 	const [page, setPage] = useState(1);
-	const [getSales, { data: sales, loading, refetch }] = useSalesLazyQuery({
+	const [getSales, { data: sales, loading }] = useSalesLazyQuery({
 		fetchPolicy: "network-only",
 	});
 	const [data, setData] = useState<Sale[]>([]);
@@ -291,8 +291,8 @@ const SalesManagement = () => {
 			filters.saleTypes = selectedSaleTypes;
 		}
 
-		if (selectedStore) {
-			filters.storeUuid = selectedStore;
+		if (selectedStore?.uuid !== "all") {
+			filters.storeUuid = selectedStore?.uuid;
 		}
 
 		if (dateRange.fromDate) {
@@ -413,11 +413,7 @@ const SalesManagement = () => {
 										}`}
 										onClick={() => {
 											setSelectedSale(sale);
-											if (isCreditPending) {
-												setUpdateStatusOpen(true);
-											} else {
-												setOpen(true);
-											}
+											setOpen(true);
 										}}
 									>
 										{row.getVisibleCells().map((cell) => (
@@ -450,12 +446,12 @@ const SalesManagement = () => {
 				/>
 			</div>
 			<ViewSale open={open} setOpen={setOpen} sale={selectedSale} />
-			<UpdateStatus
+			{/* <UpdateStatus
 				open={updateStatusOpen}
 				setOpen={setUpdateStatusOpen}
 				sale={selectedSale}
 				refetch={refetch}
-			/>
+			/> */}
 		</>
 	);
 };
