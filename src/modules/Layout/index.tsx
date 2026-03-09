@@ -90,24 +90,44 @@ const ADMIN_MENU: MenuItem[] = [
 ];
 
 // Common components
-const Logo = () => (
-	<div className="h-[87px] border-[#FFEBD099] border-b-[3px] flex items-center">
-		<h1 className="text-[40px] text-[#FFEBD0]">DeShadow</h1>
+const Logo = ({ isCollapsed = false }: { isCollapsed?: boolean }) => (
+	<div
+		className={cn(
+			"h-[87px] border-[#FFEBD099] border-b-[3px] flex items-center",
+			isCollapsed ? "justify-center" : "justify-start",
+		)}
+	>
+		<h1
+			className={cn(
+				"text-[#FFEBD0]",
+				isCollapsed ? "text-[20px]" : "text-[40px]",
+			)}
+		>
+			{isCollapsed ? "DS" : "DeShadow"}
+		</h1>
 	</div>
 );
 
-const SectionLabel = ({ children }: { children: ReactNode }) => (
+const SectionLabel = ({
+	children,
+	isCollapsed = false,
+}: {
+	children: ReactNode;
+	isCollapsed?: boolean;
+}) => (
 	<p className="mt-[70px] mb-[11px] text-[#FFEBD0B2] text-[14px] font-medium first:mt-[70px]">
-		{children}
+		{isCollapsed ? "" : children}
 	</p>
 );
 
 const MenuList = ({
 	items,
 	onItemClick,
+	isCollapsed = false,
 }: {
 	items: MenuItem[];
 	onItemClick?: () => void;
+	isCollapsed?: boolean;
 }) => {
 	const location = useLocation();
 	const [openDropdown, setOpenDropdown] = useState<number | null>(null);
@@ -125,15 +145,17 @@ const MenuList = ({
 				return (
 					<li key={index}>
 						{hasSubItems ? (
-							<>
-								<div
-									className={cn(
-										{ "bg-[#FFEBD04D]": isAnySubItemActive },
-										"flex gap-[8px] items-center justify-between px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
-									)}
-									onClick={() => setOpenDropdown(isDropdownOpen ? null : index)}
+							isCollapsed ? (
+								<NavLink
+									to={item.subItems?.[0]?.link || "#"}
+									onClick={onItemClick}
 								>
-									<div className="flex gap-[8px] items-center">
+									<div
+										className={cn(
+											{ "bg-[#FFEBD04D]": isAnySubItemActive },
+											"flex items-center justify-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
+										)}
+									>
 										<div
 											className={cn(
 												{ "text-[#FFEBD0]": isAnySubItemActive },
@@ -142,69 +164,93 @@ const MenuList = ({
 										>
 											{item.icon}
 										</div>
-										<p
-											className={cn(
-												{ "font-bold": isAnySubItemActive },
-												"text-[#FFEBD0]",
-											)}
-										>
-											{item.name}
-										</p>
 									</div>
-									<svg
+								</NavLink>
+							) : (
+								<>
+									<div
 										className={cn(
-											"w-4 h-4 text-[#FFEBD099] transition-transform duration-200",
-											{ "rotate-180": isDropdownOpen },
+											{ "bg-[#FFEBD04D]": isAnySubItemActive },
+											"flex gap-[8px] items-center justify-between px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
 										)}
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
+										onClick={() =>
+											setOpenDropdown(isDropdownOpen ? null : index)
+										}
 									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M19 9l-7 7-7-7"
-										/>
-									</svg>
-								</div>
-								{isDropdownOpen && (
-									<ul className="mt-[8px] ml-[26px] flex flex-col gap-[6px]">
-										{item.subItems?.map((subItem, subIndex) => {
-											const isSubActive = location.pathname === subItem.link;
-											return (
-												<NavLink
-													to={subItem.link}
-													key={subIndex}
-													onClick={onItemClick}
-												>
-													<li
-														className={cn(
-															{ "bg-[#FFEBD04D]": isSubActive },
-															"px-[16px] py-[10px] rounded-[6px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
-														)}
+										<div className="flex gap-[8px] items-center">
+											<div
+												className={cn(
+													{ "text-[#FFEBD0]": isAnySubItemActive },
+													"size-[18px] text-[#FFEBD099]",
+												)}
+											>
+												{item.icon}
+											</div>
+											<p
+												className={cn(
+													{ "font-bold": isAnySubItemActive },
+													"text-[#FFEBD0]",
+												)}
+											>
+												{item.name}
+											</p>
+										</div>
+										<svg
+											className={cn(
+												"w-4 h-4 text-[#FFEBD099] transition-transform duration-200",
+												{ "rotate-180": isDropdownOpen },
+											)}
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M19 9l-7 7-7-7"
+											/>
+										</svg>
+									</div>
+									{isDropdownOpen && (
+										<ul className="mt-[8px] ml-[26px] flex flex-col gap-[6px]">
+											{item.subItems?.map((subItem, subIndex) => {
+												const isSubActive = location.pathname === subItem.link;
+												return (
+													<NavLink
+														to={subItem.link}
+														key={subIndex}
+														onClick={onItemClick}
 													>
-														<p
+														<li
 															className={cn(
-																{ "font-bold": isSubActive },
-																"text-[#FFEBD0] text-[14px]",
+																{ "bg-[#FFEBD04D]": isSubActive },
+																"px-[16px] py-[10px] rounded-[6px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
 															)}
 														>
-															{subItem.name}
-														</p>
-													</li>
-												</NavLink>
-											);
-										})}
-									</ul>
-								)}
-							</>
+															<p
+																className={cn(
+																	{ "font-bold": isSubActive },
+																	"text-[#FFEBD0] text-[14px]",
+																)}
+															>
+																{subItem.name}
+															</p>
+														</li>
+													</NavLink>
+												);
+											})}
+										</ul>
+									)}
+								</>
+							)
 						) : (
 							<NavLink to={item.link || "#"} onClick={onItemClick}>
 								<div
 									className={cn(
 										{ "bg-[#FFEBD04D]": isActive },
-										"flex gap-[8px] items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
+										"flex items-center px-[16px] py-[12px] rounded-[8px] cursor-pointer transition-all duration-200 hover:bg-[#FFEBD0] hover:bg-opacity-10",
+										isCollapsed ? "justify-center" : "gap-[8px]",
 									)}
 								>
 									<div
@@ -216,7 +262,11 @@ const MenuList = ({
 										{item.icon}
 									</div>
 									<p
-										className={cn({ "font-bold": isActive }, "text-[#FFEBD0]")}
+										className={cn(
+											{ "font-bold": isActive },
+											"text-[#FFEBD0]",
+											isCollapsed ? "hidden" : "block",
+										)}
 									>
 										{item.name}
 									</p>
@@ -274,7 +324,7 @@ const Header = ({
 			style={{ top: topOffset }}
 			className="w-full px-[20px] py-[18px] bg-white md:px-[40px] xl:px-[74px] flex-shrink-0 sticky"
 		>
-			<div className="flex items-center justify-between lg:max-w-[70dvw]">
+			<div className="flex items-center justify-between lg:max-w-[85dvw]">
 				<div className="hidden lg:block">
 					<h1 className="text-[20px] font-bold">
 						Good Morning, {user?.firstName} 👋🏽
@@ -472,6 +522,8 @@ const StoreDropdown = () => {
 const Layout = ({ children }: LayoutProps) => {
 	const { user } = useUserStore();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] =
+		useState(false);
 
 	const isAdmin =
 		user?.role === UserRole.Admin || user?.role === UserRole.SuperAdmin;
@@ -558,28 +610,82 @@ const Layout = ({ children }: LayoutProps) => {
 			</section>
 
 			{/* Desktop Sidebar */}
-			<section className="bg-[#278783] w-[265px] px-[14px] hidden lg:flex lg:flex-col overflow-y-auto flex-shrink-0">
-				<Logo />
+			<section
+				className={cn(
+					"bg-[#278783] hidden lg:flex lg:flex-col overflow-y-auto flex-shrink-0 transition-all duration-200 relative",
+					isDesktopSidebarCollapsed
+						? "w-[88px] px-[10px]"
+						: "w-[265px] px-[14px]",
+				)}
+			>
+				<Logo isCollapsed={isDesktopSidebarCollapsed} />
+				<div
+					className={cn(
+						"absolute top-[100px] z-10",
+						isDesktopSidebarCollapsed
+							? "left-1/2 -translate-x-1/2"
+							: "right-[14px]",
+					)}
+				>
+					<button
+						type="button"
+						onClick={() =>
+							setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)
+						}
+						className="size-[32px] rounded-[8px] border border-[#FFEBD066] text-[#FFEBD0] flex items-center justify-center hover:bg-[#FFEBD01A] transition-all duration-200"
+					>
+						<svg
+							className={cn("w-4 h-4 transition-transform duration-200", {
+								"rotate-180": isDesktopSidebarCollapsed,
+							})}
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 19l-7-7 7-7"
+							/>
+						</svg>
+					</button>
+				</div>
 				{user?.role === UserRole.StoreOwner && (
 					<>
-						<SectionLabel>MAIN MENU</SectionLabel>
-						<MenuList items={STORE_OWNER_MENU} />
+						<SectionLabel isCollapsed={isDesktopSidebarCollapsed}>
+							MAIN MENU
+						</SectionLabel>
+						<MenuList
+							items={STORE_OWNER_MENU}
+							isCollapsed={isDesktopSidebarCollapsed}
+						/>
 					</>
 				)}
 				{user?.role === UserRole.Reseller && (
 					<>
-						<SectionLabel>MAIN MENU</SectionLabel>
-						<MenuList items={RESELLER_MENU} />
+						<SectionLabel isCollapsed={isDesktopSidebarCollapsed}>
+							MAIN MENU
+						</SectionLabel>
+						<MenuList
+							items={RESELLER_MENU}
+							isCollapsed={isDesktopSidebarCollapsed}
+						/>
 					</>
 				)}
 				{(user?.role === UserRole.Admin ||
 					user?.role === UserRole.SuperAdmin) && (
 					<div className="mt-[70px] pb-[20px]">
-						<MenuList items={ADMIN_MENU} />
+						<MenuList
+							items={ADMIN_MENU}
+							isCollapsed={isDesktopSidebarCollapsed}
+						/>
 					</div>
 				)}
 
-				{user?.role === UserRole.StoreOwner && <StoreDropdown />}
+				{user?.role === UserRole.StoreOwner && !isDesktopSidebarCollapsed && (
+					<StoreDropdown />
+				)}
 			</section>
 
 			{/* Main content area */}
@@ -601,7 +707,7 @@ const Layout = ({ children }: LayoutProps) => {
 					hasPendingSales={!isAdmin && hasPendingSales}
 				/>
 				<div className="flex-1 overflow-y-auto lg:p-[20px] xl:p-[34px_38px_38px_38px]">
-					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[75dvw]">
+					<main className="bg-white px-[20px] pt-[20px] pb-[100px] md:p-[40px] lg:p-[18px] xl:p-[36px] rounded-[15px] min-h-full lg:max-w-[85dvw]">
 						{children}
 					</main>
 				</div>

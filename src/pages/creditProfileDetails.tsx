@@ -6,6 +6,7 @@ import {
 	SaleItem,
 	CreditProfilePendingSale,
 	CreditProfile,
+	usePaymentHistoryQuery,
 } from "../generated/graphql";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -31,6 +32,8 @@ const CreditProfileDetails = () => {
 		useCreditProfileLazyQuery({
 			fetchPolicy: "network-only",
 		});
+	const { data: paymentHistory, refetch: refetchPaymentHistory } =
+		usePaymentHistoryQuery({ variables: { pagination: { first: 100 } } });
 	const { id } = useParams<{ id: string }>();
 	const [open, setOpen] = useState(false);
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
@@ -42,8 +45,14 @@ const CreditProfileDetails = () => {
 	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 	const [payAllModalOpen, setPayAllModalOpen] = useState(false);
 	const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+	const [showPaymentHistory, setShowPaymentHistory] = useState(false);
 
 	const profile = creditProfile?.creditProfile?.profile;
+
+	const refetchPageData = () => {
+		refetch();
+		refetchPaymentHistory();
+	};
 
 	useEffect(() => {
 		if (id) {
@@ -81,6 +90,29 @@ const CreditProfileDetails = () => {
 
 		return { items: selected, total };
 	}, [selectedItems, pendingSales]);
+
+	const paymentHistoryItems = useMemo(() => {
+		const customerEmail = profile?.customerEmail?.trim().toLowerCase();
+
+		if (!customerEmail) return [];
+
+		return (paymentHistory?.paymentTransactions?.edges || [])
+			.map((edge) => edge.node)
+			.filter(
+				(
+					node,
+				): node is Extract<typeof node, { __typename: "PaymentTransaction" }> =>
+					node.__typename === "PaymentTransaction",
+			)
+			.filter(
+				(transaction) =>
+					transaction.customerEmail?.trim().toLowerCase() === customerEmail,
+			)
+			.sort(
+				(a, b) =>
+					new Date(b.paidAt || 0).getTime() - new Date(a.paidAt || 0).getTime(),
+			);
+	}, [paymentHistory?.paymentTransactions?.edges, profile?.customerEmail]);
 
 	const columns = useMemo<ColumnDef<SaleItem>[]>(() => {
 		const baseColumns: ColumnDef<SaleItem>[] = [
@@ -143,9 +175,9 @@ const CreditProfileDetails = () => {
 				accessorKey: "productItem.serialNumber",
 				cell: (info) => {
 					const row = info.row.original;
-					return row.productItem?.serialNumber || "N/A";
+					return row.productItem?.serialNumber || row.quantity;
 				},
-				header: () => <h4>Serial Number</h4>,
+				header: () => <h4>Serial Number / Quantity</h4>,
 			},
 			{
 				accessorKey: "lineTotal",
@@ -259,169 +291,242 @@ const CreditProfileDetails = () => {
 								Credit Profile Details
 							</h1>
 						</div>
-						<Button
-							size="small"
-							icon={<Plus color="#060606" />}
-							onClick={() => setCreditDeviceModalOpen(true)}
-							className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
-						>
-							Add Credit Device
-						</Button>
-					</div>
-				</div>
-
-				{/* Customer Information Card */}
-				<div className="bg-white rounded-lg shadow-md p-6 mb-6">
-					<h2 className="text-xl font-semibold text-gray-900 mb-4">
-						Customer Information
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						<div>
-							<p className="text-sm text-gray-600 mb-1">Name</p>
-							<p className="text-base font-medium text-gray-900">
-								{profile?.customerName}
-							</p>
+						<div className="flex items-center gap-3">
+							<button
+								type="button"
+								onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+								className="text-sm font-medium text-[#278783] hover:text-[#1f6d69]"
+							>
+								{showPaymentHistory
+									? "Hide Payment History"
+									: "Show Payment History"}
+							</button>
+							<Button
+								size="small"
+								icon={<Plus color="#060606" />}
+								onClick={() => setCreditDeviceModalOpen(true)}
+								className="bg-[#F2F2FE] text-[#060606] border-[#F2F2FE]"
+							>
+								Add Credit Device
+							</Button>
 						</div>
-						{profile?.customerEmail && (
-							<div>
-								<p className="text-sm text-gray-600 mb-1">Email</p>
-								<p className="text-base font-medium text-gray-900">
-									{profile.customerEmail}
-								</p>
-							</div>
-						)}
-						{profile?.customerPhone && (
-							<div>
-								<p className="text-sm text-gray-600 mb-1">Phone</p>
-								<p className="text-base font-medium text-gray-900">
-									{profile.customerPhone}
-								</p>
-							</div>
-						)}
 					</div>
 				</div>
 
-				{/* Outstanding Balance Card */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-					<div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
-						<h2 className="text-lg font-medium mb-2 text-red-900">
-							Total Outstanding Balance
-						</h2>
-						<p className="text-4xl font-bold text-red-700">
-							{formatNaira(creditProfile?.creditProfile?.totalPendingAmount)}
-						</p>
-					</div>
-
-					<div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
-						<h2 className="text-lg font-medium mb-2 text-green-900">
-							Total Amount Paid
-						</h2>
-						<p className="text-4xl font-bold text-green-700">
-							{formatNaira(creditProfile?.creditProfile?.totalPaidAmount)}
-						</p>
-					</div>
-				</div>
-
-				{/* Pending Sales Table */}
-				<div className="bg-white rounded-lg shadow-md p-6">
-					<div className="flex justify-between items-center mb-4">
-						<h2 className="text-xl font-semibold text-gray-900">
-							Pending Sales
-						</h2>
-						{pendingSales.length > 0 && (
-							<div className="flex items-center gap-4">
-								{selectedItems.size > 0 && (
-									<div className="text-sm text-gray-600">
-										<span className="font-medium">{selectedItems.size}</span>{" "}
-										item
-										{selectedItems.size !== 1 ? "s" : ""} selected •{" "}
-										<span className="font-medium">
-											{formatNaira(selectedItemsData.total)}
-										</span>
+				<div
+					className={`grid grid-cols-1 gap-6 ${showPaymentHistory ? "lg:grid-cols-3" : ""}`}
+				>
+					<div
+						className={showPaymentHistory ? "lg:col-span-2" : "lg:col-span-3"}
+					>
+						{/* Customer Information Card */}
+						<div className="bg-white rounded-lg shadow-md p-6 mb-6">
+							<h2 className="text-xl font-semibold text-gray-900 mb-4">
+								Customer Information
+							</h2>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								<div>
+									<p className="text-sm text-gray-600 mb-1">Name</p>
+									<p className="text-base font-medium text-gray-900">
+										{profile?.customerName}
+									</p>
+								</div>
+								{profile?.customerEmail && (
+									<div>
+										<p className="text-sm text-gray-600 mb-1">Email</p>
+										<p className="text-base font-medium text-gray-900">
+											{profile.customerEmail}
+										</p>
 									</div>
 								)}
-								<Button
-									size="small"
-									onClick={() => setPayAllModalOpen(true)}
-									disabled={selectedItems.size === 0}
-									className={`${
-										selectedItems.size === 0
-											? "bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed"
-											: "bg-green-600 text-white border-green-600 hover:bg-green-700"
-									}`}
-								>
-									Pay For{" "}
-									{selectedItems.size > 0 ? selectedItems.size : "Selected"}{" "}
-									Item
-									{selectedItems.size !== 1 ? "s" : ""}
-								</Button>
+								{profile?.customerPhone && (
+									<div>
+										<p className="text-sm text-gray-600 mb-1">Phone</p>
+										<p className="text-base font-medium text-gray-900">
+											{profile.customerPhone}
+										</p>
+									</div>
+								)}
 							</div>
-						)}
-					</div>
-					<div className="w-full mt-[48px] overflow-x-auto">
-						<table className="w-full min-w-[800px]">
-							<thead className="bg-[#D4E7E6] h-[41px]">
-								{table.getHeaderGroups().map((headerGroup) => (
-									<tr
-										key={headerGroup.id}
-										className="text-[14px] font-semibold"
-									>
-										{headerGroup.headers.map((header) => (
-											<th
-												key={header.id}
-												className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
-											>
-												{header.isPlaceholder
-													? null
-													: flexRender(
-															header.column.columnDef.header,
-															header.getContext(),
-														)}
-											</th>
-										))}
-									</tr>
-								))}
-							</thead>
-							{loading ? (
-								<TableLoader columns={columns.length} />
-							) : data.length === 0 ? (
-								<TableEmptyState
-									title="No Sales Found"
-									description="There are no sales records to display. Sales will appear here once they are created."
-									colSpan={columns.length}
-								/>
-							) : (
-								<tbody>
-									{table.getRowModel().rows.map((row) => {
-										const sale = row.original;
+						</div>
 
-										return (
+						{/* Outstanding Balance Card */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+							<div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
+								<h2 className="text-lg font-medium mb-2 text-red-900">
+									Total Outstanding Balance
+								</h2>
+								<p className="text-4xl font-bold text-red-700">
+									{formatNaira(
+										creditProfile?.creditProfile?.totalPendingAmount,
+									)}
+								</p>
+							</div>
+
+							<div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+								<h2 className="text-lg font-medium mb-2 text-green-900">
+									Total Amount Paid
+								</h2>
+								<p className="text-4xl font-bold text-green-700">
+									{formatNaira(creditProfile?.creditProfile?.totalPaidAmount)}
+								</p>
+							</div>
+						</div>
+
+						{/* Pending Sales Table */}
+						<div className="bg-white rounded-lg shadow-md p-6">
+							<div className="flex justify-between items-center mb-4">
+								<h2 className="text-xl font-semibold text-gray-900">
+									Pending Sales
+								</h2>
+								{pendingSales.length > 0 && (
+									<div className="flex items-center gap-4">
+										{selectedItems.size > 0 && (
+											<div className="text-sm text-gray-600">
+												<span className="font-medium">
+													{selectedItems.size}
+												</span>{" "}
+												item
+												{selectedItems.size !== 1 ? "s" : ""} selected •{" "}
+												<span className="font-medium">
+													{formatNaira(selectedItemsData.total)}
+												</span>
+											</div>
+										)}
+										<Button
+											size="small"
+											onClick={() => setPayAllModalOpen(true)}
+											disabled={selectedItems.size === 0}
+											className={`${
+												selectedItems.size === 0
+													? "bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed"
+													: "bg-green-600 text-white border-green-600 hover:bg-green-700"
+											}`}
+										>
+											Pay For{" "}
+											{selectedItems.size > 0 ? selectedItems.size : "Selected"}{" "}
+											Item
+											{selectedItems.size !== 1 ? "s" : ""}
+										</Button>
+									</div>
+								)}
+							</div>
+							<div className="w-full mt-[48px] overflow-x-auto">
+								<table className="w-full min-w-[800px]">
+									<thead className="bg-[#D4E7E6] h-[41px]">
+										{table.getHeaderGroups().map((headerGroup) => (
 											<tr
-												key={row.id}
-												className={`border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-[#F9F9F9]`}
-												onClick={() => {
-													setSelectedSaleItem(sale);
-													setOpen(true);
-												}}
+												key={headerGroup.id}
+												className="text-[14px] font-semibold"
 											>
-												{row.getVisibleCells().map((cell) => (
-													<td
-														key={cell.id}
-														className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+												{headerGroup.headers.map((header) => (
+													<th
+														key={header.id}
+														className="text-left first-of-type:pl-[18px] whitespace-nowrap px-[12px]"
 													>
-														{flexRender(
-															cell.column.columnDef.cell,
-															cell.getContext(),
-														)}
-													</td>
+														{header.isPlaceholder
+															? null
+															: flexRender(
+																	header.column.columnDef.header,
+																	header.getContext(),
+																)}
+													</th>
 												))}
 											</tr>
-										);
-									})}
-								</tbody>
-							)}
-						</table>
+										))}
+									</thead>
+									{loading ? (
+										<TableLoader columns={columns.length} />
+									) : data.length === 0 ? (
+										<TableEmptyState
+											title="No Sales Found"
+											description="There are no sales records to display. Sales will appear here once they are created."
+											colSpan={columns.length}
+										/>
+									) : (
+										<tbody>
+											{table.getRowModel().rows.map((row) => {
+												const sale = row.original;
+
+												return (
+													<tr
+														key={row.id}
+														className={`border-b-[1px] border-[#E3E3E3] cursor-pointer hover:bg-[#F9F9F9]`}
+														onClick={() => {
+															setSelectedSaleItem(sale);
+															setOpen(true);
+														}}
+													>
+														{row.getVisibleCells().map((cell) => (
+															<td
+																key={cell.id}
+																className="first-of-type:pl-[18px] py-[20px] text-[14px] whitespace-nowrap px-[12px]"
+															>
+																{flexRender(
+																	cell.column.columnDef.cell,
+																	cell.getContext(),
+																)}
+															</td>
+														))}
+													</tr>
+												);
+											})}
+										</tbody>
+									)}
+								</table>
+							</div>
+						</div>
 					</div>
+
+					{showPaymentHistory && (
+						<div className="lg:col-span-1">
+							<div className="bg-white rounded-lg shadow-md p-6 lg:sticky lg:top-6">
+								<h2 className="text-xl font-semibold text-gray-900 mb-4">
+									Payment History
+								</h2>
+								{!profile?.customerEmail ? (
+									<p className="text-sm text-gray-500">
+										No customer email available to match payment history.
+									</p>
+								) : paymentHistoryItems.length === 0 ? (
+									<p className="text-sm text-gray-500">
+										No payments recorded yet.
+									</p>
+								) : (
+									<div className="space-y-3 max-h-[650px] overflow-y-auto pr-1">
+										{paymentHistoryItems.map((transaction) => (
+											<div
+												key={transaction.uuid}
+												className="border border-gray-200 rounded-md p-3"
+											>
+												<div className="flex items-center justify-between gap-3">
+													<p className="text-sm font-semibold text-gray-900">
+														{formatNaira(transaction.amount)}
+													</p>
+													{transaction.channel && (
+														<span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700 uppercase">
+															{transaction.channel}
+														</span>
+													)}
+												</div>
+												<p className="text-xs text-gray-500 mt-1">
+													{transaction.paidAt
+														? formatDateTime(transaction.paidAt)
+														: "Payment date unavailable"}
+												</p>
+												{transaction.requestedAmount && (
+													<p className="text-xs text-gray-500 mt-1">
+														Requested:{" "}
+														{formatNaira(transaction.requestedAmount)}
+													</p>
+												)}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 			<ViewSaleItem open={open} setOpen={setOpen} saleItem={selectedSaleItem} />
@@ -429,7 +534,7 @@ const CreditProfileDetails = () => {
 			<ReturnItemModal
 				open={returnModalOpen}
 				setOpen={setReturnModalOpen}
-				refetch={refetch}
+				refetch={refetchPageData}
 				data={selectedSaleItem}
 				profileId={id ?? ""}
 			/>
@@ -438,7 +543,7 @@ const CreditProfileDetails = () => {
 			<RepaymentModal
 				open={paymentModalOpen}
 				setOpen={setPaymentModalOpen}
-				refetch={refetch}
+				refetch={refetchPageData}
 				data={selectedSaleItem}
 				saleUuid={pendingSales[0]?.sale.uuid ?? ""}
 			/>
@@ -447,7 +552,7 @@ const CreditProfileDetails = () => {
 			<RepayAllModal
 				open={payAllModalOpen}
 				setOpen={setPayAllModalOpen}
-				refetch={refetch}
+				refetch={refetchPageData}
 				profile={profile as CreditProfile}
 				pendingSales={pendingSales[0] as CreditProfilePendingSale}
 				selectedItems={selectedItemsData.items as SaleItem[]}
@@ -465,7 +570,7 @@ const CreditProfileDetails = () => {
 				<ResellersSale
 					saleType={SaleType.Credit}
 					showSteps={false}
-					refetch={refetch}
+					refetch={refetchPageData}
 				/>
 			</Modal>
 		</>

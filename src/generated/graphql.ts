@@ -203,6 +203,7 @@ export type CreditProfileSearchResult = {
 };
 
 export type CreditSaleReturnItemInput = {
+  quantity?: InputMaybe<Scalars['Int']['input']>;
   reason: Scalars['String']['input'];
   saleItemUuid: Scalars['UUID']['input'];
 };
@@ -842,7 +843,6 @@ export type Query = {
   conditionSummary: Scalars['JSON']['output'];
   creditProfile?: Maybe<CreditProfileDetail>;
   creditProfiles: CreditProfileConnection;
-  creditSaleItemsForReturn: Array<SaleItem>;
   financialDashboard: Scalars['JSON']['output'];
   invoice?: Maybe<Invoice>;
   invoiceStats: Scalars['JSON']['output'];
@@ -854,6 +854,7 @@ export type Query = {
   myTotalEarnings: Scalars['Float']['output'];
   paymentStats: Scalars['JSON']['output'];
   paymentTransaction?: Maybe<PaymentTransaction>;
+  paymentTransactions: PaginatedResponse;
   paymentTransactionsBySale: PaginatedResponse;
   product?: Maybe<Product>;
   productItem?: Maybe<ProductItem>;
@@ -863,7 +864,7 @@ export type Query = {
   refund?: Maybe<Refund>;
   refundStats: Scalars['JSON']['output'];
   refundsByReturn: PaginatedResponse;
-  sale: Sale;
+  sale?: Maybe<Sale>;
   sales: PaginatedResponse;
   salesReport: Scalars['JSON']['output'];
   searchCreditProfiles: CreditProfileSearchResult;
@@ -932,11 +933,6 @@ export type QueryCreditProfilesArgs = {
 };
 
 
-export type QueryCreditSaleItemsForReturnArgs = {
-  creditProfileUuid: Scalars['UUID']['input'];
-};
-
-
 export type QueryFinancialDashboardArgs = {
   storeId?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -973,6 +969,15 @@ export type QueryMyEarningsTransactionsArgs = {
 
 export type QueryPaymentTransactionArgs = {
   paymentId: Scalars['UUID']['input'];
+};
+
+
+export type QueryPaymentTransactionsArgs = {
+  endDate?: InputMaybe<Scalars['Time']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+  startDate?: InputMaybe<Scalars['Time']['input']>;
+  status?: InputMaybe<PaymentTransactionStatus>;
+  storeUuid?: InputMaybe<Scalars['UUID']['input']>;
 };
 
 
@@ -1699,6 +1704,17 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string, createdAt: any, updatedAt: any, createdByMe?: boolean | null, ownedStores: Array<{ __typename?: 'Store', uuid: any, name: string, phone?: string | null, description?: string | null, address?: string | null, isActive: boolean }>, assignedStore?: { __typename?: 'Store', uuid: any, name: string, address?: string | null, phone?: string | null, isActive: boolean, createdAt: any, updatedAt: any } | null } };
+
+export type PaymentHistoryQueryVariables = Exact<{
+  storeUuid?: InputMaybe<Scalars['UUID']['input']>;
+  status?: InputMaybe<PaymentTransactionStatus>;
+  startDate?: InputMaybe<Scalars['Time']['input']>;
+  endDate?: InputMaybe<Scalars['Time']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductQueryVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -3841,6 +3857,87 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const PaymentHistoryDocument = gql`
+    query PaymentHistory($storeUuid: UUID, $status: PaymentTransactionStatus, $startDate: Time, $endDate: Time, $pagination: PaginationInput) {
+  paymentTransactions(
+    storeUuid: $storeUuid
+    status: $status
+    startDate: $startDate
+    endDate: $endDate
+    pagination: $pagination
+  ) {
+    edges {
+      node {
+        __typename
+        ... on PaymentTransaction {
+          uuid
+          amount
+          paidAt
+          channel
+          currency
+          customerEmail
+          requestedAmount
+          refunds {
+            return {
+              uuid
+              returnDate
+              processedDate
+              refundAmount
+              product {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __usePaymentHistoryQuery__
+ *
+ * To run a query within a React component, call `usePaymentHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePaymentHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePaymentHistoryQuery({
+ *   variables: {
+ *      storeUuid: // value for 'storeUuid'
+ *      status: // value for 'status'
+ *      startDate: // value for 'startDate'
+ *      endDate: // value for 'endDate'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function usePaymentHistoryQuery(baseOptions?: Apollo.QueryHookOptions<PaymentHistoryQuery, PaymentHistoryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PaymentHistoryQuery, PaymentHistoryQueryVariables>(PaymentHistoryDocument, options);
+      }
+export function usePaymentHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PaymentHistoryQuery, PaymentHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PaymentHistoryQuery, PaymentHistoryQueryVariables>(PaymentHistoryDocument, options);
+        }
+export function usePaymentHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PaymentHistoryQuery, PaymentHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PaymentHistoryQuery, PaymentHistoryQueryVariables>(PaymentHistoryDocument, options);
+        }
+export type PaymentHistoryQueryHookResult = ReturnType<typeof usePaymentHistoryQuery>;
+export type PaymentHistoryLazyQueryHookResult = ReturnType<typeof usePaymentHistoryLazyQuery>;
+export type PaymentHistorySuspenseQueryHookResult = ReturnType<typeof usePaymentHistorySuspenseQuery>;
+export type PaymentHistoryQueryResult = Apollo.QueryResult<PaymentHistoryQuery, PaymentHistoryQueryVariables>;
 export const ProductDocument = gql`
     query Product($uuid: UUID!) {
   product(uuid: $uuid) {

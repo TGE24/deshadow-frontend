@@ -1,0 +1,48 @@
+query PaymentHistory(
+	$storeUuid: UUID
+	$status: PaymentTransactionStatus
+	$startDate: Time
+	$endDate: Time
+	$pagination: PaginationInput
+) {
+	paymentTransactions(
+		storeUuid: $storeUuid
+		status: $status
+		startDate: $startDate
+		endDate: $endDate
+		pagination: $pagination
+	) {
+		edges {
+			node {
+				__typename
+				... on PaymentTransaction {
+					uuid
+					amount
+					paidAt
+					channel
+					currency
+					customerEmail
+					requestedAmount
+					refunds {
+						return {
+							uuid
+							returnDate
+							processedDate
+							refundAmount
+							product {
+								name
+							}
+						}
+					}
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
