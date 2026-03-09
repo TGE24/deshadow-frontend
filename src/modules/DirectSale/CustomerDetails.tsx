@@ -87,10 +87,10 @@ const CustomerDetails = ({
 				</label>
 				<Select
 					value={paymentTypeOptions.find(
-						(option) => option.value === paymentType
+						(option) => option.value === paymentType,
 					)}
 					onChange={(
-						selectedOption: SingleValue<{ value: PaymentType; label: string }>
+						selectedOption: SingleValue<{ value: PaymentType; label: string }>,
 					) => {
 						if (selectedOption) {
 							setValue("paymentType", selectedOption.value);
@@ -116,8 +116,8 @@ const CustomerDetails = ({
 							backgroundColor: state.isSelected
 								? "#3b82f6"
 								: state.isFocused
-								? "#eff6ff"
-								: "white",
+									? "#eff6ff"
+									: "white",
 						}),
 						menuPortal: (base) => ({
 							...base,

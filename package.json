@@ -12,6 +12,7 @@
 	},
 	"dependencies": {
 		"@apollo/client": "^3.12.8",
+		"@myazahq/pos-sdk": "^1.0.2",
 		"@tailwindcss/vite": "^4.1.13",
 		"@tanstack/react-table": "^8.21.3",
 		"@types/apollo-upload-client": "^18.0.0",

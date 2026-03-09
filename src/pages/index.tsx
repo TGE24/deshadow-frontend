@@ -6,6 +6,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
 import { LoginMutation, useLoginMutation } from "../generated/graphql";
+import { MyazaPOS } from "@myazahq/pos-sdk";
 
 interface LoginFormData {
 	email: string;
@@ -71,6 +72,28 @@ const Login = () => {
 			setErrorMessage("An unexpected error occurred. Please try again.");
 		}
 	};
+
+	const sdk = new MyazaPOS({
+		apiKey:
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZTNjNDJlYi0xNzAwLTQ4NzEtODZiNi05YWE5YjVkZjkyMTQiLCJidXNpbmVzc0lkIjoiMDQ5ZmZmZGEtNjFlYS00MDg2LWE2MmUtM2FkYmRmZTUwZWFmIiwicm9sZUlkIjoiMWNmMTlmZTYtMzUyOS00M2JiLTlkYzEtNDg0MzliYzU3YzljIiwicm9sZU5hbWUiOiJidXNpbmVzc19hZG1pbiIsImlhdCI6MTc3MDk3OTQ1MCwiZXhwIjoxNzc4NzU1NDUwfQ.Q-5PBrvcdT5X09uWHAfodrJsvpAFvLf63Z4uD5Ls_yo",
+		merchantId: "ae3c42eb-1700-4871-86b6-9aa9b5df9214",
+		theme: {
+			primaryColor: "#278783",
+			backgroundColor: "#ffffff",
+			textColor: "#1a1a2e",
+			borderRadius: 12,
+			logoUrl: "https://placehold.co/400",
+			colorScheme: "light", // 'light' | 'dark' | 'system'
+		},
+	});
+
+	const handleCrptoPayment = async () => {
+		await sdk.init();
+		await sdk.createSession({ amount: 2000, chain: "solana", token: "USDC" });
+	};
+
+	sdk.on("payment.confirmed", ({ session }) => console.log(session));
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[url('assets/login-bg.svg')] bg-cover bg-center bg-no-repeat p-[20px]">
 			<div className="bg-[#F8F8F8] rounded-[20px] w-full max-w-[550px] px-[20px] py-[40px] md:p-[60px] shadow-lg">
@@ -146,6 +169,8 @@ const Login = () => {
 						Forgot your password?
 					</Button>
 				</div>
+
+				<Button onClick={handleCrptoPayment}>Crypto</Button>
 			</div>
 		</div>
 	);
