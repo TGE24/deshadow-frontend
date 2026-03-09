@@ -6,7 +6,11 @@ import SerialNumberAutoSuggest from "../../components/SerialNumberAutoSuggest";
 import { ProductItem } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
-import { SaleType, useAccessoriesLazyQuery } from "../../generated/graphql";
+import {
+	Accessory,
+	SaleType,
+	useAccessoriesLazyQuery,
+} from "../../generated/graphql";
 
 interface ProductInformationProps {
 	productItems: ProductItem[];
@@ -39,7 +43,7 @@ const ProductInformation = ({
 				return {
 					value: node.uuid,
 					label: node.name,
-					accessory: node,
+					accessory: node as Accessory,
 				};
 			}) || [],
 		[accessoriesData?.accessories?.edges],
@@ -121,12 +125,14 @@ const ProductInformation = ({
 												accessoryUuid: option.value,
 												productName: option.label,
 												sellingPrice: 0,
+												storeUuid: option.accessory.store?.uuid || null,
 											});
 										} else {
 											onUpdateProduct(item.id, {
 												accessoryUuid: "",
 												productName: "",
 												sellingPrice: undefined,
+												storeUuid: null,
 											});
 										}
 									}}
