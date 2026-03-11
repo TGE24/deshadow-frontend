@@ -28,13 +28,15 @@ import ViewSaleItem from "../modules/Modals/SalesDetails/ViewSaleItem";
 import RepayAllModal from "../modules/Modals/CreditProfile/RepayAllModal";
 
 const CreditProfileDetails = () => {
+	const { id } = useParams<{ id: string }>();
 	const [getCreditProfile, { data: creditProfile, loading, refetch }] =
 		useCreditProfileLazyQuery({
 			fetchPolicy: "network-only",
 		});
 	const { data: paymentHistory, refetch: refetchPaymentHistory } =
-		usePaymentHistoryQuery({ variables: { pagination: { first: 100 } } });
-	const { id } = useParams<{ id: string }>();
+		usePaymentHistoryQuery({
+			variables: { pagination: { first: 100 }, creditProfileUuid: id },
+		});
 	const [open, setOpen] = useState(false);
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
 	const [selectedSaleItem, setSelectedSaleItem] = useState<SaleItem>(
@@ -103,10 +105,6 @@ const CreditProfileDetails = () => {
 					node,
 				): node is Extract<typeof node, { __typename: "PaymentTransaction" }> =>
 					node.__typename === "PaymentTransaction",
-			)
-			.filter(
-				(transaction) =>
-					transaction.customerEmail?.trim().toLowerCase() === customerEmail,
 			)
 			.sort(
 				(a, b) =>

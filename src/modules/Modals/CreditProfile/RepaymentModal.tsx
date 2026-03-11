@@ -35,7 +35,7 @@ const RepaymentModal: React.FC<ModalProps> = ({
 
 	const handleSubmit = async () => {
 		const itemsAllocations = [
-			{ saleItemUuid: data.uuid, amount: Number(data.lineTotal) },
+			{ saleItemUuid: data.uuid, amount: payAllAmount },
 		];
 
 		try {

@@ -4,6 +4,7 @@ query PaymentHistory(
 	$startDate: Time
 	$endDate: Time
 	$pagination: PaginationInput
+	$creditProfileUuid: UUID
 ) {
 	paymentTransactions(
 		storeUuid: $storeUuid
@@ -11,6 +12,7 @@ query PaymentHistory(
 		startDate: $startDate
 		endDate: $endDate
 		pagination: $pagination
+		creditProfileUuid: $creditProfileUuid
 	) {
 		edges {
 			node {

@@ -973,6 +973,7 @@ export type QueryPaymentTransactionArgs = {
 
 
 export type QueryPaymentTransactionsArgs = {
+  creditProfileUuid?: InputMaybe<Scalars['UUID']['input']>;
   endDate?: InputMaybe<Scalars['Time']['input']>;
   pagination?: InputMaybe<PaginationInput>;
   startDate?: InputMaybe<Scalars['Time']['input']>;
@@ -1711,6 +1712,7 @@ export type PaymentHistoryQueryVariables = Exact<{
   startDate?: InputMaybe<Scalars['Time']['input']>;
   endDate?: InputMaybe<Scalars['Time']['input']>;
   pagination?: InputMaybe<PaginationInput>;
+  creditProfileUuid?: InputMaybe<Scalars['UUID']['input']>;
 }>;
 
 
@@ -3858,13 +3860,14 @@ export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const PaymentHistoryDocument = gql`
-    query PaymentHistory($storeUuid: UUID, $status: PaymentTransactionStatus, $startDate: Time, $endDate: Time, $pagination: PaginationInput) {
+    query PaymentHistory($storeUuid: UUID, $status: PaymentTransactionStatus, $startDate: Time, $endDate: Time, $pagination: PaginationInput, $creditProfileUuid: UUID) {
   paymentTransactions(
     storeUuid: $storeUuid
     status: $status
     startDate: $startDate
     endDate: $endDate
     pagination: $pagination
+    creditProfileUuid: $creditProfileUuid
   ) {
     edges {
       node {
@@ -3919,6 +3922,7 @@ export const PaymentHistoryDocument = gql`
  *      startDate: // value for 'startDate'
  *      endDate: // value for 'endDate'
  *      pagination: // value for 'pagination'
+ *      creditProfileUuid: // value for 'creditProfileUuid'
  *   },
  * });
  */
