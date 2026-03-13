@@ -1,11 +1,13 @@
 import Button from "../../components/Button";
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
 	SaleType,
 	PaymentType,
+	UserRole,
 	useCreateSaleMutation,
 	useProductItemLazyQuery,
+	useStoresQuery,
 	ProductItem as ProductItemType,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
@@ -37,7 +39,9 @@ const DirectSale = ({
 }: DirectSaleProps) => {
 	const { setProductItem } = useProductStore();
 	const { user } = useUserStore();
+	const isStoreOwner = user?.role === UserRole.StoreOwner;
 	const [createSale, { loading }] = useCreateSaleMutation();
+	const [selectedStoreUuid, setSelectedStoreUuid] = useState("");
 	const [currentStep, setCurrentStep] = useState(1);
 	const [stepsVisible, setStepsVisible] = useState(false);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
@@ -59,6 +63,41 @@ const DirectSale = ({
 	} | null>(null);
 
 	const [getProductItem, { data }] = useProductItemLazyQuery();
+	const { data: storesData } = useStoresQuery({
+		variables: { pagination: { first: 100 } },
+		skip: !isStoreOwner,
+		fetchPolicy: "network-only",
+	});
+
+	type StoreOption = { uuid: string; name: string };
+
+	const stores = useMemo<StoreOption[]>(() => {
+		if (!storesData?.stores?.edges) {
+			return [];
+		}
+
+		return storesData.stores.edges
+			.map((edge) => edge.node)
+			.filter(
+				(
+					node,
+				): node is {
+					__typename?: "Store";
+					uuid: string;
+					name: string;
+					isActive: boolean;
+					address?: string | null;
+					phone?: string | null;
+				} => node.__typename === "Store",
+			)
+			.map((store) => ({ uuid: store.uuid, name: store.name }));
+	}, [storesData]);
+
+	useEffect(() => {
+		if (isStoreOwner && !selectedStoreUuid && stores.length > 0) {
+			setSelectedStoreUuid(stores[0].uuid);
+		}
+	}, [isStoreOwner, selectedStoreUuid, stores]);
 
 	const handleViewProductDetails = (productUuid: string) => {
 		getProductItem({
@@ -187,17 +226,19 @@ const DirectSale = ({
 		}
 
 		const assignedStoreUuid = user?.assignedStore?.uuid ?? "";
-		const ownedStoreUuid =
-			user?.ownedStores && user.ownedStores.length > 0
-				? user.ownedStores[0].uuid
-				: "";
+
+		if (isStoreOwner && !selectedStoreUuid) {
+			toast.error("Please select a store");
+			return;
+		}
 
 		// Prefer storeUuid from a selected product item when available
 		const productItemStoreUuid = productItems.find(
 			(it) => it.storeUuid,
 		)?.storeUuid;
-		const storeUuid =
-			productItemStoreUuid || assignedStoreUuid || ownedStoreUuid || "";
+		const storeUuid = isStoreOwner
+			? selectedStoreUuid
+			: productItemStoreUuid || assignedStoreUuid || "";
 
 		const subtotal = calculateSubtotal(productItems);
 		const totalAmountAfterDiscount = subtotal - (data.discountAmount || 0);
@@ -374,6 +415,29 @@ const DirectSale = ({
 						}}
 						className="h-full flex flex-col"
 					>
+						{isStoreOwner && (
+							<div className="pt-4 sm:pt-6 md:pt-[24px]">
+								<label className="text-[14px] text-[#1F2937] font-bold mb-[8px] block">
+									Store <span className="text-red-500">*</span>
+								</label>
+								<select
+									value={selectedStoreUuid}
+									onChange={(event) => setSelectedStoreUuid(event.target.value)}
+									className="w-full h-[50px] rounded-[10px] border-[#E5E7EB] bg-white border-[2px] px-[14px] outline-none focus:border-[#278783] focus:ring-2 focus:ring-[#278783]/20 text-[14px] transition-all"
+								>
+									{stores.length === 0 ? (
+										<option value="">No stores available</option>
+									) : (
+										stores.map((store) => (
+											<option key={store.uuid} value={store.uuid}>
+												{store.name}
+											</option>
+										))
+									)}
+								</select>
+							</div>
+						)}
+
 						<div className="flex-1">{renderStepContent()}</div>
 
 						{/* Navigation Buttons */}

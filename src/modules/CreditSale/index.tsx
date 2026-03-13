@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import Select from "react-select";
 import { CreditSaleFormData } from "./types";
 import { INITIAL_CREDIT_SALE_FORM_DATA, CREDIT_SALE_STEPS } from "./constants";
 import { canProceedToNextStep } from "./validation";
@@ -47,14 +48,40 @@ const CreditSale: React.FC = () => {
 		useSetProductItemAttributeValuesMutation();
 	const [createAccessory] = useCreateAccessoryMutation();
 	const { data: userData } = useMeQuery();
+	const [selectedStoreUuid, setSelectedStoreUuid] = useState("");
 
 	const formData = watch();
+	const isStoreOwner = userData?.me?.role === UserRole.StoreOwner;
+	const ownedStores = userData?.me?.ownedStores;
+	const storeOptions =
+		ownedStores?.map((store) => ({ value: store.uuid, label: store.name })) ||
+		[];
+
+	const storeSelectStyles = {
+		control: () =>
+			"h-[50px] !rounded-[10px] !border-[#E5E7EB] border-[2px] cursor-pointer outline-none focus:outline-none text-[14px] w-full",
+		container: () => "w-full",
+		indicatorSeparator: () => "hidden",
+	};
+
+	useEffect(() => {
+		if (
+			isStoreOwner &&
+			!selectedStoreUuid &&
+			ownedStores &&
+			ownedStores.length > 0
+		) {
+			setSelectedStoreUuid(ownedStores[0].uuid);
+		}
+	}, [isStoreOwner, ownedStores, selectedStoreUuid]);
 
 	// Get store UUID from user profile
 	const storeUuid =
 		userData?.me?.role === UserRole.Reseller
 			? userData?.me?.assignedStore?.uuid || ""
-			: userData?.me?.ownedStores?.[0]?.uuid || "";
+			: isStoreOwner
+				? selectedStoreUuid
+				: userData?.me?.ownedStores?.[0]?.uuid || "";
 
 	const handleClose = () => {
 		reset(INITIAL_CREDIT_SALE_FORM_DATA);
@@ -95,6 +122,11 @@ const CreditSale: React.FC = () => {
 			return;
 		}
 
+		if (!storeUuid) {
+			toast.error("Please select a store");
+			return;
+		}
+
 		setIsSubmitting(true);
 
 		try {
@@ -123,6 +155,7 @@ const CreditSale: React.FC = () => {
 							externalStoreName: formData.externalStoreName,
 							externalStoreContact: formData.externalStoreContact,
 							externalStoreAddress: formData.externalStoreAddress,
+							storeUuid,
 						},
 					},
 				});
@@ -345,6 +378,28 @@ const CreditSale: React.FC = () => {
 				/>
 				<div className="flex-1 pl-[24px]">
 					<div className="bg-white rounded-[10px]">
+						{isStoreOwner && (
+							<div className="mb-3.5">
+								<label className="text-[14px] text-[#1F2937] font-bold mb-[8px] block">
+									Store <span className="text-red-500">*</span>
+								</label>
+								<Select
+									options={storeOptions}
+									value={
+										storeOptions.find(
+											(option) => option.value === selectedStoreUuid,
+										) || null
+									}
+									onChange={(option) =>
+										setSelectedStoreUuid(option?.value || "")
+									}
+									placeholder="Select Store"
+									isDisabled={storeOptions.length === 0}
+									classNames={storeSelectStyles}
+								/>
+							</div>
+						)}
+
 						{renderStepContent()}
 
 						<div className="flex gap-[12px] pt-[24px] mt-[24px] border-t-[2px] border-gray-200">
