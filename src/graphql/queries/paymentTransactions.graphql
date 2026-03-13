@@ -25,6 +25,23 @@ query PaymentHistory(
 					currency
 					customerEmail
 					requestedAmount
+					sale {
+						uuid
+						saleType
+						paymentType
+						discountAmount
+						store {
+							name
+						}
+						createdBy {
+							role
+							firstName
+							lastName
+							assignedStore {
+								name
+							}
+						}
+					}
 					refunds {
 						return {
 							uuid

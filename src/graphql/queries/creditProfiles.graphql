@@ -10,6 +10,7 @@ query CreditProfiles($pagination: PaginationInput) {
 					customerPhone
 					createdAt
 					updatedAt
+					totalPendingAmount
 				}
 			}
 		}

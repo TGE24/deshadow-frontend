@@ -514,8 +514,7 @@ const CreditProfileDetails = () => {
 												</p>
 												{transaction.requestedAmount && (
 													<p className="text-xs text-gray-500 mt-1">
-														Requested:{" "}
-														{formatNaira(transaction.requestedAmount)}
+														Amount: {formatNaira(transaction.requestedAmount)}
 													</p>
 												)}
 											</div>

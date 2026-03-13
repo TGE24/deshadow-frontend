@@ -5,6 +5,9 @@ query SearchCreditProfiles($query: String, $limit: Int, $offset: Int) {
 			customerName
 			customerEmail
 			customerPhone
+			createdAt
+			updatedAt
+			totalPendingAmount
 		}
 		totalCount
 	}

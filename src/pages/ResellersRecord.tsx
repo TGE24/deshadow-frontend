@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import {
 	useCreditProfilesLazyQuery,
+	useSearchCreditProfilesLazyQuery,
 	CreditProfile,
 } from "../generated/graphql";
 import {
@@ -11,21 +12,34 @@ import {
 } from "@tanstack/react-table";
 import TableLoader from "../components/TableLoader";
 import TableEmptyState from "../components/TableEmptyState";
-import { formatDateTime } from "../utils/formatters";
+import { formatDateTime, formatNaira } from "../utils/formatters";
 import { Pagination } from "../modules/Pagination";
 import Button from "../components/Button";
+import Input from "../components/Input";
 import Plus from "../components/Icons/Plus";
 import { useNavigate } from "react-router-dom";
 import CreateCreditProfileModal from "../modules/Modals/CreditProfile/CreateCreditProfileModal";
+import { useDebounce } from "../hooks/useDebounce";
+
+const PAGE_SIZE = 10;
 
 const ResellersRecord = () => {
 	const navigate = useNavigate();
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
 	const [page, setPage] = useState(1);
+	const [searchTerm, setSearchTerm] = useState("");
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+	const isSearching = Boolean(debouncedSearchTerm.trim());
 	const [getCreditProfiles, { data: creditProfiles, loading, refetch }] =
 		useCreditProfilesLazyQuery({
 			fetchPolicy: "network-only",
 		});
+	const [
+		getSearchedCreditProfiles,
+		{ data: searchedCreditProfiles, loading: searchLoading },
+	] = useSearchCreditProfilesLazyQuery({
+		fetchPolicy: "network-only",
+	});
 
 	const [data, setData] = useState<CreditProfile[]>([]);
 
@@ -41,14 +55,14 @@ const ResellersRecord = () => {
 				cell: (info) => info.getValue(),
 				header: () => <h4>Customer Email</h4>,
 			},
-			// {
-			// 	accessorKey: "totalAmount",
-			// 	cell: (info) => {
-			// 		const value = info.getValue() as number;
-			// 		return formatNaira(value);
-			// 	},
-			// 	header: () => <h4>Total Amount</h4>,
-			// },
+			{
+				accessorKey: "totalPendingAmount",
+				cell: (info) => {
+					const value = info.getValue() as number;
+					return formatNaira(value);
+				},
+				header: () => <h4>Total Pending Amount</h4>,
+			},
 			{
 				accessorKey: "createdAt",
 				cell: (info) => {
@@ -57,94 +71,36 @@ const ResellersRecord = () => {
 				},
 				header: () => <h4>Created At</h4>,
 			},
-			// {
-			// 	accessorKey: "saleType",
-			// 	cell: (info) => {
-			// 		const saleType = info.getValue() as SaleType;
-			// 		const getSaleTypeStyles = (type: SaleType) => {
-			// 			switch (type) {
-			// 				case SaleType.Direct:
-			// 					return "bg-blue-100 text-blue-800";
-			// 				case SaleType.Swap:
-			// 					return "bg-green-100 text-green-800";
-			// 				case SaleType.Credit:
-			// 					return "bg-orange-100 text-orange-800";
-			// 				default:
-			// 					return "bg-gray-100 text-gray-800";
-			// 			}
-			// 		};
-
-			// 		const getSaleTypeLabel = (type: SaleType) => {
-			// 			switch (type) {
-			// 				case SaleType.Direct:
-			// 					return "Direct Sale";
-			// 				case SaleType.Swap:
-			// 					return "Swap Sale";
-			// 				case SaleType.Credit:
-			// 					return "Credit Sale";
-			// 				default:
-			// 					return type;
-			// 			}
-			// 		};
-
-			// 		return (
-			// 			<span
-			// 				className={`px-2 py-1 rounded text-xs font-medium ${getSaleTypeStyles(
-			// 					saleType,
-			// 				)}`}
-			// 			>
-			// 				{getSaleTypeLabel(saleType)}
-			// 			</span>
-			// 		);
-			// 	},
-			// 	header: () => <h4>Sale Type</h4>,
-			// },
-
-			// {
-			// 	accessorKey: "saleStatus",
-			// 	cell: (info) => {
-			// 		const status = info.getValue() as string;
-			// 		const getStatusStyles = (status: string) => {
-			// 			switch (status?.toLowerCase()) {
-			// 				case "completed":
-			// 					return "bg-green-100 text-green-800 border-green-200";
-			// 				case "pending":
-			// 					return "bg-yellow-100 text-yellow-800 border-yellow-200";
-			// 				case "cancelled":
-			// 					return "bg-red-100 text-red-800 border-red-200";
-			// 				case "returned":
-			// 					return "bg-gray-100 text-gray-800 border-gray-200";
-			// 				default:
-			// 					return "bg-gray-100 text-gray-800 border-gray-200";
-			// 			}
-			// 		};
-
-			// 		return (
-			// 			<span
-			// 				className={`px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium border capitalize ${getStatusStyles(
-			// 					status,
-			// 				)}`}
-			// 			>
-			// 				{status}
-			// 			</span>
-			// 		);
-			// 	},
-			// 	header: () => <h4>Sale Status</h4>,
-			// },
 		];
 
 		return baseColumns;
 	}, []);
 
 	useEffect(() => {
+		setPage(1);
+
+		if (isSearching) {
+			getSearchedCreditProfiles({
+				variables: {
+					query: debouncedSearchTerm.trim(),
+					limit: PAGE_SIZE,
+					offset: 0,
+				},
+			});
+			return;
+		}
+
 		getCreditProfiles({
 			variables: {
-				pagination: { first: 10 },
+				pagination: { first: PAGE_SIZE },
 			},
 		});
-
-		setPage(1);
-	}, [getCreditProfiles]);
+	}, [
+		debouncedSearchTerm,
+		getCreditProfiles,
+		getSearchedCreditProfiles,
+		isSearching,
+	]);
 
 	useEffect(() => {
 		if (creditProfiles?.creditProfiles?.edges) {
@@ -158,18 +114,58 @@ const ResellersRecord = () => {
 		}
 	}, [creditProfiles]);
 
+	const tableData = useMemo<CreditProfile[]>(() => {
+		if (isSearching) {
+			return (
+				(searchedCreditProfiles?.searchCreditProfiles
+					?.profiles as CreditProfile[]) ?? []
+			);
+		}
+
+		return data;
+	}, [data, isSearching, searchedCreditProfiles]);
+
+	const totalCount = isSearching
+		? (searchedCreditProfiles?.searchCreditProfiles?.totalCount ?? 0)
+		: (creditProfiles?.creditProfiles?.totalCount ?? 0);
+
+	const hasNextPage = isSearching
+		? page * PAGE_SIZE < totalCount
+		: (creditProfiles?.creditProfiles?.pageInfo?.hasNextPage ?? false);
+
+	const hasPreviousPage = isSearching
+		? page > 1
+		: (creditProfiles?.creditProfiles?.pageInfo?.hasPreviousPage ?? false);
+
 	const table = useReactTable({
-		data,
+		data: tableData,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});
 
 	const nextPage = () => {
+		if (isSearching) {
+			if (!hasNextPage) return;
+
+			const nextPageNumber = page + 1;
+			const nextOffset = (nextPageNumber - 1) * PAGE_SIZE;
+
+			getSearchedCreditProfiles({
+				variables: {
+					query: debouncedSearchTerm.trim(),
+					limit: PAGE_SIZE,
+					offset: nextOffset,
+				},
+			});
+			setPage(nextPageNumber);
+			return;
+		}
+
 		if (creditProfiles?.creditProfiles?.pageInfo?.hasNextPage) {
 			getCreditProfiles({
 				variables: {
 					pagination: {
-						first: 10,
+						first: PAGE_SIZE,
 						after: creditProfiles?.creditProfiles?.pageInfo?.endCursor,
 					},
 				},
@@ -179,11 +175,28 @@ const ResellersRecord = () => {
 	};
 
 	const prevPage = () => {
+		if (isSearching) {
+			if (!hasPreviousPage) return;
+
+			const previousPageNumber = page - 1;
+			const previousOffset = (previousPageNumber - 1) * PAGE_SIZE;
+
+			getSearchedCreditProfiles({
+				variables: {
+					query: debouncedSearchTerm.trim(),
+					limit: PAGE_SIZE,
+					offset: previousOffset,
+				},
+			});
+			setPage(previousPageNumber);
+			return;
+		}
+
 		if (creditProfiles?.creditProfiles?.pageInfo?.hasPreviousPage) {
 			getCreditProfiles({
 				variables: {
 					pagination: {
-						last: 10,
+						last: PAGE_SIZE,
 						before: creditProfiles?.creditProfiles?.pageInfo?.startCursor,
 					},
 				},
@@ -210,6 +223,15 @@ const ResellersRecord = () => {
 				</Button>
 			</div>
 
+			<div className="mt-4 max-w-[400px]">
+				<Input
+					placeholder="Search by customer name or email"
+					variant="search"
+					value={searchTerm}
+					onChange={(event) => setSearchTerm(event.target.value)}
+				/>
+			</div>
+
 			<div className="w-full mt-[48px] overflow-x-auto">
 				<table className="w-full min-w-[800px]">
 					<thead className="bg-[#D4E7E6] h-[41px]">
@@ -231,12 +253,16 @@ const ResellersRecord = () => {
 							</tr>
 						))}
 					</thead>
-					{loading ? (
+					{loading || searchLoading ? (
 						<TableLoader columns={columns.length} />
-					) : data.length === 0 ? (
+					) : tableData.length === 0 ? (
 						<TableEmptyState
 							title="No Credit Profiles Found"
-							description="There are no credit profiles to display. Credit profiles will appear here once they are created."
+							description={
+								searchTerm.trim()
+									? "No credit profiles match your search."
+									: "There are no credit profiles to display. Credit profiles will appear here once they are created."
+							}
 							colSpan={columns.length}
 						/>
 					) : (
@@ -270,15 +296,11 @@ const ResellersRecord = () => {
 
 				<Pagination
 					page={page}
-					loading={loading}
-					totalCount={creditProfiles?.creditProfiles.totalCount ?? 0}
-					dataLength={data.length}
-					hasNextPage={
-						creditProfiles?.creditProfiles?.pageInfo?.hasNextPage ?? false
-					}
-					hasPreviousPage={
-						creditProfiles?.creditProfiles?.pageInfo?.hasPreviousPage ?? false
-					}
+					loading={loading || searchLoading}
+					totalCount={totalCount}
+					dataLength={tableData.length}
+					hasNextPage={hasNextPage}
+					hasPreviousPage={hasPreviousPage}
 					onNextPage={nextPage}
 					onPrevPage={prevPage}
 				/>

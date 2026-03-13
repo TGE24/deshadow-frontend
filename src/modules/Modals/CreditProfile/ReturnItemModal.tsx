@@ -26,16 +26,27 @@ const ReturnItemModal: React.FC<ModalProps> = ({
 }) => {
 	const [returnItem, { loading }] = useReturnCreditSaleItemMutation();
 	const isAccessoryItem = Boolean(data.accessory);
-	const [quantity, setQuantity] = React.useState<number>(data.quantity || 1);
+	const [quantity, setQuantity] = React.useState<string>(
+		String(data.quantity || 1),
+	);
 
 	React.useEffect(() => {
-		setQuantity(data.quantity || 1);
+		setQuantity(String(data.quantity || 1));
 	}, [data.quantity, data.uuid]);
 
 	const hadnleSubmit = async () => {
-		if (isAccessoryItem && (quantity < 1 || quantity > data.quantity)) {
-			toast.error(`Quantity must be between 1 and ${data.quantity}`);
-			return;
+		const parsedQuantity = Number(quantity);
+
+		if (isAccessoryItem) {
+			if (!quantity.trim() || Number.isNaN(parsedQuantity)) {
+				toast.error("Please enter a valid quantity");
+				return;
+			}
+
+			if (parsedQuantity < 1 || parsedQuantity > data.quantity) {
+				toast.error(`Quantity must be between 1 and ${data.quantity}`);
+				return;
+			}
 		}
 
 		try {
@@ -46,7 +57,7 @@ const ReturnItemModal: React.FC<ModalProps> = ({
 						{
 							saleItemUuid: data.uuid,
 							reason: "",
-							...(isAccessoryItem ? { quantity } : {}),
+							...(isAccessoryItem ? { quantity: parsedQuantity } : {}),
 						},
 					],
 				},
@@ -120,12 +131,10 @@ const ReturnItemModal: React.FC<ModalProps> = ({
 								type="number"
 								label="Quantity"
 								placeholder="Enter quantity"
-								min={1}
 								max={data.quantity}
 								value={quantity}
 								onChange={(event) => {
-									const nextQuantity = Number(event.target.value);
-									setQuantity(Number.isNaN(nextQuantity) ? 1 : nextQuantity);
+									setQuantity(event.target.value);
 								}}
 							/>
 							<p className="text-xs text-gray-500">

@@ -162,6 +162,7 @@ export type CreditProfile = {
   customerEmail?: Maybe<Scalars['String']['output']>;
   customerName: Scalars['String']['output'];
   customerPhone?: Maybe<Scalars['String']['output']>;
+  totalPendingAmount: Scalars['Float']['output'];
   updatedAt: Scalars['Time']['output'];
   uuid: Scalars['UUID']['output'];
 };
@@ -1685,7 +1686,7 @@ export type CreditProfilesQueryVariables = Exact<{
 }>;
 
 
-export type CreditProfilesQuery = { __typename?: 'Query', creditProfiles: { __typename?: 'CreditProfileConnection', totalCount: number, edges: Array<{ __typename?: 'CreditProfileEdge', node: { __typename: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, createdAt: any, updatedAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type CreditProfilesQuery = { __typename?: 'Query', creditProfiles: { __typename?: 'CreditProfileConnection', totalCount: number, edges: Array<{ __typename?: 'CreditProfileEdge', node: { __typename: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, createdAt: any, updatedAt: any, totalPendingAmount: number } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type FinancialDashboardQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
@@ -1716,7 +1717,7 @@ export type PaymentHistoryQueryVariables = Exact<{
 }>;
 
 
-export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, sale: { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, store: { __typename?: 'Store', name: string }, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductQueryVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -1773,7 +1774,7 @@ export type SearchCreditProfilesQueryVariables = Exact<{
 }>;
 
 
-export type SearchCreditProfilesQuery = { __typename?: 'Query', searchCreditProfiles: { __typename?: 'CreditProfileSearchResult', totalCount: number, profiles: Array<{ __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null }> } };
+export type SearchCreditProfilesQuery = { __typename?: 'Query', searchCreditProfiles: { __typename?: 'CreditProfileSearchResult', totalCount: number, profiles: Array<{ __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, createdAt: any, updatedAt: any, totalPendingAmount: number }> } };
 
 export type StoresQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -3651,6 +3652,7 @@ export const CreditProfilesDocument = gql`
           customerPhone
           createdAt
           updatedAt
+          totalPendingAmount
         }
       }
     }
@@ -3880,6 +3882,23 @@ export const PaymentHistoryDocument = gql`
           currency
           customerEmail
           requestedAmount
+          sale {
+            uuid
+            saleType
+            paymentType
+            discountAmount
+            store {
+              name
+            }
+            createdBy {
+              role
+              firstName
+              lastName
+              assignedStore {
+                name
+              }
+            }
+          }
           refunds {
             return {
               uuid
@@ -4404,6 +4423,9 @@ export const SearchCreditProfilesDocument = gql`
       customerName
       customerEmail
       customerPhone
+      createdAt
+      updatedAt
+      totalPendingAmount
     }
     totalCount
   }
