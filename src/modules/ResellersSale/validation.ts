@@ -1,6 +1,4 @@
 import { ProductItem, CreateSaleForm } from "./types";
-import { SaleType } from "../../generated/graphql";
-
 export const canProceedToNextStep = (
 	currentStep: number,
 	productItems: ProductItem[],
