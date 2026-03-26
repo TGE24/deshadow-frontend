@@ -1,0 +1,5 @@
+mutation UpdateCreditProfile($input: UpdateCreditProfileInput!) {
+	updateCreditProfile(input: $input) {
+		uuid
+	}
+}

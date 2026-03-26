@@ -332,6 +332,7 @@ export type Mutation = {
   updateAttribute: Attribute;
   updateBrand: Brand;
   updateCategory: Category;
+  updateCreditProfile: CreditProfile;
   updateProduct: Product;
   updateProductItem: ProductItem;
   updateSaleItemFulfillmentStatus: SaleItem;
@@ -565,6 +566,11 @@ export type MutationUpdateBrandArgs = {
 export type MutationUpdateCategoryArgs = {
   input: CategoryInput;
   uuid: Scalars['UUID']['input'];
+};
+
+
+export type MutationUpdateCreditProfileArgs = {
+  input: UpdateCreditProfileInput;
 };
 
 
@@ -1298,6 +1304,12 @@ export type SwapTransaction = {
   uuid: Scalars['UUID']['output'];
 };
 
+export type UpdateCreditProfileInput = {
+  customerEmail?: InputMaybe<Scalars['String']['input']>;
+  customerName?: InputMaybe<Scalars['String']['input']>;
+  uuid: Scalars['UUID']['input'];
+};
+
 export type User = {
   __typename?: 'User';
   assignedStore?: Maybe<Store>;
@@ -1586,6 +1598,13 @@ export type UpdateCategoryMutationVariables = Exact<{
 
 
 export type UpdateCategoryMutation = { __typename?: 'Mutation', updateCategory: { __typename?: 'Category', uuid: any, status: CategoryStatus } };
+
+export type UpdateCreditProfileMutationVariables = Exact<{
+  input: UpdateCreditProfileInput;
+}>;
+
+
+export type UpdateCreditProfileMutation = { __typename?: 'Mutation', updateCreditProfile: { __typename?: 'CreditProfile', uuid: any } };
 
 export type UpdateProductMutationVariables = Exact<{
   input: ProductUpdateInput;
@@ -3024,6 +3043,39 @@ export function useUpdateCategoryMutation(baseOptions?: Apollo.MutationHookOptio
 export type UpdateCategoryMutationHookResult = ReturnType<typeof useUpdateCategoryMutation>;
 export type UpdateCategoryMutationResult = Apollo.MutationResult<UpdateCategoryMutation>;
 export type UpdateCategoryMutationOptions = Apollo.BaseMutationOptions<UpdateCategoryMutation, UpdateCategoryMutationVariables>;
+export const UpdateCreditProfileDocument = gql`
+    mutation UpdateCreditProfile($input: UpdateCreditProfileInput!) {
+  updateCreditProfile(input: $input) {
+    uuid
+  }
+}
+    `;
+export type UpdateCreditProfileMutationFn = Apollo.MutationFunction<UpdateCreditProfileMutation, UpdateCreditProfileMutationVariables>;
+
+/**
+ * __useUpdateCreditProfileMutation__
+ *
+ * To run a mutation, you first call `useUpdateCreditProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCreditProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCreditProfileMutation, { data, loading, error }] = useUpdateCreditProfileMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateCreditProfileMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCreditProfileMutation, UpdateCreditProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCreditProfileMutation, UpdateCreditProfileMutationVariables>(UpdateCreditProfileDocument, options);
+      }
+export type UpdateCreditProfileMutationHookResult = ReturnType<typeof useUpdateCreditProfileMutation>;
+export type UpdateCreditProfileMutationResult = Apollo.MutationResult<UpdateCreditProfileMutation>;
+export type UpdateCreditProfileMutationOptions = Apollo.BaseMutationOptions<UpdateCreditProfileMutation, UpdateCreditProfileMutationVariables>;
 export const UpdateProductDocument = gql`
     mutation UpdateProduct($input: ProductUpdateInput!, $uuid: UUID!) {
   updateProduct(input: $input, uuid: $uuid) {

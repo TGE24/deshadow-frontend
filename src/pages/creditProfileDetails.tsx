@@ -26,6 +26,7 @@ import RepaymentModal from "../modules/Modals/CreditProfile/RepaymentModal";
 import ReturnItemModal from "../modules/Modals/CreditProfile/ReturnItemModal";
 import ViewSaleItem from "../modules/Modals/SalesDetails/ViewSaleItem";
 import RepayAllModal from "../modules/Modals/CreditProfile/RepayAllModal";
+import EditCreditProfile from "../modules/Modals/UpdateCreditProfile";
 
 const CreditProfileDetails = () => {
 	const { id } = useParams<{ id: string }>();
@@ -38,6 +39,7 @@ const CreditProfileDetails = () => {
 			variables: { pagination: { first: 100 }, creditProfileUuid: id },
 		});
 	const [open, setOpen] = useState(false);
+	const [editDetailsOpen, setEditDetailsOpen] = useState(false);
 	const [creditDeviceModalOpen, setCreditDeviceModalOpen] = useState(false);
 	const [selectedSaleItem, setSelectedSaleItem] = useState<SaleItem>(
 		{} as SaleItem,
@@ -319,9 +321,19 @@ const CreditProfileDetails = () => {
 					>
 						{/* Customer Information Card */}
 						<div className="bg-white rounded-lg shadow-md p-6 mb-6">
-							<h2 className="text-xl font-semibold text-gray-900 mb-4">
-								Customer Information
-							</h2>
+							<div className="flex justify-between">
+								<h2 className="text-xl font-semibold text-gray-900 mb-4">
+									Customer Information
+								</h2>
+								<Button
+									size="small"
+									onClick={() => {
+										setEditDetailsOpen(true);
+									}}
+								>
+									Update Information
+								</Button>
+							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 								<div>
 									<p className="text-sm text-gray-600 mb-1">Name</p>
@@ -570,6 +582,12 @@ const CreditProfileDetails = () => {
 					refetch={refetchPageData}
 				/>
 			</Modal>
+			<EditCreditProfile
+				open={editDetailsOpen}
+				setOpen={setEditDetailsOpen}
+				refetch={refetch}
+				selectedUser={creditProfile?.creditProfile?.profile}
+			/>
 		</>
 	);
 };
