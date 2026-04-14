@@ -1,0 +1,8 @@
+mutation ReassignProductItem($productItemUuid: UUID!, $newProductUuid: UUID!) {
+	reassignProductItem(
+		productItemUuid: $productItemUuid
+		newProductUuid: $newProductUuid
+	) {
+		uuid
+	}
+}

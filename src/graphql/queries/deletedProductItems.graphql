@@ -1,0 +1,67 @@
+query DeletedProductItems(
+	$filter: ProductItemFilter
+	$pagination: PaginationInput
+) {
+	deletedProductItems(filter: $filter, pagination: $pagination) {
+		edges {
+			node {
+				... on ProductItem {
+					uuid
+					serialNumber
+					condition
+					status
+					costPrice
+					sellingPrice
+					externalStoreName
+					notes
+					store {
+						name
+						uuid
+					}
+					attributeValues {
+						attribute {
+							name
+							uuid
+						}
+						valueText
+					}
+					sellingPrice
+					images {
+						uuid
+						imageUrl
+						altText
+						isPrimary
+						sortOrder
+						createdAt
+						updatedAt
+					}
+					product {
+						availableItemsCount
+						createdAt
+						description
+						isOwned
+						model
+						name
+						updatedAt
+						uuid
+						brand {
+							name
+							uuid
+						}
+						category {
+							name
+							uuid
+						}
+					}
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

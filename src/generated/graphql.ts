@@ -156,6 +156,11 @@ export type CreateCreditProfileInput = {
   customerPhone: Scalars['String']['input'];
 };
 
+export type CreatePayoutBankInput = {
+  accountNumber: Scalars['String']['input'];
+  bankName: Scalars['String']['input'];
+};
+
 export type CreditProfile = {
   __typename?: 'CreditProfile';
   createdAt: Scalars['Time']['output'];
@@ -299,6 +304,7 @@ export type Mutation = {
   createBrand: Brand;
   createCategory: Category;
   createCreditProfile: CreditProfile;
+  createPayoutBank: PayoutBank;
   createProduct: Product;
   createProductItem: ProductItem;
   createReturn: Return;
@@ -309,6 +315,7 @@ export type Mutation = {
   deleteAttribute: Scalars['Boolean']['output'];
   deleteBrand: Scalars['Boolean']['output'];
   deleteCategory: Scalars['Boolean']['output'];
+  deletePayoutBank: Scalars['Boolean']['output'];
   deleteProduct: Scalars['Boolean']['output'];
   deleteProductItem: Scalars['Boolean']['output'];
   deleteProductItemAttributeValue: Scalars['Boolean']['output'];
@@ -318,12 +325,16 @@ export type Mutation = {
   loginWith2FA: AuthPayload;
   processRefund: Refund;
   processReturn: Return;
+  /** Moves an inventory unit to another product template (same store; not sold / no sale lines). */
+  reassignProductItem: ProductItem;
   recordManualPayment: PaymentTransaction;
   refreshToken: AuthPayload;
   requestPasswordReset: PasswordResetResponse;
   resendInvitation: PasswordResetResponse;
   resendOTP: PasswordResetResponse;
   resetPassword: PasswordResetResponse;
+  /** Clears soft-delete on a product item (store owners only; item's store must belong to the caller). */
+  restoreProductItem: ProductItem;
   returnCreditSaleItem: Sale;
   setProductItemAttributeValues: ProductItemAttributeValue;
   unassignAttributeFromProduct: Scalars['Boolean']['output'];
@@ -333,6 +344,7 @@ export type Mutation = {
   updateBrand: Brand;
   updateCategory: Category;
   updateCreditProfile: CreditProfile;
+  updatePayoutBank: PayoutBank;
   updateProduct: Product;
   updateProductItem: ProductItem;
   updateSaleItemFulfillmentStatus: SaleItem;
@@ -391,6 +403,11 @@ export type MutationCreateCreditProfileArgs = {
 };
 
 
+export type MutationCreatePayoutBankArgs = {
+  input: CreatePayoutBankInput;
+};
+
+
 export type MutationCreateProductArgs = {
   input: ProductInput;
 };
@@ -444,6 +461,11 @@ export type MutationDeleteCategoryArgs = {
 };
 
 
+export type MutationDeletePayoutBankArgs = {
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationDeleteProductArgs = {
   uuid: Scalars['UUID']['input'];
 };
@@ -493,6 +515,12 @@ export type MutationProcessReturnArgs = {
 };
 
 
+export type MutationReassignProductItemArgs = {
+  newProductUuid: Scalars['UUID']['input'];
+  productItemUuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationRecordManualPaymentArgs = {
   input: RecordManualPaymentInput;
 };
@@ -520,6 +548,11 @@ export type MutationResendOtpArgs = {
 
 export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
+};
+
+
+export type MutationRestoreProductItemArgs = {
+  uuid: Scalars['UUID']['input'];
 };
 
 
@@ -574,6 +607,12 @@ export type MutationUpdateCreditProfileArgs = {
 };
 
 
+export type MutationUpdatePayoutBankArgs = {
+  input: UpdatePayoutBankInput;
+  uuid: Scalars['UUID']['input'];
+};
+
+
 export type MutationUpdateProductArgs = {
   input: ProductUpdateInput;
   uuid: Scalars['UUID']['input'];
@@ -611,7 +650,7 @@ export type MutationUpdateUserArgs = {
   userId: Scalars['UUID']['input'];
 };
 
-export type Node = Accessory | Attribute | Brand | Category | EarningsTransaction | Invoice | MarketplaceListing | PaymentTransaction | Product | ProductItem | Refund | Sale | Store | StoreEarnings | User;
+export type Node = Accessory | Attribute | Brand | Category | EarningsTransaction | Invoice | MarketplaceListing | PaymentTransaction | PayoutBank | Product | ProductItem | Refund | Sale | Store | StoreEarnings | User;
 
 export type PageInfo = {
   __typename?: 'PageInfo';
@@ -684,11 +723,21 @@ export enum PaymentTransactionStatus {
 export enum PaymentType {
   Cash = 'cash',
   CashTransfer = 'cash_transfer',
+  Crypto = 'crypto',
   Pos = 'pos',
   PosCash = 'pos_cash',
   PosTransfer = 'pos_transfer',
   Transfer = 'transfer'
 }
+
+export type PayoutBank = {
+  __typename?: 'PayoutBank';
+  accountNumber: Scalars['String']['output'];
+  bankName: Scalars['String']['output'];
+  createdAt: Scalars['Time']['output'];
+  updatedAt: Scalars['Time']['output'];
+  uuid: Scalars['UUID']['output'];
+};
 
 export type Product = {
   __typename?: 'Product';
@@ -754,6 +803,8 @@ export type ProductItem = {
   condition: ProductCondition;
   costPrice?: Maybe<Scalars['Float']['output']>;
   createdAt: Scalars['Time']['output'];
+  /** Present when the item is soft-deleted (e.g. deletedProductItems query). */
+  deletedAt?: Maybe<Scalars['Time']['output']>;
   externalStoreAddress?: Maybe<Scalars['String']['output']>;
   externalStoreContact?: Maybe<Scalars['String']['output']>;
   externalStoreName?: Maybe<Scalars['String']['output']>;
@@ -850,6 +901,8 @@ export type Query = {
   conditionSummary: Scalars['JSON']['output'];
   creditProfile?: Maybe<CreditProfileDetail>;
   creditProfiles: CreditProfileConnection;
+  /** Soft-deleted product items (store owners only; scoped to the caller's stores). */
+  deletedProductItems: PaginatedResponse;
   financialDashboard: Scalars['JSON']['output'];
   invoice?: Maybe<Invoice>;
   invoiceStats: Scalars['JSON']['output'];
@@ -863,6 +916,7 @@ export type Query = {
   paymentTransaction?: Maybe<PaymentTransaction>;
   paymentTransactions: PaginatedResponse;
   paymentTransactionsBySale: PaginatedResponse;
+  payoutBanks: PaginatedResponse;
   product?: Maybe<Product>;
   productItem?: Maybe<ProductItem>;
   productItems: PaginatedResponse;
@@ -940,6 +994,12 @@ export type QueryCreditProfilesArgs = {
 };
 
 
+export type QueryDeletedProductItemsArgs = {
+  filter?: InputMaybe<ProductItemFilter>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
 export type QueryFinancialDashboardArgs = {
   storeId?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -992,6 +1052,11 @@ export type QueryPaymentTransactionsArgs = {
 export type QueryPaymentTransactionsBySaleArgs = {
   pagination?: InputMaybe<PaginationInput>;
   saleUuid: Scalars['UUID']['input'];
+};
+
+
+export type QueryPayoutBanksArgs = {
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 
@@ -1310,6 +1375,11 @@ export type UpdateCreditProfileInput = {
   uuid: Scalars['UUID']['input'];
 };
 
+export type UpdatePayoutBankInput = {
+  accountNumber?: InputMaybe<Scalars['String']['input']>;
+  bankName?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type User = {
   __typename?: 'User';
   assignedStore?: Maybe<Store>;
@@ -1510,6 +1580,14 @@ export type LoginWith2FaMutationVariables = Exact<{
 
 export type LoginWith2FaMutation = { __typename?: 'Mutation', loginWith2FA: { __typename?: 'AuthPayload', accessToken?: string | null, refreshToken?: string | null, challengeToken?: string | null } };
 
+export type ReassignProductItemMutationVariables = Exact<{
+  productItemUuid: Scalars['UUID']['input'];
+  newProductUuid: Scalars['UUID']['input'];
+}>;
+
+
+export type ReassignProductItemMutation = { __typename?: 'Mutation', reassignProductItem: { __typename?: 'ProductItem', uuid: any } };
+
 export type RecordManualPaymentMutationVariables = Exact<{
   input: RecordManualPaymentInput;
 }>;
@@ -1551,6 +1629,13 @@ export type ResetPasswordMutationVariables = Exact<{
 
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'PasswordResetResponse', success: boolean, message: string } };
+
+export type RestoreProductItemMutationVariables = Exact<{
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type RestoreProductItemMutation = { __typename?: 'Mutation', restoreProductItem: { __typename?: 'ProductItem', uuid: any } };
 
 export type ReturnCreditSaleItemMutationVariables = Exact<{
   creditProfileUuid: Scalars['UUID']['input'];
@@ -1662,28 +1747,28 @@ export type AccessoriesQueryVariables = Exact<{
 }>;
 
 
-export type AccessoriesQuery = { __typename?: 'Query', accessories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory', uuid: any, name: string, quantity: number, costPrice?: number | null, sellingPrice?: number | null, createdAt: any, updatedAt: any, store: { __typename?: 'Store', uuid: any, name: string } } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type AccessoriesQuery = { __typename?: 'Query', accessories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory', uuid: any, name: string, quantity: number, costPrice?: number | null, sellingPrice?: number | null, createdAt: any, updatedAt: any, store: { __typename?: 'Store', uuid: any, name: string } } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type AttributesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
 
 
-export type AttributesQuery = { __typename?: 'Query', attributes: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute', uuid: any, name: string, description?: string | null, createdAt: any, updatedAt: any } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type AttributesQuery = { __typename?: 'Query', attributes: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute', uuid: any, name: string, description?: string | null, createdAt: any, updatedAt: any } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type BrandsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
 
 
-export type BrandsQuery = { __typename?: 'Query', brands: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand', uuid: any, name: string, logoUrl?: string | null, isActive: boolean, isOwned: boolean, updatedAt: any, createdAt: any, description?: string | null, products: Array<{ __typename?: 'Product', uuid: any, name: string }> } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type BrandsQuery = { __typename?: 'Query', brands: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand', uuid: any, name: string, logoUrl?: string | null, isActive: boolean, isOwned: boolean, updatedAt: any, createdAt: any, description?: string | null, products: Array<{ __typename?: 'Product', uuid: any, name: string }> } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'PayoutBank' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type CategoriesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
 
 
-export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, isOwned: boolean, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type CategoriesQuery = { __typename?: 'Query', categories: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category', uuid: any, name: string, description?: string | null, createdAt: any, status: CategoryStatus, isOwned: boolean, parent?: { __typename?: 'Category', name: string } | null } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction' } | { __typename: 'PayoutBank' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ConditionSummaryQueryVariables = Exact<{
   startDate?: InputMaybe<Scalars['Time']['input']>;
@@ -1706,6 +1791,14 @@ export type CreditProfilesQueryVariables = Exact<{
 
 
 export type CreditProfilesQuery = { __typename?: 'Query', creditProfiles: { __typename?: 'CreditProfileConnection', totalCount: number, edges: Array<{ __typename?: 'CreditProfileEdge', node: { __typename: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null, createdAt: any, updatedAt: any, totalPendingAmount: number } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type DeletedProductItemsQueryVariables = Exact<{
+  filter?: InputMaybe<ProductItemFilter>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type DeletedProductItemsQuery = { __typename?: 'Query', deletedProductItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, externalStoreName?: string | null, notes?: string | null, store: { __typename?: 'Store', name: string, uuid: any }, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }>, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any } } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type FinancialDashboardQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
@@ -1736,7 +1829,7 @@ export type PaymentHistoryQueryVariables = Exact<{
 }>;
 
 
-export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, sale: { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, store: { __typename?: 'Store', name: string }, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, sale: { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, store: { __typename?: 'Store', name: string }, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'PayoutBank' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductQueryVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -1759,7 +1852,7 @@ export type ProductItemsQueryVariables = Exact<{
 }>;
 
 
-export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, externalStoreName?: string | null, notes?: string | null, store: { __typename?: 'Store', name: string, uuid: any }, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }>, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any } } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductItemsQuery = { __typename?: 'Query', productItems: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus, costPrice?: number | null, sellingPrice?: number | null, externalStoreName?: string | null, notes?: string | null, store: { __typename?: 'Store', name: string, uuid: any }, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }>, images: Array<{ __typename?: 'ProductImage', uuid: any, imageUrl: string, altText?: string | null, isPrimary: boolean, sortOrder: number, createdAt: any, updatedAt: any }>, product: { __typename?: 'Product', availableItemsCount: number, createdAt: any, description?: string | null, isOwned: boolean, model?: string | null, name: string, updatedAt: any, uuid: any, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any } } } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductsQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1767,7 +1860,7 @@ export type ProductsQueryVariables = Exact<{
 }>;
 
 
-export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product', uuid: any, name: string, availableItemsCount: number, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type ProductsQuery = { __typename?: 'Query', products: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product', uuid: any, name: string, availableItemsCount: number, model?: string | null, description?: string | null, brand: { __typename?: 'Brand', name: string, uuid: any }, category: { __typename?: 'Category', name: string, uuid: any }, items: Array<{ __typename?: 'ProductItem', uuid: any, serialNumber: string, condition: ProductCondition, status: ProductItemStatus }>, attributes: Array<{ __typename?: 'Attribute', uuid: any, name: string }> } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SalesQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1775,7 +1868,7 @@ export type SalesQueryVariables = Exact<{
 }>;
 
 
-export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', status: ProductItemStatus, serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SalesQuery = { __typename?: 'Query', sales: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, saleDate: any, saleStatus: SaleStatus, createdAt: any, updatedAt: any, totalAmount: number, paymentStatus: PaymentStatus, customerName: string, customerEmail?: string | null, customerPhone?: string | null, invoices: Array<{ __typename?: 'Invoice', uuid: any, filePath?: string | null, invoiceNumber: string }>, store: { __typename?: 'Store', name: string }, items: Array<{ __typename?: 'SaleItem', uuid: any, quantity: number, unitPrice: number, lineTotal: number, accessory?: { __typename?: 'Accessory', uuid: any, name: string } | null, productItem?: { __typename?: 'ProductItem', status: ProductItemStatus, serialNumber: string, attributeValues: Array<{ __typename?: 'ProductItemAttributeValue', valueText?: string | null, attribute: { __typename?: 'Attribute', name: string, uuid: any } }> } | null, product?: { __typename?: 'Product', name: string } | null }>, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SalesReportQueryVariables = Exact<{
   storeId?: InputMaybe<Scalars['Int']['input']>;
@@ -1800,7 +1893,7 @@ export type StoresQueryVariables = Exact<{
 }>;
 
 
-export type StoresQuery = { __typename?: 'Query', stores: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store', uuid: any, name: string, isActive: boolean, address?: string | null, phone?: string | null } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type StoresQuery = { __typename?: 'Query', stores: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store', uuid: any, name: string, isActive: boolean, address?: string | null, phone?: string | null } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type UsersQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
@@ -1808,7 +1901,7 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank' } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User', uuid: any, role: UserRole, email: string, phone?: string | null, lastName: string, isActive: boolean, firstName: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 
 export const AssignAttributesToProductDocument = gql`
@@ -2618,6 +2711,43 @@ export function useLoginWith2FaMutation(baseOptions?: Apollo.MutationHookOptions
 export type LoginWith2FaMutationHookResult = ReturnType<typeof useLoginWith2FaMutation>;
 export type LoginWith2FaMutationResult = Apollo.MutationResult<LoginWith2FaMutation>;
 export type LoginWith2FaMutationOptions = Apollo.BaseMutationOptions<LoginWith2FaMutation, LoginWith2FaMutationVariables>;
+export const ReassignProductItemDocument = gql`
+    mutation ReassignProductItem($productItemUuid: UUID!, $newProductUuid: UUID!) {
+  reassignProductItem(
+    productItemUuid: $productItemUuid
+    newProductUuid: $newProductUuid
+  ) {
+    uuid
+  }
+}
+    `;
+export type ReassignProductItemMutationFn = Apollo.MutationFunction<ReassignProductItemMutation, ReassignProductItemMutationVariables>;
+
+/**
+ * __useReassignProductItemMutation__
+ *
+ * To run a mutation, you first call `useReassignProductItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReassignProductItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reassignProductItemMutation, { data, loading, error }] = useReassignProductItemMutation({
+ *   variables: {
+ *      productItemUuid: // value for 'productItemUuid'
+ *      newProductUuid: // value for 'newProductUuid'
+ *   },
+ * });
+ */
+export function useReassignProductItemMutation(baseOptions?: Apollo.MutationHookOptions<ReassignProductItemMutation, ReassignProductItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReassignProductItemMutation, ReassignProductItemMutationVariables>(ReassignProductItemDocument, options);
+      }
+export type ReassignProductItemMutationHookResult = ReturnType<typeof useReassignProductItemMutation>;
+export type ReassignProductItemMutationResult = Apollo.MutationResult<ReassignProductItemMutation>;
+export type ReassignProductItemMutationOptions = Apollo.BaseMutationOptions<ReassignProductItemMutation, ReassignProductItemMutationVariables>;
 export const RecordManualPaymentDocument = gql`
     mutation RecordManualPayment($input: RecordManualPaymentInput!) {
   recordManualPayment(input: $input) {
@@ -2831,6 +2961,39 @@ export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOption
 export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
 export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
 export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
+export const RestoreProductItemDocument = gql`
+    mutation RestoreProductItem($uuid: UUID!) {
+  restoreProductItem(uuid: $uuid) {
+    uuid
+  }
+}
+    `;
+export type RestoreProductItemMutationFn = Apollo.MutationFunction<RestoreProductItemMutation, RestoreProductItemMutationVariables>;
+
+/**
+ * __useRestoreProductItemMutation__
+ *
+ * To run a mutation, you first call `useRestoreProductItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestoreProductItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [restoreProductItemMutation, { data, loading, error }] = useRestoreProductItemMutation({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useRestoreProductItemMutation(baseOptions?: Apollo.MutationHookOptions<RestoreProductItemMutation, RestoreProductItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RestoreProductItemMutation, RestoreProductItemMutationVariables>(RestoreProductItemDocument, options);
+      }
+export type RestoreProductItemMutationHookResult = ReturnType<typeof useRestoreProductItemMutation>;
+export type RestoreProductItemMutationResult = Apollo.MutationResult<RestoreProductItemMutation>;
+export type RestoreProductItemMutationOptions = Apollo.BaseMutationOptions<RestoreProductItemMutation, RestoreProductItemMutationVariables>;
 export const ReturnCreditSaleItemDocument = gql`
     mutation ReturnCreditSaleItem($creditProfileUuid: UUID!, $items: [CreditSaleReturnItemInput!]!) {
   returnCreditSaleItem(creditProfileUuid: $creditProfileUuid, items: $items) {
@@ -3751,6 +3914,106 @@ export type CreditProfilesQueryHookResult = ReturnType<typeof useCreditProfilesQ
 export type CreditProfilesLazyQueryHookResult = ReturnType<typeof useCreditProfilesLazyQuery>;
 export type CreditProfilesSuspenseQueryHookResult = ReturnType<typeof useCreditProfilesSuspenseQuery>;
 export type CreditProfilesQueryResult = Apollo.QueryResult<CreditProfilesQuery, CreditProfilesQueryVariables>;
+export const DeletedProductItemsDocument = gql`
+    query DeletedProductItems($filter: ProductItemFilter, $pagination: PaginationInput) {
+  deletedProductItems(filter: $filter, pagination: $pagination) {
+    edges {
+      node {
+        ... on ProductItem {
+          uuid
+          serialNumber
+          condition
+          status
+          costPrice
+          sellingPrice
+          externalStoreName
+          notes
+          store {
+            name
+            uuid
+          }
+          attributeValues {
+            attribute {
+              name
+              uuid
+            }
+            valueText
+          }
+          sellingPrice
+          images {
+            uuid
+            imageUrl
+            altText
+            isPrimary
+            sortOrder
+            createdAt
+            updatedAt
+          }
+          product {
+            availableItemsCount
+            createdAt
+            description
+            isOwned
+            model
+            name
+            updatedAt
+            uuid
+            brand {
+              name
+              uuid
+            }
+            category {
+              name
+              uuid
+            }
+          }
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useDeletedProductItemsQuery__
+ *
+ * To run a query within a React component, call `useDeletedProductItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDeletedProductItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDeletedProductItemsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useDeletedProductItemsQuery(baseOptions?: Apollo.QueryHookOptions<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>(DeletedProductItemsDocument, options);
+      }
+export function useDeletedProductItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>(DeletedProductItemsDocument, options);
+        }
+export function useDeletedProductItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>(DeletedProductItemsDocument, options);
+        }
+export type DeletedProductItemsQueryHookResult = ReturnType<typeof useDeletedProductItemsQuery>;
+export type DeletedProductItemsLazyQueryHookResult = ReturnType<typeof useDeletedProductItemsLazyQuery>;
+export type DeletedProductItemsSuspenseQueryHookResult = ReturnType<typeof useDeletedProductItemsSuspenseQuery>;
+export type DeletedProductItemsQueryResult = Apollo.QueryResult<DeletedProductItemsQuery, DeletedProductItemsQueryVariables>;
 export const FinancialDashboardDocument = gql`
     query FinancialDashboard($storeId: Int) {
   financialDashboard(storeId: $storeId)

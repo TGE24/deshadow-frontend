@@ -9,6 +9,7 @@ import {
 	useDeleteProductMutation,
 	Product,
 	useDeleteProductItemMutation,
+	UserRole,
 } from "../generated/graphql";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -32,9 +33,12 @@ import EditProduct from "../modules/Modals/Product/EditProduct";
 import DeleteModal from "../modules/Modals/DeleteModal";
 import CreateInventory from "../modules/Modals/Inventory/CreateInventory";
 import EditInventory from "../modules/Modals/Inventory/EditInventory";
+import { useUserStore } from "../store/userStore";
+import ReassignProductItem from "../modules/Modals/ReassignProductItem";
 
 const ProductDetails = () => {
 	const [page, setPage] = useState(1);
+	const { user } = useUserStore();
 	const [selectedConditions, setSelectedConditions] = useState<
 		ProductCondition[]
 	>([]);
@@ -55,6 +59,7 @@ const ProductDetails = () => {
 		useState<ProductItem | null>(null);
 	const [editProductItemOpen, setEditProductItemOpen] = useState(false);
 	const [deleteProductItemOpen, setDeleteProductItemOpen] = useState(false);
+	const [reassignProductItemOpen, setReassignProductItemOpen] = useState(false);
 
 	// Navigation and mutations
 	const navigate = useNavigate();
@@ -225,6 +230,13 @@ const ProductDetails = () => {
 							}
 							items={[
 								{
+									label: "Reassign Product Item",
+									onClick: () => {
+										setSelectedProductItem(productItem);
+										setReassignProductItemOpen(true);
+									},
+								},
+								{
 									label: "Edit Product Item",
 									onClick: () => {
 										setSelectedProductItem(productItem);
@@ -329,6 +341,11 @@ const ProductDetails = () => {
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
+		state: {
+			columnVisibility: {
+				actions: user?.role === UserRole.Reseller ? false : true,
+			},
+		},
 	});
 
 	useEffect(() => {
@@ -704,6 +721,12 @@ const ProductDetails = () => {
 				setOpen={setEditProductItemOpen}
 				refetch={refetch}
 				selectedProduct={products.product as Product}
+				selectedProductItem={selectedProductItem as ProductItem}
+			/>
+			<ReassignProductItem
+				open={reassignProductItemOpen}
+				setOpen={setReassignProductItemOpen}
+				refetch={refetch}
 				selectedProductItem={selectedProductItem as ProductItem}
 			/>
 		</div>

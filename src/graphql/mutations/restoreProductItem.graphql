@@ -1,0 +1,5 @@
+mutation RestoreProductItem($uuid: UUID!) {
+	restoreProductItem(uuid: $uuid) {
+		uuid
+	}
+}
