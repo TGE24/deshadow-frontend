@@ -7,6 +7,7 @@ import { ProductItem } from "./types";
 import { formatNaira } from "../../utils/formatters";
 import { cn } from "../../utils/cn";
 import { SaleType, useAccessoriesLazyQuery } from "../../generated/graphql";
+import debounce from "lodash/debounce";
 
 interface ProductInformationProps {
 	productItems: ProductItem[];
@@ -44,13 +45,26 @@ const ProductInformation = ({
 					accessory: node,
 				};
 			}) || [],
-		[accessoriesData?.accessories?.edges]
+		[accessoriesData?.accessories?.edges],
 	);
 
 	// Load accessories on component mount
 	useEffect(() => {
 		getAccessories({ variables: { pagination: { first: 100 } } });
 	}, [getAccessories]);
+
+	const handleAccessorySearch = useMemo(
+		() =>
+			debounce((inputValue: string) => {
+				getAccessories({
+					variables: {
+						pagination: { first: 100 },
+						...(inputValue ? { search: inputValue } : {}),
+					},
+				});
+			}, 300),
+		[getAccessories],
+	);
 
 	return (
 		<div className="flex flex-col gap-[24px] border border-gray-200 rounded-[10px] p-[20px]">
@@ -63,7 +77,7 @@ const ProductInformation = ({
 						"bg-gray-50 p-[16px] rounded-[8px] border border-gray-100",
 						{
 							"mb-[16px]": index < productItems.length - 1,
-						}
+						},
 					)}
 				>
 					<div className="flex justify-end">
@@ -113,10 +127,15 @@ const ProductInformation = ({
 									value={
 										item.accessoryUuid
 											? accessoriesOptions.find(
-													(opt) => opt.value === item.accessoryUuid
-											  )
+													(opt) => opt.value === item.accessoryUuid,
+												)
 											: null
 									}
+									onInputChange={(inputValue, { action }) => {
+										if (action === "input-change") {
+											handleAccessorySearch(inputValue);
+										}
+									}}
 									onChange={(option) => {
 										if (option) {
 											onUpdateProduct(item.id, {
@@ -253,7 +272,7 @@ const ProductInformation = ({
 										item.unitPrice &&
 										item.unitPrice < item.sellingPrice
 										? "border-red-500 focus:border-red-500"
-										: ""
+										: "",
 								)}
 								required={!isCreditSale}
 							/>
@@ -279,7 +298,7 @@ const ProductInformation = ({
 										{formatNaira(
 											item.isAccessory
 												? (item.unitPrice || 0) * (item.quantity || 1)
-												: item.unitPrice
+												: item.unitPrice,
 										)}
 									</span>
 								</div>
@@ -327,7 +346,7 @@ const ProductInformation = ({
 									const price = item.unitPrice || 0;
 									const quantity = item.isAccessory ? item.quantity || 1 : 1;
 									return total + price * quantity;
-								}, 0) - (discountAmount || 0)
+								}, 0) - (discountAmount || 0),
 							)}
 						</span>
 					</div>

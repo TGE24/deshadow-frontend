@@ -38,7 +38,7 @@ import ReassignProductItem from "../modules/Modals/ReassignProductItem";
 
 const ProductDetails = () => {
 	const [page, setPage] = useState(1);
-	const { user } = useUserStore();
+	const { user, selectedStore } = useUserStore();
 	const [selectedConditions, setSelectedConditions] = useState<
 		ProductCondition[]
 	>([]);
@@ -353,6 +353,8 @@ const ProductDetails = () => {
 			getProduct({ variables: { uuid: id } });
 			const filter = {
 				productUuid: id,
+				storeUuid:
+					selectedStore?.uuid === "all" ? undefined : selectedStore?.uuid,
 				...(selectedConditions.length > 0 && {
 					conditions: selectedConditions,
 				}),
@@ -360,7 +362,13 @@ const ProductDetails = () => {
 			getProductItems({ variables: { filter } });
 			setPage(1); // Reset to page 1 when filters change
 		}
-	}, [id, selectedConditions, getProduct, getProductItems]);
+	}, [
+		id,
+		selectedConditions,
+		getProduct,
+		getProductItems,
+		selectedStore?.uuid,
+	]);
 
 	const product = products?.product;
 
