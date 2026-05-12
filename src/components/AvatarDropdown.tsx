@@ -71,7 +71,7 @@ const AvatarDropdown: React.FC<Partial<User>> = ({
 								<p>Your Profile</p>
 							</li>
 						</Link>
-						<Link to="/#">
+						<Link to="/settings">
 							<li className="flex gap-[6px] items-center text-[#8C8C8C] text-[16px]">
 								<Settings color={"#8C8C8C"} />
 								<p>Account Settings</p>

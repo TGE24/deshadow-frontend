@@ -24,6 +24,7 @@ import Accessories from "./pages/accessories";
 import ForgotPassword from "./pages/forgot-password";
 import ResetPassword from "./pages/reset-password";
 import CreditProfileDetails from "./pages/creditProfileDetails";
+import Settings from "./pages/settings";
 
 function App() {
 	return (
@@ -63,6 +64,7 @@ function App() {
 										path="/credit-profile/:id"
 										element={<CreditProfileDetails />}
 									/>
+									<Route path="/settings" element={<Settings />} />
 								</Routes>
 							</Layout>
 						</ProtectedRoute>

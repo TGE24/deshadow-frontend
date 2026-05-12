@@ -48,6 +48,8 @@ const SaleSuccess: React.FC<SaleSuccessProps> = ({
 				return "POS + Cash";
 			case PaymentType.PosTransfer:
 				return "POS + Transfer";
+			case PaymentType.Crypto:
+				return "Crypto";
 			default:
 				return "Not specified";
 		}

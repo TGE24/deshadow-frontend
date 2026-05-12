@@ -1,0 +1,3 @@
+mutation DeletePayoutBank($uuid: UUID!) {
+	deletePayoutBank(uuid: $uuid)
+}

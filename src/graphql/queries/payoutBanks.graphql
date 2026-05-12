@@ -1,0 +1,21 @@
+query PayoutBanks($pagination: PaginationInput) {
+	payoutBanks(pagination: $pagination) {
+		edges {
+			node {
+				... on PayoutBank {
+					uuid
+					bankName
+					createdAt
+					accountNumber
+				}
+			}
+		}
+		totalCount
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

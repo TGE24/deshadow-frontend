@@ -7,6 +7,8 @@ import {
 	useCreateSaleMutation,
 	useProductItemLazyQuery,
 	ProductItem as ProductItemType,
+	usePayoutBanksQuery,
+	PayoutBank,
 } from "../../generated/graphql";
 import { cn } from "../../utils/cn";
 import { toast } from "react-toastify";
@@ -29,6 +31,8 @@ import { calculateSubtotal, createNewProductItem } from "../../utils/helpers";
 import { useProductStore } from "../../store/productStore";
 import { useUserStore } from "../../store/userStore";
 
+import { MyazaPOS } from "@myazahq/pos-sdk";
+
 const DirectSale = ({
 	setOpen,
 	saleType = SaleType.Direct,
@@ -38,6 +42,7 @@ const DirectSale = ({
 	const { setProductItem } = useProductStore();
 	const { user } = useUserStore();
 	const [createSale, { loading }] = useCreateSaleMutation();
+	const { data: banks } = usePayoutBanksQuery();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [stepsVisible, setStepsVisible] = useState(false);
 	const [productItems, setProductItems] = useState<ProductItem[]>([
@@ -166,6 +171,7 @@ const DirectSale = ({
 		// Close the entire DirectSale component
 		setOpen(false);
 	};
+	const bank = banks?.payoutBanks.edges[0].node as PayoutBank;
 
 	const onSubmit = async (data: CreateSaleForm) => {
 		// Validate that no product has a unit price lower than selling price
@@ -206,45 +212,104 @@ const DirectSale = ({
 		const gadgets = productItems.filter((item) => !item.isAccessory);
 		const accessories = productItems.filter((item) => item.isAccessory);
 
-		await createSale({
-			variables: {
-				input: {
-					...data,
-					totalAmount: totalAmountAfterDiscount,
-					items: gadgets.map((item) => ({
-						serialNumber: item.serialNumber || "",
-						unitPrice: item.unitPrice,
-					})),
-					accessories: accessories.map((item) => ({
-						productUuid: item.accessoryUuid || "",
-						quantity: item.quantity || 0,
-						unitPrice: item.unitPrice,
-					})),
-					storeUuid,
+		if (data.paymentType === PaymentType.Crypto) {
+			const sdk = new MyazaPOS({
+				merchantId: import.meta.env.VITE_ENV_MYAZA_MERCHANT_ID,
+				isSandbox: true,
+			});
+
+			await sdk.init();
+			await sdk.checkout({
+				amount: totalAmountAfterDiscount,
+				currency: "NGN",
+				payoutAccountNumber: bank.accountNumber,
+				payoutNetworkId: bank?.bankName, // from sdk.getBanks()
+			});
+			sdk.on("payment.received", async ({ sessionId }) => {
+				// Crypto arrived — payout is processing
+				console.log({ received: sessionId });
+
+				await createSale({
+					variables: {
+						input: {
+							...data,
+							totalAmount: totalAmountAfterDiscount,
+							items: gadgets.map((item) => ({
+								serialNumber: item.serialNumber || "",
+								unitPrice: item.unitPrice,
+							})),
+							accessories: accessories.map((item) => ({
+								productUuid: item.accessoryUuid || "",
+								quantity: item.quantity || 0,
+								unitPrice: item.unitPrice,
+							})),
+							storeUuid,
+						},
+					},
+					onCompleted: async (response) => {
+						if (response?.createSale) {
+							const sale = response.createSale;
+							setCompletedSaleData({
+								saleId: sale.uuid,
+								customerName: sale.customerName,
+								totalAmount: sale.totalAmount,
+								saleType: data.saleType,
+								paymentType: data.paymentType,
+								createdAt: sale.createdAt,
+								invoices: sale.invoices || [],
+							});
+							setSaleCompleted(true);
+							refetch?.();
+						}
+					},
+					onError(error) {
+						toast.error(
+							error.message || "Failed to complete sale. Please try again.",
+						);
+					},
+				});
+			});
+		} else {
+			await createSale({
+				variables: {
+					input: {
+						...data,
+						totalAmount: totalAmountAfterDiscount,
+						items: gadgets.map((item) => ({
+							serialNumber: item.serialNumber || "",
+							unitPrice: item.unitPrice,
+						})),
+						accessories: accessories.map((item) => ({
+							productUuid: item.accessoryUuid || "",
+							quantity: item.quantity || 0,
+							unitPrice: item.unitPrice,
+						})),
+						storeUuid,
+					},
 				},
-			},
-			onCompleted: async (response) => {
-				if (response?.createSale) {
-					const sale = response.createSale;
-					setCompletedSaleData({
-						saleId: sale.uuid,
-						customerName: sale.customerName,
-						totalAmount: sale.totalAmount,
-						saleType: data.saleType,
-						paymentType: data.paymentType,
-						createdAt: sale.createdAt,
-						invoices: sale.invoices || [],
-					});
-					setSaleCompleted(true);
-					refetch?.();
-				}
-			},
-			onError(error) {
-				toast.error(
-					error.message || "Failed to complete sale. Please try again.",
-				);
-			},
-		});
+				onCompleted: async (response) => {
+					if (response?.createSale) {
+						const sale = response.createSale;
+						setCompletedSaleData({
+							saleId: sale.uuid,
+							customerName: sale.customerName,
+							totalAmount: sale.totalAmount,
+							saleType: data.saleType,
+							paymentType: data.paymentType,
+							createdAt: sale.createdAt,
+							invoices: sale.invoices || [],
+						});
+						setSaleCompleted(true);
+						refetch?.();
+					}
+				},
+				onError(error) {
+					toast.error(
+						error.message || "Failed to complete sale. Please try again.",
+					);
+				},
+			});
+		}
 	};
 
 	const renderStepContent = () => {

@@ -1474,6 +1474,13 @@ export type CreateCreditProfileMutationVariables = Exact<{
 
 export type CreateCreditProfileMutation = { __typename?: 'Mutation', createCreditProfile: { __typename?: 'CreditProfile', uuid: any, customerName: string, customerEmail?: string | null, customerPhone?: string | null } };
 
+export type CreatePayoutBankMutationVariables = Exact<{
+  input: CreatePayoutBankInput;
+}>;
+
+
+export type CreatePayoutBankMutation = { __typename?: 'Mutation', createPayoutBank: { __typename?: 'PayoutBank', uuid: any } };
+
 export type CreateProductMutationVariables = Exact<{
   input: ProductInput;
 }>;
@@ -1536,6 +1543,13 @@ export type DeleteCategoryMutationVariables = Exact<{
 
 
 export type DeleteCategoryMutation = { __typename?: 'Mutation', deleteCategory: boolean };
+
+export type DeletePayoutBankMutationVariables = Exact<{
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type DeletePayoutBankMutation = { __typename?: 'Mutation', deletePayoutBank: boolean };
 
 export type DeleteProductMutationVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -1691,6 +1705,14 @@ export type UpdateCreditProfileMutationVariables = Exact<{
 
 export type UpdateCreditProfileMutation = { __typename?: 'Mutation', updateCreditProfile: { __typename?: 'CreditProfile', uuid: any } };
 
+export type UpdatePayoutBankMutationVariables = Exact<{
+  input: UpdatePayoutBankInput;
+  uuid: Scalars['UUID']['input'];
+}>;
+
+
+export type UpdatePayoutBankMutation = { __typename?: 'Mutation', updatePayoutBank: { __typename?: 'PayoutBank', uuid: any } };
+
 export type UpdateProductMutationVariables = Exact<{
   input: ProductUpdateInput;
   uuid: Scalars['UUID']['input'];
@@ -1830,6 +1852,13 @@ export type PaymentHistoryQueryVariables = Exact<{
 
 
 export type PaymentHistoryQuery = { __typename?: 'Query', paymentTransactions: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename: 'Accessory' } | { __typename: 'Attribute' } | { __typename: 'Brand' } | { __typename: 'Category' } | { __typename: 'EarningsTransaction' } | { __typename: 'Invoice' } | { __typename: 'MarketplaceListing' } | { __typename: 'PaymentTransaction', uuid: any, amount: number, paidAt?: any | null, channel?: string | null, currency: string, customerEmail?: string | null, requestedAmount?: number | null, sale: { __typename?: 'Sale', uuid: any, saleType: SaleType, paymentType: PaymentType, discountAmount: number, store: { __typename?: 'Store', name: string }, createdBy?: { __typename?: 'User', role: UserRole, firstName: string, lastName: string, assignedStore?: { __typename?: 'Store', name: string } | null } | null }, refunds: Array<{ __typename?: 'Refund', return: { __typename?: 'Return', uuid: any, returnDate: any, processedDate?: any | null, refundAmount?: number | null, product: { __typename?: 'Product', name: string } } }> } | { __typename: 'PayoutBank' } | { __typename: 'Product' } | { __typename: 'ProductItem' } | { __typename: 'Refund' } | { __typename: 'Sale' } | { __typename: 'Store' } | { __typename: 'StoreEarnings' } | { __typename: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type PayoutBanksQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+
+export type PayoutBanksQuery = { __typename?: 'Query', payoutBanks: { __typename?: 'PaginatedResponse', totalCount: number, edges: Array<{ __typename?: 'Edge', node: { __typename?: 'Accessory' } | { __typename?: 'Attribute' } | { __typename?: 'Brand' } | { __typename?: 'Category' } | { __typename?: 'EarningsTransaction' } | { __typename?: 'Invoice' } | { __typename?: 'MarketplaceListing' } | { __typename?: 'PaymentTransaction' } | { __typename?: 'PayoutBank', uuid: any, bankName: string, createdAt: any, accountNumber: string } | { __typename?: 'Product' } | { __typename?: 'ProductItem' } | { __typename?: 'Refund' } | { __typename?: 'Sale' } | { __typename?: 'Store' } | { __typename?: 'StoreEarnings' } | { __typename?: 'User' } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProductQueryVariables = Exact<{
   uuid: Scalars['UUID']['input'];
@@ -2195,6 +2224,39 @@ export function useCreateCreditProfileMutation(baseOptions?: Apollo.MutationHook
 export type CreateCreditProfileMutationHookResult = ReturnType<typeof useCreateCreditProfileMutation>;
 export type CreateCreditProfileMutationResult = Apollo.MutationResult<CreateCreditProfileMutation>;
 export type CreateCreditProfileMutationOptions = Apollo.BaseMutationOptions<CreateCreditProfileMutation, CreateCreditProfileMutationVariables>;
+export const CreatePayoutBankDocument = gql`
+    mutation CreatePayoutBank($input: CreatePayoutBankInput!) {
+  createPayoutBank(input: $input) {
+    uuid
+  }
+}
+    `;
+export type CreatePayoutBankMutationFn = Apollo.MutationFunction<CreatePayoutBankMutation, CreatePayoutBankMutationVariables>;
+
+/**
+ * __useCreatePayoutBankMutation__
+ *
+ * To run a mutation, you first call `useCreatePayoutBankMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreatePayoutBankMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createPayoutBankMutation, { data, loading, error }] = useCreatePayoutBankMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreatePayoutBankMutation(baseOptions?: Apollo.MutationHookOptions<CreatePayoutBankMutation, CreatePayoutBankMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreatePayoutBankMutation, CreatePayoutBankMutationVariables>(CreatePayoutBankDocument, options);
+      }
+export type CreatePayoutBankMutationHookResult = ReturnType<typeof useCreatePayoutBankMutation>;
+export type CreatePayoutBankMutationResult = Apollo.MutationResult<CreatePayoutBankMutation>;
+export type CreatePayoutBankMutationOptions = Apollo.BaseMutationOptions<CreatePayoutBankMutation, CreatePayoutBankMutationVariables>;
 export const CreateProductDocument = gql`
     mutation CreateProduct($input: ProductInput!) {
   createProduct(input: $input) {
@@ -2512,6 +2574,37 @@ export function useDeleteCategoryMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteCategoryMutationHookResult = ReturnType<typeof useDeleteCategoryMutation>;
 export type DeleteCategoryMutationResult = Apollo.MutationResult<DeleteCategoryMutation>;
 export type DeleteCategoryMutationOptions = Apollo.BaseMutationOptions<DeleteCategoryMutation, DeleteCategoryMutationVariables>;
+export const DeletePayoutBankDocument = gql`
+    mutation DeletePayoutBank($uuid: UUID!) {
+  deletePayoutBank(uuid: $uuid)
+}
+    `;
+export type DeletePayoutBankMutationFn = Apollo.MutationFunction<DeletePayoutBankMutation, DeletePayoutBankMutationVariables>;
+
+/**
+ * __useDeletePayoutBankMutation__
+ *
+ * To run a mutation, you first call `useDeletePayoutBankMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeletePayoutBankMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deletePayoutBankMutation, { data, loading, error }] = useDeletePayoutBankMutation({
+ *   variables: {
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useDeletePayoutBankMutation(baseOptions?: Apollo.MutationHookOptions<DeletePayoutBankMutation, DeletePayoutBankMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeletePayoutBankMutation, DeletePayoutBankMutationVariables>(DeletePayoutBankDocument, options);
+      }
+export type DeletePayoutBankMutationHookResult = ReturnType<typeof useDeletePayoutBankMutation>;
+export type DeletePayoutBankMutationResult = Apollo.MutationResult<DeletePayoutBankMutation>;
+export type DeletePayoutBankMutationOptions = Apollo.BaseMutationOptions<DeletePayoutBankMutation, DeletePayoutBankMutationVariables>;
 export const DeleteProductDocument = gql`
     mutation DeleteProduct($uuid: UUID!) {
   deleteProduct(uuid: $uuid)
@@ -3239,6 +3332,40 @@ export function useUpdateCreditProfileMutation(baseOptions?: Apollo.MutationHook
 export type UpdateCreditProfileMutationHookResult = ReturnType<typeof useUpdateCreditProfileMutation>;
 export type UpdateCreditProfileMutationResult = Apollo.MutationResult<UpdateCreditProfileMutation>;
 export type UpdateCreditProfileMutationOptions = Apollo.BaseMutationOptions<UpdateCreditProfileMutation, UpdateCreditProfileMutationVariables>;
+export const UpdatePayoutBankDocument = gql`
+    mutation UpdatePayoutBank($input: UpdatePayoutBankInput!, $uuid: UUID!) {
+  updatePayoutBank(input: $input, uuid: $uuid) {
+    uuid
+  }
+}
+    `;
+export type UpdatePayoutBankMutationFn = Apollo.MutationFunction<UpdatePayoutBankMutation, UpdatePayoutBankMutationVariables>;
+
+/**
+ * __useUpdatePayoutBankMutation__
+ *
+ * To run a mutation, you first call `useUpdatePayoutBankMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdatePayoutBankMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updatePayoutBankMutation, { data, loading, error }] = useUpdatePayoutBankMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *      uuid: // value for 'uuid'
+ *   },
+ * });
+ */
+export function useUpdatePayoutBankMutation(baseOptions?: Apollo.MutationHookOptions<UpdatePayoutBankMutation, UpdatePayoutBankMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdatePayoutBankMutation, UpdatePayoutBankMutationVariables>(UpdatePayoutBankDocument, options);
+      }
+export type UpdatePayoutBankMutationHookResult = ReturnType<typeof useUpdatePayoutBankMutation>;
+export type UpdatePayoutBankMutationResult = Apollo.MutationResult<UpdatePayoutBankMutation>;
+export type UpdatePayoutBankMutationOptions = Apollo.BaseMutationOptions<UpdatePayoutBankMutation, UpdatePayoutBankMutationVariables>;
 export const UpdateProductDocument = gql`
     mutation UpdateProduct($input: ProductUpdateInput!, $uuid: UUID!) {
   updateProduct(input: $input, uuid: $uuid) {
@@ -4276,6 +4403,62 @@ export type PaymentHistoryQueryHookResult = ReturnType<typeof usePaymentHistoryQ
 export type PaymentHistoryLazyQueryHookResult = ReturnType<typeof usePaymentHistoryLazyQuery>;
 export type PaymentHistorySuspenseQueryHookResult = ReturnType<typeof usePaymentHistorySuspenseQuery>;
 export type PaymentHistoryQueryResult = Apollo.QueryResult<PaymentHistoryQuery, PaymentHistoryQueryVariables>;
+export const PayoutBanksDocument = gql`
+    query PayoutBanks($pagination: PaginationInput) {
+  payoutBanks(pagination: $pagination) {
+    edges {
+      node {
+        ... on PayoutBank {
+          uuid
+          bankName
+          createdAt
+          accountNumber
+        }
+      }
+    }
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __usePayoutBanksQuery__
+ *
+ * To run a query within a React component, call `usePayoutBanksQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePayoutBanksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePayoutBanksQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function usePayoutBanksQuery(baseOptions?: Apollo.QueryHookOptions<PayoutBanksQuery, PayoutBanksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PayoutBanksQuery, PayoutBanksQueryVariables>(PayoutBanksDocument, options);
+      }
+export function usePayoutBanksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PayoutBanksQuery, PayoutBanksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PayoutBanksQuery, PayoutBanksQueryVariables>(PayoutBanksDocument, options);
+        }
+export function usePayoutBanksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PayoutBanksQuery, PayoutBanksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PayoutBanksQuery, PayoutBanksQueryVariables>(PayoutBanksDocument, options);
+        }
+export type PayoutBanksQueryHookResult = ReturnType<typeof usePayoutBanksQuery>;
+export type PayoutBanksLazyQueryHookResult = ReturnType<typeof usePayoutBanksLazyQuery>;
+export type PayoutBanksSuspenseQueryHookResult = ReturnType<typeof usePayoutBanksSuspenseQuery>;
+export type PayoutBanksQueryResult = Apollo.QueryResult<PayoutBanksQuery, PayoutBanksQueryVariables>;
 export const ProductDocument = gql`
     query Product($uuid: UUID!) {
   product(uuid: $uuid) {

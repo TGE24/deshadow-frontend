@@ -1,0 +1,5 @@
+mutation UpdatePayoutBank($input: UpdatePayoutBankInput!, $uuid: UUID!) {
+	updatePayoutBank(input: $input, uuid: $uuid) {
+		uuid
+	}
+}
